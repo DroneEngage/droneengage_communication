@@ -1,0 +1,4 @@
+bin/
+build/
+*.so
+config.null.json

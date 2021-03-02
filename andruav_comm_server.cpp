@@ -9,6 +9,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+
+#include "helpers/colors.hpp"
 #include "andruav_comm_server.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
@@ -98,4 +100,12 @@ void uavos::andruav_servers::CAndruavCommServer::connect (const std::string& ser
         return ;
     }
     //return EXIT_SUCCESS;
+}
+
+
+void uavos::andruav_servers::CAndruavCommServer::uninit()
+{
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
 }

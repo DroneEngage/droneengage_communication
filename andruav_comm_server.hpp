@@ -38,6 +38,8 @@ namespace andruav_servers
         
         public:
             void connect (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
+
+            void uninit();
     };
 }
 }

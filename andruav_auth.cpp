@@ -4,11 +4,10 @@
 
 
 #include "./helpers/colors.hpp"
+#include "./helpers/helpers.hpp"
 
-//#include "./helpers/helpers.hpp"
 #include "andruav_auth.hpp"
 
-extern bool validateField (const Json& message, const char *field_name, Json::value_t field_type);
 
 size_t WriteCallback(char *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -181,4 +180,12 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse (const std
 std::string uavos::andruav_servers::CAndruavAuthenticator::stringifyError (const int& error_number)
 {
     return (std::string(curl_easy_strerror((CURLcode)error_number)));
+}
+
+
+void uavos::andruav_servers::CAndruavAuthenticator::uninit()
+{
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
 }

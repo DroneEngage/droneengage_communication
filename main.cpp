@@ -1,17 +1,81 @@
 #include <iostream>
+#include <signal.h>
 #include <curl/curl.h>
+#include <sys/socket.h>
 
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
-#include "./helpers/json.hpp"
-using Json = nlohmann::json;
 
+#include "messages.hpp"
+#include "configFile.hpp"
+#include "udpClient.hpp"
 
 #include "andruav_auth.hpp"
 #include "andruav_comm_server.hpp"
 
 
 
+
+bool exit_me = false;
+
+
+uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+uavos::comm::CUDPClient& cUDPClient = uavos::comm::CUDPClient::getInstance();  
+
+
+void onReceive (const char * jsonMessage, int len, struct sockaddr_in *  ssock);
+void uninit ();
+
+/**
+ * creates JSON message that identifies Module
+**/
+const Json createJSONID (bool reSend)
+{
+        const Json& jsonConfig = cConfigFile.GetConfigJSON();
+        Json jsonID;        
+        
+        jsonID[INTERMODULE_COMMAND_TYPE] =  CMD_TYPE_INTERMODULE;
+        jsonID[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
+        Json ms;
+        
+        ms["a"] = jsonConfig["module_id"];
+        ms["b"] = jsonConfig["module_class"];
+        ms["c"] = jsonConfig["module_messages"];
+        ms["d"] = Json();
+        ms["e"] = jsonConfig["module_key"]; 
+        ms["f"] = 
+        {
+            {"sd", jsonConfig["partyID"]},
+            {"gr", jsonConfig["groupID"]}
+        };
+        ms["z"] = reSend;
+
+        jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
+        
+        return jsonID;
+}
+
+void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
+{
+    static bool bFirstReceived = false;
+        
+    #ifdef DEBUG        
+        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << jsonMessage << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
+    
+    Json jMsg;
+    if (jsonMessage[len-1]==125 || (jsonMessage[len-2]==125))   // "}".charCodeAt(0)  IS TEXT / BINARY Msg  
+    {
+        jMsg = Json::parse(jsonMessage);
+        //std::cout << cliaddr.
+    }
+    else
+    {
+
+    }
+    
+}
 
 
 void connectToCommServer ()
@@ -21,33 +85,148 @@ void connectToCommServer ()
     andruav_server.connect(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, "oppa");
 }
 
-int main ()
+bool autehticateToServer ()
 {
     uavos::andruav_servers::CAndruavAuthenticator& andruav_auth = uavos::andruav_servers::CAndruavAuthenticator::getInstance();
 
-    std::string url =  "https://192.168.1.144:19408/w/wl/";
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    
+    if ((!validateField(jsonConfig,"auth_ip", Json::value_t::string))
+     || (validateField(jsonConfig,"auth_port", Json::value_t::number_unsigned) == false)
+     )
+    {
+        std::cout << std::to_string(validateField(jsonConfig,"auth_ip", Json::value_t::string)) << std::endl;
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing login info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        exit(1);
+    }
+
+    std::string url =  "https://" + jsonConfig["auth_ip"].get<std::string>() + ":" + std::to_string(jsonConfig["auth_port"].get<int>()) +  "/w/wl/";
     //std::string url =  "https://andruav.com:19408/w/wl/";
     std::string param =  "acc=mhefny@andruav.com&pwd=mhefny&gr=1&app=andruav&ver=5.0.0&ex=Andruav Web Panel&at=g";
-        
-    int res =0;
-    //std::string response;
-    res = andruav_auth.getAuth (url, param);
+
+    std::cout << _INFO_CONSOLE_TEXT << "Auth URL: " << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
+       
+    const int res = andruav_auth.getAuth (url, param);
+
+
     if ((res !=CURLE_OK) || (andruav_auth.getErrorCode() !=0))
     {
         // error 
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Andruav Authentication Failed !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        return false;
     }
     else
     {
         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Andruav Authentication Succeeded !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        return true;
+    }
+}
+
+void initSockets()
+{
+
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    
+    // UDP Server
+    cUDPClient.init(jsonConfig["s2s_udp_target_ip"].get<std::string>().c_str(),
+            std::stoi(jsonConfig["s2s_udp_target_port"].get<std::string>().c_str()),
+            jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
+            std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
+    
+    
+    Json jsonID = createJSONID(true);
+    cUDPClient.SetJSONID (jsonID.dump());
+    cUDPClient.SetMessageOnReceive (&onReceive);
+    cUDPClient.start();
+}
+
+/**
+ * initialize components
+ **/
+void init (int argc, char *argv[]) 
+{
+
+    std::string configName = "config.module.json";
+    if (argc > 1)
+    {
+        configName = argv[1];
+    }
+
+
+    // Reading Configuration
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+    
+    cConfigFile.InitConfigFile (configName.c_str());
+    
+
+    
+    bool res = autehticateToServer();
+
+    if (res == true)
+    {
         connectToCommServer ();
     }
     
+    initSockets();
 
     // std::cout << "RESPONSE:" << response << std::endl;
     // Json json_response = Json::parse(response);
     // std::cout << "RESPONSE: JSON " << json_response.dump() << std::endl;
     // std::cout << "RESPONSE: JSON " << json_response["sid"].get<std::string>() << std::endl;
     
-    return 0;
+}
+
+void uninit ()
+{
+
+    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    
+    andruav_server.uninit();
+    
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
+    
+    cUDPClient.stop();
+
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint_after Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
+    // end program here
+	exit(0);
+}
+
+
+// ------------------------------------------------------------------------------
+//   Quit Signal Handler
+// ------------------------------------------------------------------------------
+// this function is called when you press Ctrl-C
+void quit_handler( int sig )
+{
+	std::cout << _INFO_CONSOLE_TEXT << std::endl << "TERMINATING AT USER REQUEST" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+	
+	try 
+    {
+        exit_me = true;
+        uninit();
+	}
+	catch (int error){}
+
+    exit(0);
+}
+
+
+
+
+int main (int argc, char *argv[])
+{
+    signal(SIGINT,quit_handler);
+	
+    init (argc, argv);
+
+    while (!exit_me)
+    {
+       std::this_thread::sleep_for(std::chrono::seconds(1));
+       
+    }
+
 }

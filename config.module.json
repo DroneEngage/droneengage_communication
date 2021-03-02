@@ -1,0 +1,39 @@
+{
+    /*
+        Module Identification Data
+    */
+    "module_id"                 : "MT_1",
+    "module_class"              : "comm",
+    "module_messages"           : [],
+    // This is the file that is loaded as start file of the plugin.
+    "module_file"               : "./module_engine.js",
+    "module_key"                : "E289FEE7-F4AD-44EF-A257-C9A361316BE7",
+    /////"vehivle_type"         : 10, //VEHICLE_EYE,
+
+    /*
+        Intermodules Communication
+    */
+    "s2s_udp_target_ip"         : "0.0.0.0",
+    "s2s_udp_target_port"       : "0",  /* default port for communicator*/
+    "s2s_udp_listening_ip"      : "0.0.0.0",
+    "s2s_udp_listening_port"    : "60000",
+
+    /*
+        Connection Settings
+    */
+
+    //        Handshaking key for WebSocket
+    "auth_ip"                   : "192.168.1.144", //"andruav.com", //"192.168.2.142", //"andruav.com", //
+    "auth_port"                 : 19408,
+    "auth_use_ssl"              : true,
+    "auth_TESTMODE"             : true,  // if true it can skip bad SSL certificate
+    
+    "userName"                  :"mhefny@andruav.com", //"myown@myown.com",
+    "accessCode"                :"mhefny",
+    "partyID"                   :"pad_uavos_os",
+    "unitID"                    :"ad_uavos_os",
+    "groupID"                   :"1"
+
+
+
+ }

@@ -39,7 +39,8 @@ class CAndruavAuthenticator
     public:
         
         int getAuth (std::string url, std::string param);
-    
+        void uninit();
+        
         const int& getErrorCode()
         {
             return m_auth_error;

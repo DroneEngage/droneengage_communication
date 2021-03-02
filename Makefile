@@ -15,14 +15,20 @@ CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g
 SRC = src
 BUILD = build
 
-OBJS = $(BUILD)/andruav_auth.o \
+OBJS = $(BUILD)/main.o \
+	   $(BUILD)/udpClient.o \
+	   $(BUILD)/configFile.o \
 	   $(BUILD)/andruav_comm_server.o \
-	   $(BUILD)/main.o \
+	   $(BUILD)/andruav_auth.o \
+	   $(BUILD)/helpers.o \
 	   
 
 SRCS = ../main.cpp \
+	   ../udpClient.cpp \
+	   ../configFile.cpp \
 	   ../andruav_comm_server.cpp \
 	   ../andruav_auth.cpp \
+	   ../helpers/helpers.cpp \
 	   
 
 

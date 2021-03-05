@@ -104,19 +104,19 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, st
             const Json& message_array       = ms["c"]; 
 
             MODULE_ITEM_TYPE * module_item;
-            const std::string& module_key = ms["e"].get<std::string>();
+            const std::string& module_id = std::string(ms["a"].get<std::string>()); 
             /**
              * @brief insert module in @param m_modules_list
              * this is the main list of modules.
              */
-            auto search2 = m_modules_list.find(module_key);
+            auto search2 = m_modules_list.find(module_id);
             if (search2 == m_modules_list.end()) 
             {
                 // New Module
 
                 module_item = new MODULE_ITEM_TYPE();
-                module_item->module_key         = module_key;
-                module_item->module_id          = std::string(ms["a"].get<std::string>()); 
+                module_item->module_key         = ms["e"].get<std::string>();
+                module_item->module_id          = module_id;
                 module_item->module_class       = ms["b"].get<std::string>(); // fcb, video, ...etc.
                 module_item->modules_features   = ms["d"];
             
@@ -125,7 +125,7 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, st
                 
                 module_item->m_module_address = std::unique_ptr<struct sockaddr_in>(module_address);
                 
-                m_modules_list.insert(std::make_pair(module_item->module_key, std::shared_ptr<MODULE_ITEM_TYPE>(module_item)));
+                m_modules_list.insert(std::make_pair(module_item->module_id, std::shared_ptr<MODULE_ITEM_TYPE>(module_item)));
 
 
             }
@@ -154,7 +154,7 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, st
                  * * &v should be by reference to avoid making fresh copy.
                  */
                 std::vector<std::string> &v = m_module_messages[message_array[i].get<int>()];
-                if (std::find(v.begin(), v.end(), module_key) == v.end())
+                if (std::find(v.begin(), v.end(), module_id) == v.end())
                 {
                     /**
                      * @brief 
@@ -162,7 +162,7 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, st
                      * when this message is received from andruav-server it should be 
                      * forwarded to this list.
                      */
-                    v.push_back(module_item->module_key);
+                    v.push_back(module_item->module_id);
                 }
             }
 

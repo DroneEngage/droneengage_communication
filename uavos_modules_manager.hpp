@@ -75,8 +75,8 @@ namespace uavos
 
             /**
              * @brief 
-             * list of registered modules mapped by module key
-             * !Maybe camera depends on module_id... please check later.
+             * list of registered modules mapped by module id
+             * 
              */
             MODULE_ITEM_LIST  m_modules_list ;
 

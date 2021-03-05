@@ -11,7 +11,12 @@
 #include "json.hpp"
 using Json = nlohmann::json;
 
-extern inline uint64_t get_time_usec();
+static inline uint64_t get_time_usec()
+{
+	static struct timeval _time_stamp;
+	gettimeofday(&_time_stamp, NULL);
+	return _time_stamp.tv_sec*1000000 + _time_stamp.tv_usec;
+};
 
 extern inline int wait_time_nsec (const time_t& seconds, const long& nano_seconds);
 

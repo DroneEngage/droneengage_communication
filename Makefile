@@ -16,17 +16,19 @@ SRC = src
 BUILD = build
 
 OBJS = $(BUILD)/main.o \
-	   $(BUILD)/udpClient.o \
+	   $(BUILD)/udpCommunicator.o \
 	   $(BUILD)/configFile.o \
 	   $(BUILD)/andruav_comm_server.o \
+	   $(BUILD)/uavos_modules_manager.o \
 	   $(BUILD)/andruav_auth.o \
 	   $(BUILD)/helpers.o \
 	   
 
 SRCS = ../main.cpp \
-	   ../udpClient.cpp \
+	   ../udpCommunicator.cpp \
 	   ../configFile.cpp \
 	   ../andruav_comm_server.cpp \
+	   ../uavos_modules_manager.cpp \
 	   ../andruav_auth.cpp \
 	   ../helpers/helpers.cpp \
 	   

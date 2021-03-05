@@ -19,7 +19,7 @@ size_t WriteCallback(char *contents, size_t size, size_t nmemb, void *userp)
 /**
  * @brief 
  * Performs http client connection to andruav authenticator server
- * 
+ * see: https://github.com/jpbarrette/curlpp/tree/master/examples
  * @param url 
  * @param param 
  * @param response 

@@ -13,58 +13,56 @@ namespace uavos
 {
 namespace comm
 {
-class CUDPClient
+class CUDPCommunicator
 {
 
     public:
         //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
-        static CUDPClient& getInstance()
+        static CUDPCommunicator& getInstance()
         {
-            static CUDPClient instance;
+            static CUDPCommunicator instance;
 
             return instance;
         }
 
-        CUDPClient(CUDPClient const&)            = delete;
-        void operator=(CUDPClient const&)        = delete;
+        CUDPCommunicator(CUDPCommunicator const&)            = delete;
+        void operator=(CUDPCommunicator const&)        = delete;
 
     private:
 
-        CUDPClient()
+        CUDPCommunicator()
         {
 
         }
 
     public:
         
-        ~CUDPClient ();
+        ~CUDPCommunicator ();
         void init(const char * targetIP, int broadcatsPort, const char * host, int listenningPort);
         void start();
         void stop();
-        void SetJSONID (std::string jsonID);
         void SetMessageOnReceive (ONRECEIVE_CALLBACK onReceive);
-        void SendJMSG(const std::string& jmsg);
+        void SendJMSG(const std::string& jmsg, struct sockaddr_in * module_address);
 
     protected:
         // This static function only needed once
         // it sends ID to communicator. 
         // you need to create UDP with communicator first.
-        static void * InternalSenderIDThreadEntryFunc(void * func);
+        //// static void * InternalSenderIDThreadEntryFunc(void * func);
         static void * InternalReceiverThreadEntryFunc(void * func);
 
         
         void startReceiver();
-        void startSenderID();
+        //void startSenderID();
 
         void InternalReceiverEntry();
         void InternelSenderIDEntry();
 
-        struct sockaddr_in  *m_ModuleAddress = NULL, *m_CommunicatorModuleAddress = NULL; 
+        struct sockaddr_in  *m_CommunicatorModuleAddress = NULL; 
         int m_SocketFD = -1; 
         std::thread m_threadSenderID, m_threadCreateUDPSocket;
         pthread_t m_thread;
 
-        std::string m_JsonID;
         ONRECEIVE_CALLBACK m_OnReceive = NULL;
         
 

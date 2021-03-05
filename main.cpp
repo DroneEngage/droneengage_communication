@@ -2,17 +2,19 @@
 #include <signal.h>
 #include <curl/curl.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
 
+#include "global.hpp"
 #include "messages.hpp"
 #include "configFile.hpp"
-#include "udpClient.hpp"
+#include "udpCommunicator.hpp"
 
 #include "andruav_auth.hpp"
 #include "andruav_comm_server.hpp"
-
+#include "uavos_modules_manager.hpp"
 
 
 
@@ -20,40 +22,16 @@ bool exit_me = false;
 
 
 uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-uavos::comm::CUDPClient& cUDPClient = uavos::comm::CUDPClient::getInstance();  
+uavos::comm::CUDPCommunicator& cUDPClient = uavos::comm::CUDPCommunicator::getInstance();  
+uavos::CUavosModulesManager& cUavosModulesManager = uavos::CUavosModulesManager::getInstance();  
 
 
 void onReceive (const char * jsonMessage, int len, struct sockaddr_in *  ssock);
 void uninit ();
 
-/**
- * creates JSON message that identifies Module
-**/
-const Json createJSONID (bool reSend)
-{
-        const Json& jsonConfig = cConfigFile.GetConfigJSON();
-        Json jsonID;        
-        
-        jsonID[INTERMODULE_COMMAND_TYPE] =  CMD_TYPE_INTERMODULE;
-        jsonID[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
-        Json ms;
-        
-        ms["a"] = jsonConfig["module_id"];
-        ms["b"] = jsonConfig["module_class"];
-        ms["c"] = jsonConfig["module_messages"];
-        ms["d"] = Json();
-        ms["e"] = jsonConfig["module_key"]; 
-        ms["f"] = 
-        {
-            {"sd", jsonConfig["partyID"]},
-            {"gr", jsonConfig["groupID"]}
-        };
-        ms["z"] = reSend;
 
-        jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
-        
-        return jsonID;
-}
+
+
 
 void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
 {
@@ -68,7 +46,27 @@ void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
     if (jsonMessage[len-1]==125 || (jsonMessage[len-2]==125))   // "}".charCodeAt(0)  IS TEXT / BINARY Msg  
     {
         jMsg = Json::parse(jsonMessage);
-        //std::cout << cliaddr.
+        //TODO INTERMODULE_COMMAND_TYPE field should be string.
+        if ((!validateField(jMsg, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
+        || (!validateField(jMsg, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
+        )
+        {
+            // bad message format
+            return ;
+        }
+        
+        if (jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0)
+        {
+            bool forward = false;
+            char *connected_ip = inet_ntoa(ssock->sin_addr);
+            int port = ntohs(ssock->sin_port); 
+
+
+            cUavosModulesManager.parseIntermoduleMessage(jMsg,
+             ssock, forward);
+            
+        }
+
     }
     else
     {
@@ -134,8 +132,6 @@ void initSockets()
             std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
     
     
-    Json jsonID = createJSONID(true);
-    cUDPClient.SetJSONID (jsonID.dump());
     cUDPClient.SetMessageOnReceive (&onReceive);
     cUDPClient.start();
 }
@@ -169,6 +165,7 @@ void init (int argc, char *argv[])
     }
     
     initSockets();
+
 
     // std::cout << "RESPONSE:" << response << std::endl;
     // Json json_response = Json::parse(response);

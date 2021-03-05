@@ -14,7 +14,7 @@
         Intermodules Communication
     */
     "s2s_udp_target_ip"         : "0.0.0.0",
-    "s2s_udp_target_port"       : "0",  /* default port for communicator*/
+    "s2s_udp_target_port"       : "0",      /* default port for communicator*/
     "s2s_udp_listening_ip"      : "0.0.0.0",
     "s2s_udp_listening_port"    : "60000",
 

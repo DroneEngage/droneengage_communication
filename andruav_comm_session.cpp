@@ -25,7 +25,7 @@ fail(beast::error_code ec, char const* what)
 }
 
 // Sends a WebSocket message and prints the response
-void uavos::andruav_servers::session::run( char const* host, char const* port, char const* text)
+void uavos::andruav_servers::CWSSession::run( char const* host, char const* port, char const* text)
 {
         // Save these for later
         host_ = host;
@@ -36,12 +36,12 @@ void uavos::andruav_servers::session::run( char const* host, char const* port, c
             host,
             port,
             beast::bind_front_handler(
-                &session::on_resolve,
+                &CWSSession::on_resolve,
                 shared_from_this()));
 }
 
     void
-    uavos::andruav_servers::session::on_resolve(
+    uavos::andruav_servers::CWSSession::on_resolve(
         beast::error_code ec,
         tcp::resolver::results_type results)
     {
@@ -55,12 +55,12 @@ void uavos::andruav_servers::session::run( char const* host, char const* port, c
         beast::get_lowest_layer(ws_).async_connect(
             results,
             beast::bind_front_handler(
-                &session::on_connect,
+                &CWSSession::on_connect,
                 shared_from_this()));
     }
 
     void
-    uavos::andruav_servers::session::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
+    uavos::andruav_servers::CWSSession::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
     {
         if(ec)
             return fail(ec, "connect");
@@ -87,12 +87,12 @@ void uavos::andruav_servers::session::run( char const* host, char const* port, c
         ws_.next_layer().async_handshake(
             ssl::stream_base::client,
             beast::bind_front_handler(
-                &session::on_ssl_handshake,
+                &CWSSession::on_ssl_handshake,
                 shared_from_this()));
     }
 
     void
-    uavos::andruav_servers::session::on_ssl_handshake(beast::error_code ec)
+    uavos::andruav_servers::CWSSession::on_ssl_handshake(beast::error_code ec)
     {
         if(ec)
             return fail(ec, "ssl_handshake");
@@ -118,12 +118,12 @@ void uavos::andruav_servers::session::run( char const* host, char const* port, c
         // Perform the websocket handshake
         ws_.async_handshake(host_, text_,
             beast::bind_front_handler(
-                &session::on_handshake,
+                &CWSSession::on_handshake,
                 shared_from_this()));
     }
 
     void
-    uavos::andruav_servers::session::on_handshake(beast::error_code ec)
+    uavos::andruav_servers::CWSSession::on_handshake(beast::error_code ec)
     {
         if(ec)
             return fail(ec, "handshake");
@@ -132,12 +132,12 @@ void uavos::andruav_servers::session::run( char const* host, char const* port, c
         ws_.async_write(
             net::buffer(text_),
             beast::bind_front_handler(
-                &session::on_write,
+                &CWSSession::on_write,
                 shared_from_this()));
     }
 
     void
-    uavos::andruav_servers::session::on_write(
+    uavos::andruav_servers::CWSSession::on_write(
         beast::error_code ec,
         std::size_t bytes_transferred)
     {
@@ -150,12 +150,12 @@ void uavos::andruav_servers::session::run( char const* host, char const* port, c
         ws_.async_read(
             buffer_,
             beast::bind_front_handler(
-                &session::on_read,
+                &CWSSession::on_read,
                 shared_from_this()));
     }
 
     void
-    uavos::andruav_servers::session::on_read(
+    uavos::andruav_servers::CWSSession::on_read(
         beast::error_code ec,
         std::size_t bytes_transferred)
     {
@@ -167,12 +167,12 @@ void uavos::andruav_servers::session::run( char const* host, char const* port, c
         // Close the WebSocket connection
         ws_.async_close(websocket::close_code::normal,
             beast::bind_front_handler(
-                &session::on_close,
+                &CWSSession::on_close,
                 shared_from_this()));
     }
 
     void
-    uavos::andruav_servers::session::on_close(beast::error_code ec)
+    uavos::andruav_servers::CWSSession::on_close(beast::error_code ec)
     {
         if(ec)
             return fail(ec, "close");

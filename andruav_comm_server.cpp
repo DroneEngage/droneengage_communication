@@ -31,7 +31,7 @@ void uavos::andruav_servers::CAndruavCommServer::connect (const std::string& ser
         
         // Launch the asynchronous operation
         //_session = std::make_shared<uavos::andruav_servers::session>(ioc, ctx)->run(host.c_str(), port.c_str(), url_param.c_str());
-        std::make_shared<uavos::andruav_servers::session>(ioc, ctx)->run(host.c_str(), port.c_str(), url_param.c_str());
+        std::make_shared<uavos::andruav_servers::CWSSession>(ioc, ctx)->run(host.c_str(), port.c_str(), url_param.c_str());
 
         // Run the I/O service. The call will return when
         // the socket is closed.

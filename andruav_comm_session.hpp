@@ -40,7 +40,7 @@ namespace andruav_servers
 {
 
 // Sends a WebSocket message and prints the response
-class session : public std::enable_shared_from_this<session>
+class CWSSession : public std::enable_shared_from_this<CWSSession>
 {
     tcp::resolver resolver_;
     websocket::stream<
@@ -52,7 +52,7 @@ class session : public std::enable_shared_from_this<session>
 public:
     // Resolver and socket require an io_context
     explicit
-    session(net::io_context& ioc, ssl::context& ctx)
+    CWSSession(net::io_context& ioc, ssl::context& ctx)
         : resolver_(net::make_strand(ioc))
         , ws_(net::make_strand(ioc), ctx)
     {

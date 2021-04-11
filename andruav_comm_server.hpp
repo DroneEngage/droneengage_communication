@@ -51,7 +51,7 @@ namespace andruav_servers
 
 
         private:
-            std::shared_ptr<uavos::andruav_servers::session> _session;  
+            std::shared_ptr<uavos::andruav_servers::CWSSession> _cwssession;  
     };
 }
 }

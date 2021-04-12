@@ -80,7 +80,7 @@ void uavos::comm::CUDPCommunicator::init (const char * targetIP, int broadcatsPo
 void uavos::comm::CUDPCommunicator::start()
 {
     #ifdef DEBUG        
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: start" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     // call directly as we are already in a thread.

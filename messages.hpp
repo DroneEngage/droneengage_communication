@@ -2,6 +2,7 @@
 
 // InterModules command
 #define CMD_TYPE_INTERMODULE "uv"
+#define CMD_TYPE_SYSTEM_MSG  "s"
 
 
 
@@ -29,6 +30,7 @@
 
 
 #define TYPE_AndruavModule_ID                   9100
+#define TYPE_AndruavSystem_ConnectedCommServer  9007
 
 #define TYPE_AndruavResala_GPS                  1002
 #define TYPE_AndruavResala_POWER                1003

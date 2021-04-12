@@ -66,13 +66,11 @@ void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
              ssock, forward);
             
         }
-
     }
     else
     {
 
     }
-    
 }
 
 

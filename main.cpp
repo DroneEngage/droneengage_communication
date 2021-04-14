@@ -1,3 +1,12 @@
+/*******************************************************************************************
+ * 
+ * U A V O S - C O M M U N I C A T I O N  Module
+ * 
+ *  
+ * Author: Mohammad S. Hefny 
+ * 
+ * */
+
 #include <iostream>
 #include <signal.h>
 #include <curl/curl.h>
@@ -96,11 +105,18 @@ bool autehticateToServer ()
         exit(1);
     }
 
-    std::string url =  "https://" + jsonConfig["auth_ip"].get<std::string>() + ":" + std::to_string(jsonConfig["auth_port"].get<int>()) +  "/w/wl/";
+    //TODO: Move urls to auth class.
+    std::string url =  "https://" + jsonConfig["auth_ip"].get<std::string>() + ":" + std::to_string(jsonConfig["auth_port"].get<int>()) +  "/agent/al/";
     //std::string url =  "https://andruav.com:19408/w/wl/";
-    std::string param =  "acc=mhefny@andruav.com&pwd=mhefny&gr=1&app=andruav&ver=5.0.0&ex=Andruav Web Panel&at=g";
+    std::string param =  "acc=" + jsonConfig["userName"].get<std::string>()
+                +  "&pwd=" + jsonConfig["accessCode"].get<std::string>() 
+                + "&gr=1&app=uavos&ver=" + jsonConfig["version"].get<std::string>() 
+                + "&ex=uavos&at=d";
 
-    std::cout << _INFO_CONSOLE_TEXT << "Auth URL: " << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _LOG_CONSOLE_TEXT << " connection established " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " successfully" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#ifdef DEBUG
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#endif
        
     const int res = andruav_auth.getAuth (url, param);
 

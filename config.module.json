@@ -2,6 +2,7 @@
     /*
         Module Identification Data
     */
+    "version"                   : "2.0.0",
     "module_id"                 : "MT_1",
     "module_class"              : "comm",
     "module_messages"           : [],
@@ -32,8 +33,9 @@
     "accessCode"                :"mhefny",
     "partyID"                   :"pad_uavos_os",
     "unitID"                    :"ad_uavos_os",
-    "groupID"                   :"1"
-
+    "groupID"                   :"1",
+    "unitDescription"          :"uavos_unit"
+    
 
 
  }

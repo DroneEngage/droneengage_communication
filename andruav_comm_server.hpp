@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+#include "andruav_unit.hpp"
 #include "andruav_comm_session.hpp"
 
 
@@ -60,18 +61,37 @@ namespace andruav_servers
             void connect (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
             void uninit();
 
-            void onSocketError() override;
-            //void onBinaryMessageRecieved(const std::size_t datalength) override;
-            void onTextMessageRecieved(const std::string jsonMessage) override;
-    
+
+            void onSocketError () override;
+            void onBinaryMessageRecieved (const char * message, const std::size_t datalength) override;
+            void onTextMessageRecieved (const std::string& jsonMessage) override;
+                
+
+
+        public:
+
+            void API_requestID (const std::string& target_name);
+            void API_sendID (const std::string& target_name);
+            
+        private:
+
+            void parseCommand (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage);
+            void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json& jsonMessage);
+            
+            void API_sendCMD (const std::string& target_name, const int command_type, const std::string& msg);
+            Json generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_name, const int messageType, const std::string& message);
+            
         private:
             std::shared_ptr<uavos::andruav_servers::CWSSession> _cwssession;  
             
             std::string m_url_param;
             std::string m_host;
             std::string m_port;
+            std::string m_party_id;
 
             u_int8_t m_status =  SOCKET_STATUS_FREASH;
+
+            CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();
     };
 }
 }

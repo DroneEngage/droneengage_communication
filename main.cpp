@@ -22,6 +22,7 @@
 #include "udpCommunicator.hpp"
 
 #include "andruav_auth.hpp"
+#include "andruav_unit.hpp"
 #include "andruav_comm_server.hpp"
 #include "uavos_modules_manager.hpp"
 
@@ -83,6 +84,24 @@ void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
 }
 
 
+void defineMe()
+{
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    
+    uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
+    uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+    
+    unit_info.party_id = jsonConfig["partyID"].get<std::string>();
+    unit_info.unit_name = jsonConfig["userName"].get<std::string>();
+    unit_info.description = jsonConfig["unitDescription"].get<std::string>();
+}
+
+/**
+ * @brief 
+ * 
+ * @Warning THIS FUNCTION DOES NOT RETURN....
+ * TODO: Call it in a thread.
+ */
 void connectToCommServer ()
 {
     uavos::andruav_servers::CAndruavAuthenticator& andruav_auth = uavos::andruav_servers::CAndruavAuthenticator::getInstance();
@@ -100,6 +119,7 @@ bool autehticateToServer ()
      || (validateField(jsonConfig,"auth_port", Json::value_t::number_unsigned) == false)
      )
     {
+
         std::cout << std::to_string(validateField(jsonConfig,"auth_ip", Json::value_t::string)) << std::endl;
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing login info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(1);
@@ -169,8 +189,10 @@ void init (int argc, char *argv[])
     
     cConfigFile.InitConfigFile (configName.c_str());
     
-
+    defineMe();
     
+    initSockets();
+
     bool res = autehticateToServer();
 
     if (res == true)
@@ -178,7 +200,7 @@ void init (int argc, char *argv[])
         connectToCommServer ();
     }
     
-    initSockets();
+    
 
 
     // std::cout << "RESPONSE:" << response << std::endl;

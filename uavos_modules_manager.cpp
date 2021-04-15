@@ -16,8 +16,10 @@
 
 
 #include "messages.hpp"
+#include "andruav_unit.hpp"
 #include "udpCommunicator.hpp"
 #include "configFile.hpp"
+#include "andruav_comm_server.hpp"
 #include "uavos_modules_manager.hpp"
 
 
@@ -182,11 +184,75 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, st
 
         case TYPE_AndruavResala_ID:
         {
+            uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
+            uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+            
+            unit_info.vehicle_type              = ms["VT"].get<int>();
+            unit_info.flying_mode               = ms["FM"].get<int>();
+            unit_info.gps_mode                  = ms["GM"].get<int>();
+            unit_info.use_fcb                   = ms["FI"].get<bool>();
+            unit_info.is_armed                  = ms["AR"].get<bool>();
+            unit_info.is_flying                 = ms["FL"].get<bool>();
+            unit_info.telemetry_protocol        = ms["TP"].get<int>();
+            unit_info.flying_last_start_time    = ms["z"].get<long long>();
+            unit_info.flying_total_duration     = ms["a"].get<long long>();
+            unit_info.is_tracking_mode          = ms["b"].get<bool>();
+            unit_info.manual_TX_blocked_mode    = ms["C"].get<int>();
+            unit_info.is_gcs_blocked            = ms["B"].get<bool>();
 
+            uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
+            commServer.API_sendID("");
         }
         break;
 
     }
 
 }
-    
+
+
+void uavos::CUavosModulesManager::processIncommingServerMessage (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage)
+{
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: processIncommingServerMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
+    std::vector<std::string> &v = m_module_messages[command_type];
+    for(std::vector<std::string>::iterator it = v.begin(); it != v.end(); ++it) 
+    {
+        std::cout << *it << std::endl;
+        auto search2 = m_modules_list.find(*it);
+        if (search2 == m_modules_list.end()) 
+        {
+            // module not available
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Module " << *it  << " for message " << command_type << " is not available" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            
+            continue;
+        }
+        else
+        {
+            
+            MODULE_ITEM_TYPE * module_item = search2->second.get();        
+            forwardMessageToModule (jsonMessage, module_item);
+        }
+    }
+
+    return ;
+}
+
+
+/**
+ * @brief forward a message from Andruav Server to a module.
+ * Normally this module is subscribed in this message id.
+ * 
+ * @param jsonMessage 
+ * @param module_item 
+ */
+void uavos::CUavosModulesManager::forwardMessageToModule (const Json& jsonMessage, const MODULE_ITEM_TYPE * module_item)
+{
+    //const Json &msg = createJSONID(false);
+    struct sockaddr_in module_address = *module_item->m_module_address.get();  
+                
+    uavos::comm::CUDPCommunicator::getInstance().SendJMSG(jsonMessage.dump(), &module_address);
+
+    return ;
+}

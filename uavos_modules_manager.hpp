@@ -20,8 +20,8 @@ using Json = nlohmann::json;
 #define Module_TIME_OUT  5000000
 
 /**
- * @brief 
- * Structure that defines Uavos modules.
+ * @brief Structure that defines Uavos modules.
+ * 
  */
 typedef struct 
 {
@@ -36,6 +36,10 @@ typedef struct
 } MODULE_ITEM_TYPE;
 
 
+/**
+ * @brief 
+ * 
+ */
 typedef std::map <std::string, std::shared_ptr<MODULE_ITEM_TYPE>> MODULE_ITEM_LIST;
 
 namespace uavos
@@ -70,6 +74,10 @@ namespace uavos
            
             void parseIntermoduleMessage (Json& jsonMessage, struct sockaddr_in * ssock, bool& forward);
             Json createJSONID (const bool& reSend);
+            
+            void processIncommingServerMessage (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage);
+
+            void forwardMessageToModule (const Json& jsonMessage, const MODULE_ITEM_TYPE * module_item);
             
         private:
 

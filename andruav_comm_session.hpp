@@ -48,7 +48,7 @@ class CCallBack_WSSession
     public:
 
     virtual void onBinaryMessageRecieved(const char * message, const std::size_t datalength)   {};                                                          
-    virtual void onTextMessageRecieved(const std::string JsonMessage)   {};                                                          
+    virtual void onTextMessageRecieved(const std::string& JsonMessage)   {};                                                          
     virtual void onSocketClosed()                                   {}; 
     virtual void onSocketError ()                                   {};
     

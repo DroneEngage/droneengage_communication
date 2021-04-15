@@ -31,7 +31,7 @@ void CConfigFile::InitConfigFile (const char* fileURL)
 void CConfigFile::ReadFile (const char * fileURL)
 {
     std::ifstream stream;
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Read config file: " << fileURL << "\033[0m ...." ;
+    std::cout << _LOG_CONSOLE_TEXT << "Read config file: " << _SUCCESS_CONSOLE_TEXT_ << fileURL << _NORMAL_CONSOLE_TEXT_ << " ...." ;
 
     stream.open (fileURL , std::ifstream::in);
     if (!stream) {

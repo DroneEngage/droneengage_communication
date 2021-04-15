@@ -23,6 +23,7 @@ OBJS = $(BUILD)/main.o \
 	   $(BUILD)/uavos_modules_manager.o \
 	   $(BUILD)/andruav_auth.o \
 	   $(BUILD)/helpers.o \
+	   $(BUILD)/andruav_unit.o
 	   
 
 SRCS = ../main.cpp \
@@ -33,6 +34,7 @@ SRCS = ../main.cpp \
 	   ../uavos_modules_manager.cpp \
 	   ../andruav_auth.cpp \
 	   ../helpers/helpers.cpp \
+	   ../andruav_unit.cpp
 	   
 
 

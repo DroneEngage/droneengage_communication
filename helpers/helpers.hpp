@@ -18,7 +18,14 @@ static inline uint64_t get_time_usec()
 	return _time_stamp.tv_sec*1000000 + _time_stamp.tv_usec;
 };
 
-extern inline int wait_time_nsec (const time_t& seconds, const long& nano_seconds);
+inline int wait_time_nsec (const time_t& seconds, const long& nano_seconds)
+{
+	struct timespec _time_wait, tim2;
+	_time_wait.tv_sec = seconds;
+	_time_wait.tv_nsec = nano_seconds;
+	
+	return nanosleep(&_time_wait, &tim2);
+}
 
 extern std::string str_tolower(std::string s);
 

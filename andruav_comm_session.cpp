@@ -14,6 +14,7 @@
 //------------------------------------------------------------------------------
 
 
+#include "./helpers/colors.hpp"
 
 #include "andruav_comm_session.hpp"
 //------------------------------------------------------------------------------
@@ -125,12 +126,6 @@ void uavos::andruav_servers::CWSSession::on_handshake(beast::error_code ec)
     if(ec)
         return fail(ec, "handshake");
 
-        // Send the message
-        // ws_.async_write(
-        //     net::buffer(url_param_),
-        //     beast::bind_front_handler(
-        //         &CWSSession::on_write,
-        //         shared_from_this()));
 
         // Read a message into our buffer
     ws_.async_read(
@@ -139,12 +134,7 @@ void uavos::andruav_servers::CWSSession::on_handshake(beast::error_code ec)
                 &CWSSession::on_read,
                 shared_from_this()));
 
-        // Close the WebSocket connection
-        // ws_.async_close(websocket::close_code::normal,
-        //     beast::bind_front_handler(
-        //         &CWSSession::on_close,
-        //         shared_from_this()));
-
+       
 }
 
 void uavos::andruav_servers::CWSSession::on_write(beast::error_code ec, std::size_t bytes_transferred)
@@ -213,6 +203,9 @@ void uavos::andruav_servers::CWSSession::on_read(
             m_callback.onTextMessageRecieved(output); //beast::buffers_to_string(buffer_.data()));    
         }
 
+        delete result;
+        
+        buffer_.clear();
         ws_.async_read(
             buffer_,
             beast::bind_front_handler(
@@ -235,6 +228,11 @@ void uavos::andruav_servers::CWSSession::on_close(beast::error_code ec)
 
 void uavos::andruav_servers::CWSSession::writeText (const std::string message)
 {
+
+    // #ifdef DEBUG
+    //     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    // #endif
+
     ws_.async_write(
         net::buffer(message),
         beast::bind_front_handler(

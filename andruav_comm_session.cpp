@@ -19,6 +19,8 @@
 #include "andruav_comm_session.hpp"
 //------------------------------------------------------------------------------
 
+static std::mutex g_i_mutex_writeText, g_i_mutex_on_read; 
+
 // Report a failure
 void uavos::andruav_servers::CWSSession::fail(beast::error_code ec, char const* what)
 {
@@ -143,14 +145,18 @@ void uavos::andruav_servers::CWSSession::on_write(beast::error_code ec, std::siz
 
     if(ec)
         return fail(ec, "write");
-
-        
 }
 
 void uavos::andruav_servers::CWSSession::on_read(
         beast::error_code ec,
         std::size_t bytes_transferred)
 {
+    const std::lock_guard<std::mutex> lock(g_i_mutex_on_read);
+
+    #ifdef DEBUG
+         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "on_read: " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
     boost::ignore_unused(bytes_transferred);
 
     if ((boost::asio::error::eof == ec) ||
@@ -226,18 +232,21 @@ void uavos::andruav_servers::CWSSession::on_close(beast::error_code ec)
 }
 
 
+
 void uavos::andruav_servers::CWSSession::writeText (const std::string message)
 {
 
-    // #ifdef DEBUG
-    //     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    // #endif
+    #ifdef DEBUG
+         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
 
-    ws_.async_write(
-        net::buffer(message),
-        beast::bind_front_handler(
-        &CWSSession::on_write,
-        shared_from_this()));
+    const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
+    
+    ws_.write(net::buffer(std::string(message)));
+
+    #ifdef DEBUG
+         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: Exit "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
 
 }
         

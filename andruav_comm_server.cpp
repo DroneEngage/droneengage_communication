@@ -39,10 +39,6 @@ void uavos::andruav_servers::CAndruavCommServer::connect (const std::string& ser
         // Launch the asynchronous operation
         _cwssession = std::shared_ptr<uavos::andruav_servers::CWSSession>(new uavos::andruav_servers::CWSSession(ioc, ctx, *this));
         _cwssession.get()->run(m_host.c_str(), m_port.c_str(), m_url_param.c_str());
-        //->run(host.c_str(), port.c_str(), url_param.c_str());
-        //uavos::andruav_servers::CWSSession * ptr = new uavos::andruav_servers::CWSSession(ioc, ctx);
-        //_cwssession = std::unique_ptr<uavos::andruav_servers::CWSSession>(ptr);
-        //ptr->run(host.c_str(), port.c_str(), url_param.c_str());
 
         // Run the I/O service. The call will return when
         // the socket is closed.
@@ -242,6 +238,27 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
     
         }
         break;
+
+        case TYPE_AndruavResala_CameraList:
+        {
+            this->API_sendCameraList (true, sender_party_id);
+        }
+        break;
+
+        case RemoteCommand_STREAMVIDEO:
+        {
+            if (!validateField(msg_cmd, "Act", Json::value_t::boolean))
+            {
+                // bad message format
+                return ;
+            }
+            if (msg_cmd["Act"].get<bool>()==true)
+            {
+                this->API_sendCameraList (true, sender_party_id);
+            }
+        }
+		break;
+					
     }
 }
             
@@ -263,6 +280,26 @@ void uavos::andruav_servers::CAndruavCommServer::API_requestID (const std::strin
     Json jMsg = {{"C", TYPE_AndruavResala_ID}};
     
     API_sendCMD (target_name, TYPE_AndruavResala_RemoteExecute, jMsg.dump());
+}
+
+
+void uavos::andruav_servers::CAndruavCommServer::API_sendCameraList(const bool reply, const std::string& target_name)
+{
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
+    uavos::CUavosModulesManager& module_manager = uavos::CUavosModulesManager::getInstance();
+    
+    Json camera_list = module_manager.getCameraList();
+
+    const Json jMsg = 
+    {
+        {"R", reply},
+        {"T", camera_list}
+    };
+        
+    API_sendCMD (target_name, TYPE_AndruavResala_CameraList, jMsg.dump());
 }
 
 void uavos::andruav_servers::CAndruavCommServer::API_sendID (const std::string& target_name)
@@ -295,7 +332,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendID (const std::string& 
     }
     if (unit_info.use_fcb)
     {
-        jMsg["C"] = unit_info.use_fcb;
+        jMsg["FI"] = unit_info.use_fcb;
     }
     if (unit_info.is_flying)
     {
@@ -329,8 +366,22 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendID (const std::string& 
     API_sendCMD (target_name, TYPE_AndruavResala_ID, jMsg.dump());
 }
 
+
+/**
+ * @brief Sends Andruav Command to Andruav Server
+ *  *_GCS_: broadcast to GCS.
+ *  *_AGN_: broadcast to vehicles only.
+ *  *_GD_: broadcast to all..
+ *  *null: means send to all units if sender is GCS, and if sender is drone means send to all GCS.
+ * @param target_name party_id of a target or can be null or _GD_, _AGN_, _GCS_
+ * @param command_type 
+ * @param msg 
+ */
 void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string& target_name, const int command_type, const std::string& msg)
 {
+    static std::mutex g_i_mutex; 
+
+    const std::lock_guard<std::mutex> lock(g_i_mutex);
     
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -350,12 +401,17 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
     {
         Json jmsg  = this->generateJSONMessage (routing_message, m_party_id, target_name, command_type, msg);
         _cwssession.get()->writeText(jmsg.dump());
+
+        // #ifdef DEBUG
+        // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << jmsg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // #endif
     } 
 }
 
 
 Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_name, const int messageType, const std::string& message)
 {
+
 
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;

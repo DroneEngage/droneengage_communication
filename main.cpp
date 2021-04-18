@@ -55,6 +55,7 @@ void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
     Json jMsg;
     if (jsonMessage[len-1]==125 || (jsonMessage[len-2]==125))   // "}".charCodeAt(0)  IS TEXT / BINARY Msg  
     {
+        // Test Message if Binary or Text
         jMsg = Json::parse(jsonMessage);
         //TODO INTERMODULE_COMMAND_TYPE field should be string.
         if ((!validateField(jMsg, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
@@ -65,8 +66,8 @@ void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
             return ;
         }
         
-        if (jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0)
-        {
+        // if (jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0)
+        // {
             bool forward = false;
             char *connected_ip = inet_ntoa(ssock->sin_addr);
             int port = ntohs(ssock->sin_port); 
@@ -75,11 +76,13 @@ void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
             cUavosModulesManager.parseIntermoduleMessage(jMsg,
              ssock, forward);
             
-        }
+        // }
     }
     else
     {
-
+        // Binary Message
+            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Binary Message from UDP ... NOT IMPLEMENTED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
     }
 }
 
@@ -96,8 +99,9 @@ void defineMe()
     unit_info.description = jsonConfig["unitDescription"].get<std::string>();
 }
 
+
 /**
- * @brief 
+ * @brief Establish connection with Communication Server
  * 
  * @Warning THIS FUNCTION DOES NOT RETURN....
  * TODO: Call it in a thread.
@@ -108,6 +112,7 @@ void connectToCommServer ()
     uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
     andruav_server.connect(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, "oppa");
 }
+
 
 bool autehticateToServer ()
 {
@@ -154,6 +159,10 @@ bool autehticateToServer ()
     }
 }
 
+/**
+ * @brief Initialize UDP connection with other modules.
+ * 
+ */
 void initSockets()
 {
 
@@ -199,14 +208,6 @@ void init (int argc, char *argv[])
     {
         connectToCommServer ();
     }
-    
-    
-
-
-    // std::cout << "RESPONSE:" << response << std::endl;
-    // Json json_response = Json::parse(response);
-    // std::cout << "RESPONSE: JSON " << json_response.dump() << std::endl;
-    // std::cout << "RESPONSE: JSON " << json_response["sid"].get<std::string>() << std::endl;
     
 }
 

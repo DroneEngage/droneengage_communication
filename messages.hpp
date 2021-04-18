@@ -38,7 +38,8 @@
 #define TYPE_AndruavResala_RemoteExecute 		1005     
 #define TYPE_AndruavResala_Error                1008    
 #define TYPE_AndruavResala_FlightControl        1010
-#define TYPE_AndruavMessage_DroneReport         1020
+#define TYPE_AndruavResala_CameraList 			1012  //RX: {"tg":"GCS1","sd":"zxcv","ty":"c","gr":"1","cm":"i","mt":1012,"ms":"{\"E\":2,\"P\":0,\"I\":\"zxcv\"}"}
+#define TYPE_AndruavResala_DroneReport          1020
 #define Type_AndruavResala_HomeLocation         1022
 #define TYPE_AndruavResala_WayPoints            1027
 #define TYPE_AndruavResala_Arm                  1030
@@ -85,6 +86,7 @@
 #define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB  502
 #define RemoteCommand_CLEAR_FENCE_DATA 	         503 // andruav fence
 #define RemoteCommand_SET_START_MISSION_ITEM     504
+#define RemoteCommand_STREAMVIDEO                110
 
 // Drone Report
 #define Drone_Report_NAV_ItemReached            1

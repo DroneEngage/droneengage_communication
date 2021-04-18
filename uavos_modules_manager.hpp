@@ -36,11 +36,31 @@ typedef struct
 } MODULE_ITEM_TYPE;
 
 
+typedef struct 
+{
+    std::string module_id;
+    Json camera_entry;      //[Active, id, ln, p, r , v]
+    std::string global_index;  // id
+    std::string logical_name;
+    bool is_recording;
+    int is_camera_avail;
+    int is_camera_streaming;
+    int camera_type; // Internal & External.... legacy ... always external now.
+    uint64_t module_last_access_time = 0;
+    bool updates;
+
+} MODULE_CAMERA_ENTRY;
+
 /**
  * @brief 
  * 
  */
 typedef std::map <std::string, std::shared_ptr<MODULE_ITEM_TYPE>> MODULE_ITEM_LIST;
+
+
+typedef std::map <std::string, std::unique_ptr<std::map 
+                              <std::string,std::unique_ptr
+                              <MODULE_CAMERA_ENTRY>>>> MODULE_CAMERA_LIST;
 
 namespace uavos
 {
@@ -72,13 +92,105 @@ namespace uavos
             
             ~CUavosModulesManager ();
            
-            void parseIntermoduleMessage (Json& jsonMessage, struct sockaddr_in * ssock, bool& forward);
+            void parseIntermoduleMessage (Json& jsonMessage, const struct sockaddr_in* ssock, bool& forward);
             Json createJSONID (const bool& reSend);
             
             void processIncommingServerMessage (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage);
 
             void forwardMessageToModule (const Json& jsonMessage, const MODULE_ITEM_TYPE * module_item);
             
+            Json getCameraList();
+
+        private:
+
+            /**
+             * @brief handle TYPE_AndruavModule_ID messages.
+             * Add/Update module definitions.
+             * @param msg_cmd 
+             * @param ssock 
+             */
+            void handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);
+
+            /**
+             * @brief called by handleModuleRegistration to update subscribed messages for a module.
+             * 
+             * @param module_id 
+             * @param message_array 
+             */
+            void updateModuleSubscribedMessages (const std::string& module_id, const Json& message_array);
+
+            
+            /**
+             * @brief update UAVOS vehicle permission based on module permissions.
+             * ex: "d" : [ "C", "V" ]
+             * @param module_permissions 
+             */
+            void updateUavosPermission (const Json& module_permissions);
+
+
+            /**
+             * @brief Update camera list.
+             * Adding available camera devices exists in different camera modules.
+             * 
+             * RX MSG: {
+                "ms" : {
+                    "a" : "HorusEye1",
+                    "b" : "camera",
+                    "c" : [ 1005, 1041, 1021 ],
+                    "d" : [ "C", "V" ],
+                    "e" : "E289FEE7-FDAD-44EF-A257-C9A36DDD6BE7",
+                    "m" : [
+                        {
+                            "active" : 0,
+                            "id" : "G59d8d78965966a1a449b44b1",
+                            "ln" : "Droidcam#0",
+                            "p" : 2,
+                            "r" : false,
+                            "v" : true
+                        },
+                        {
+                            "active" : 0,
+                            "id" : "G207ac06d13bf7f2756f2fc51",
+                            "ln" : "Dummy video device (0x0000)#1",
+                            "p" : 2,
+                            "r" : false,
+                            "v" : true
+                        },
+                        {
+                            "active" : 0,
+                            "id" : "G69058c165ac352104cef76d9",
+                            "ln" : "Dummy video device (0x0001)#2",
+                            "p" : 2,
+                            "r" : false,
+                            "v" : true
+                        },
+                        {
+                            "active" : 0,
+                            "id" : "G65a44b9276d1e51e59658bc",
+                            "ln" : "Dummy video device (0x0002)#3",
+                            "p" : 2,
+                            "r" : false,
+                            "v" : true
+                        }
+                    ],
+                    "z" : false
+                },
+                "mt" : 9100,
+                "ty" : "uv"
+                }
+             * @param msg_cmd 
+             */
+            void updateCameraList(const std::string& module_id, const Json& msg_cmd);
+
+            /**
+             * @brief Camera module should send a complete list of camera devices.
+             * Any missing camera is one disappeared most likely the module restarted 
+             * and generated new camera device ids
+             * 
+             * @param module_id 
+             */
+            void cleanOrphanCameraEntries (const std::string& module_id, const uint64_t& time_now);
+
         private:
 
             /**
@@ -88,6 +200,7 @@ namespace uavos
              */
             MODULE_ITEM_LIST  m_modules_list ;
 
+            
             /**
              * @brief 
              * callback list mapped by message ids.
@@ -96,6 +209,9 @@ namespace uavos
              * * You need to use @param m_modules_list to get ip & port.
              */
             std::map <int, std::vector<std::string>> m_module_messages;
+
+
+            MODULE_CAMERA_LIST m_camera_list;
 
             
             

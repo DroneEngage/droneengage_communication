@@ -72,13 +72,14 @@ namespace andruav_servers
 
             void API_requestID (const std::string& target_name);
             void API_sendID (const std::string& target_name);
-            
+            void API_sendCMD (const std::string& target_name, const int command_type, const std::string& msg);
+            void API_sendCameraList(const bool reply, const std::string& target_name);
+
         private:
 
             void parseCommand (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage);
             void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json& jsonMessage);
             
-            void API_sendCMD (const std::string& target_name, const int command_type, const std::string& msg);
             Json generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_name, const int messageType, const std::string& message);
             
         private:

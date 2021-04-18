@@ -24,6 +24,7 @@ uavos::CAndruavUnitMe::CAndruavUnitMe():uavos::CAndruavUnit(true)
 
     m_unit_info.flying_total_duration   = 0;
     m_unit_info.flying_last_start_time  = 0;
+    m_unit_info.permission              ="XXXXXXXXXXXX";
     m_unit_info.is_new = false;
 }
 

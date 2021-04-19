@@ -12,13 +12,90 @@
 
 #include "messages.hpp"
 #include "configFile.hpp"
+#include "andruav_auth.hpp"
 #include "uavos_modules_manager.hpp"
 #include "andruav_comm_server.hpp"
 
 
 
 
-void uavos::andruav_servers::CAndruavCommServer::connect (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id)
+// ------------------------------------------------------------------------------
+//  Pthread Starter Helper Functions
+// ------------------------------------------------------------------------------
+
+void* uavos::andruav_servers::startWatchDogThread(void *args)
+{
+	
+    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+        
+    while (true)
+    {
+        andruav_server.connect();
+
+	    usleep(5000000); // check at 0.2Hz
+
+        
+    }
+
+	return NULL;
+}
+
+void uavos::andruav_servers::CAndruavCommServer::start ()
+{
+    const int result = pthread_create( &m_watch_dog, NULL, &uavos::andruav_servers::startWatchDogThread, this );
+    
+    if ( result ) throw result;
+}
+
+void uavos::andruav_servers::CAndruavCommServer::connect ()
+{
+    try
+    {
+        if ((m_status == SOCKET_STATUS_REGISTERED) || (m_status == SOCKET_STATUS_CONNECTING)) 
+        {
+            API_sendID("");
+            return ;
+        }
+
+        const uint64_t now_time = get_time_usec();
+        
+        // if ((m_status == SOCKET_STATUS_CONNECTING) && (m_next_connect_time < now_time))
+        // {
+            
+        // }
+        if (m_next_connect_time > now_time)
+        {
+            return ;
+        }
+
+        m_next_connect_time = now_time + 10000000l; // retry after 10 sec.
+
+        uavos::andruav_servers::CAndruavAuthenticator& andruav_auth = uavos::andruav_servers::CAndruavAuthenticator::getInstance();
+        uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+        uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+        const Json& jsonConfig = cConfigFile.GetConfigJSON();
+
+        
+        m_status = SOCKET_STATUS_CONNECTING;
+        
+        if (!andruav_auth.doAuthentication())   
+        {
+            m_status = SOCKET_STATUS_ERROR;
+            return ;
+        }
+    
+        
+        andruav_server.connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, jsonConfig["partyID"].get<std::string>() );
+    }
+
+    catch(std::exception const& e)
+    {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return ;
+    }
+}
+
+void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id)
 {
     try
     {
@@ -43,6 +120,12 @@ void uavos::andruav_servers::CAndruavCommServer::connect (const std::string& ser
         // Run the I/O service. The call will return when
         // the socket is closed.
         ioc.run();
+
+        _cwssession.reset();
+        
+        #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError Socket is Closed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
     }
     catch(std::exception const& e)
     {
@@ -268,6 +351,10 @@ void uavos::andruav_servers::CAndruavCommServer::uninit()
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
+
+    // wait for exit
+	pthread_join(m_watch_dog ,NULL);
+	
 }
 
 

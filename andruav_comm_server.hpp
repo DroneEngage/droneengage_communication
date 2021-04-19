@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <pthread.h>
 
 #include "andruav_unit.hpp"
 #include "andruav_comm_session.hpp"
@@ -27,8 +28,14 @@ using Json = nlohmann::json;
 
 namespace uavos
 {
+  
+    
 namespace andruav_servers
 {
+
+    void *startWatchDogThread(void *args);
+
+
     class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServer>, public CCallBack_WSSession
     {
         public:
@@ -49,6 +56,7 @@ namespace andruav_servers
 
             CAndruavCommServer() 
             {
+                m_next_connect_time = 0;
             };
     
         public:
@@ -57,8 +65,9 @@ namespace andruav_servers
             
         
         public:
-        
-            void connect (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
+            
+            void start();
+            void connect();
             void uninit();
 
 
@@ -77,6 +86,7 @@ namespace andruav_servers
 
         private:
 
+            void connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
             void parseCommand (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage);
             void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json& jsonMessage);
             
@@ -92,6 +102,10 @@ namespace andruav_servers
 
             u_int8_t m_status =  SOCKET_STATUS_FREASH;
 
+            u_int64_t m_next_connect_time ;
+
+            pthread_t m_watch_dog;
+            bool m_first = true;
             CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();
     };
 }

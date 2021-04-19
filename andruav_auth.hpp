@@ -38,8 +38,10 @@ class CAndruavAuthenticator
         
     public:
         
-        int getAuth (std::string url, std::string param);
+        bool doAuthentication();
+    
         void uninit();
+    
         
         const int& getErrorCode()
         {
@@ -62,6 +64,8 @@ class CAndruavAuthenticator
 
     private:
 
+        int getAuth (std::string url, std::string param);
+        
         std::string stringifyError (const int& error_number);
         void translateResponse (const std::string& response);    
 

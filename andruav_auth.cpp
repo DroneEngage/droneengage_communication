@@ -6,6 +6,7 @@
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
 
+#include "configFile.hpp"
 #include "andruav_auth.hpp"
 
 
@@ -15,6 +16,51 @@ size_t WriteCallback(char *contents, size_t size, size_t nmemb, void *userp)
     return size * nmemb;
 }
 
+
+bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
+{
+    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    
+    if ((!validateField(jsonConfig,"auth_ip", Json::value_t::string))
+     || (validateField(jsonConfig,"auth_port", Json::value_t::number_unsigned) == false)
+     )
+    {
+
+        std::cout << std::to_string(validateField(jsonConfig,"auth_ip", Json::value_t::string)) << std::endl;
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing login info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        exit(1);
+    }
+
+    //TODO: Move urls to auth class.
+    std::string url =  "https://" + jsonConfig["auth_ip"].get<std::string>() + ":" + std::to_string(jsonConfig["auth_port"].get<int>()) +  "/agent/al/";
+    //std::string url =  "https://andruav.com:19408/w/wl/";
+    std::string param =  "acc=" + jsonConfig["userName"].get<std::string>()
+                +  "&pwd=" + jsonConfig["accessCode"].get<std::string>() 
+                + "&gr=1&app=uavos&ver=" + jsonConfig["version"].get<std::string>() 
+                + "&ex=uavos&at=d";
+
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _LOG_CONSOLE_TEXT << " connection established " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " successfully" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#ifdef DEBUG
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#endif
+       
+    const int res = getAuth (url, param);
+
+
+    if ((res !=CURLE_OK) || (getErrorCode() !=0))
+    {
+        // error 
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Andruav Authentication Failed !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        return false;
+    }
+    else
+    {
+        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Andruav Authentication Succeeded !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        return true;
+    }
+}
 
 /**
  * @brief 
@@ -92,6 +138,8 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse (const std
     
     const Json& json_response = Json::parse(response);
     
+    m_auth_error = 0; //reset error;
+
     if (validateField (json_response, "e", Json::value_t::number_unsigned) == false)
     {   
         m_auth_error = -1;

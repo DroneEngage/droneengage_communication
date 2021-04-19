@@ -30,6 +30,7 @@ void uavos::andruav_servers::CWSSession::fail(beast::error_code ec, char const* 
 // Sends a WebSocket message and prints the response
 void uavos::andruav_servers::CWSSession::run( char const* host, char const* port, char const* url_param)
 {
+        
         // Save these for later
         host_ = host;
         url_param_ = url_param;
@@ -243,10 +244,5 @@ void uavos::andruav_servers::CWSSession::writeText (const std::string message)
     const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     
     ws_.write(net::buffer(std::string(message)));
-
-    #ifdef DEBUG
-         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: Exit "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-
 }
         

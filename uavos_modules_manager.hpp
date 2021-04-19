@@ -99,6 +99,11 @@ namespace uavos
 
             void forwardMessageToModule (const Json& jsonMessage, const MODULE_ITEM_TYPE * module_item);
             
+            /**
+             * @brief Get the Camera List object that defines all camera devices attached to all camera modules.
+             * 
+             * @return Json 
+             */
             Json getCameraList();
 
         private:
@@ -108,24 +113,33 @@ namespace uavos
              * Add/Update module definitions.
              * @param msg_cmd 
              * @param ssock 
+             * 
+             * @return true module has been added.
+             * @return false no new modules.
              */
-            void handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);
+            bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);
 
             /**
              * @brief called by handleModuleRegistration to update subscribed messages for a module.
              * 
              * @param module_id 
              * @param message_array 
+             * 
+             * @return true module has been added.
+             * @return false no new modules.
              */
-            void updateModuleSubscribedMessages (const std::string& module_id, const Json& message_array);
+            bool updateModuleSubscribedMessages (const std::string& module_id, const Json& message_array);
 
             
             /**
              * @brief update UAVOS vehicle permission based on module permissions.
              * ex: "d" : [ "C", "V" ]
              * @param module_permissions 
+             * 
+             * @return true if permission updated
+             * @return false if permissions the samme
              */
-            void updateUavosPermission (const Json& module_permissions);
+            bool updateUavosPermission (const Json& module_permissions);
 
 
             /**

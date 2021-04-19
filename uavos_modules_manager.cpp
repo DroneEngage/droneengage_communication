@@ -77,10 +77,10 @@ Json uavos::CUavosModulesManager::createJSONID (const bool& reSend)
 }
 
 
-void uavos::CUavosModulesManager::updateUavosPermission (const Json& module_permissions)
+bool uavos::CUavosModulesManager::updateUavosPermission (const Json& module_permissions)
 {
     uavos::CAndruavUnitMe& andruav_unit_me = uavos::CAndruavUnitMe::getInstance();
-
+    bool updated = false;
     const int&  len = module_permissions.size();
     for (int i=0; i<len; ++i)
     {
@@ -88,27 +88,37 @@ void uavos::CUavosModulesManager::updateUavosPermission (const Json& module_perm
         if (permission_item.compare("T") ==0)
         {
             uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
+            if (andruav_unit_info.permission[4]=='T') break;
             andruav_unit_info.permission[4] = 'T';
             andruav_unit_info.use_fcb = true;
+            updated = true;
         }
         else if (permission_item.compare("R") ==0)
         {
             uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
+            if (andruav_unit_info.permission[6]=='R') break;
             andruav_unit_info.permission[6] = 'R';
             andruav_unit_info.use_fcb = true;
+            updated = true;
         }
         else if (permission_item.compare("V") ==0)
         {
             uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
+            if (andruav_unit_info.permission[8]=='V') break;
             andruav_unit_info.permission[8] = 'V';
+            updated = true;
         }
         else if (permission_item.compare("C") ==0)
         {
             uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
+            if (andruav_unit_info.permission[10]=='C') break;
             andruav_unit_info.permission[10] = 'C';
+            updated = true;
         }
         
     }
+
+    return updated;
 }
 
 
@@ -248,7 +258,7 @@ Json uavos::CUavosModulesManager::getCameraList()
                 {"id", camera_entry->global_index},
                 {"active", camera_entry->is_camera_streaming},
                 {"r", camera_entry->is_recording},
-                {"p", camera_entry->global_index}
+                {"p", camera_entry->camera_type}
 
             };
             camera_list.push_back(json_camera_entry);
@@ -260,8 +270,10 @@ Json uavos::CUavosModulesManager::getCameraList()
 }
 
 
-void uavos::CUavosModulesManager::updateModuleSubscribedMessages (const std::string& module_id, const Json& message_array)
+bool uavos::CUavosModulesManager::updateModuleSubscribedMessages (const std::string& module_id, const Json& message_array)
 {
+    bool new_module = false;
+
     const int messages_length = message_array.size(); 
     for (int i=0; i< messages_length; ++i)
     {
@@ -280,16 +292,22 @@ void uavos::CUavosModulesManager::updateModuleSubscribedMessages (const std::str
             * forwarded to this list.
             */
             v.push_back(module_id);
+            new_module = true;
         }
     }
+
+    return new_module;
 }
 
-void uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
+
+bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
 {
 
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
+    
+    bool updated = false;
 
     const uint64_t &now = get_time_usec();
             
@@ -301,8 +319,8 @@ void uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
     * @brief insert module in @param m_modules_list
     * this is the main list of modules.
     */
-    auto camera_module = m_modules_list.find(module_id);
-    if (camera_module == m_modules_list.end()) 
+    auto module_entry = m_modules_list.find(module_id);
+    if (module_entry == m_modules_list.end()) 
     {
         // New Module not registered in m_modules_list
 
@@ -323,7 +341,7 @@ void uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
     }
     else
     {
-        module_item = camera_module->second.get();
+        module_item = module_entry->second.get();
                 
         // Update Module Info
      
@@ -340,7 +358,7 @@ void uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
     // insert message callback
     
     const Json& message_array = msg_cmd["c"]; 
-    updateModuleSubscribedMessages(module_id, message_array);
+    updated |= updateModuleSubscribedMessages(module_id, message_array);
 
     const std::string module_type = msg_cmd["b"].get<std::string>(); 
     if (module_type.find("camera")==0)
@@ -349,7 +367,7 @@ void uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
         updateCameraList(module_id, msg_cmd);
     }   
 
-    updateUavosPermission(msg_cmd["d"]);
+    updated |= updateUavosPermission(msg_cmd["d"]);
 
     // reply with identification if required by module
     if (validateField(msg_cmd, "z", Json::value_t::boolean))
@@ -363,6 +381,8 @@ void uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
             uavos::comm::CUDPCommunicator::getInstance().SendJMSG(msg.dump(), &module_address);
         }
     }
+
+    return updated;
 }
 
 
@@ -388,7 +408,13 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, co
 
         case TYPE_AndruavModule_ID:
         {
-            handleModuleRegistration (ms, ssock);
+            const bool updated = handleModuleRegistration (ms, ssock);
+            
+            if (updated == true)
+            {
+                uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
+                commServer.API_sendID(std::string());
+            }
             
         }
         break;
@@ -477,6 +503,11 @@ void uavos::CUavosModulesManager::processIncommingServerMessage (const std::stri
  */
 void uavos::CUavosModulesManager::forwardMessageToModule (const Json& jsonMessage, const MODULE_ITEM_TYPE * module_item)
 {
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: forwardMessageToModule: " << jsonMessage.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
+    
     //const Json &msg = createJSONID(false);
     struct sockaddr_in module_address = *module_item->m_module_address.get();  
                 

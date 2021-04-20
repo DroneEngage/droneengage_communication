@@ -84,6 +84,17 @@ namespace andruav_servers
             void API_sendCMD (const std::string& target_name, const int command_type, const std::string& msg);
             void API_sendCameraList(const bool reply, const std::string& target_name);
 
+            int getStatus ()
+            {
+                return m_status;
+            }
+
+        public:
+            const bool& shouldExit()
+            {
+                return m_exit;
+            }
+
         private:
 
             void connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
@@ -106,6 +117,7 @@ namespace andruav_servers
 
             pthread_t m_watch_dog;
             bool m_first = true;
+            bool m_exit = false;
             CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();
     };
 }

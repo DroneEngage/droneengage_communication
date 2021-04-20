@@ -77,6 +77,12 @@ class CWSSession : public std::enable_shared_from_this<CWSSession>
 
         void writeText (const std::string message);
 
+        /**
+         * @brief Close socket normally.
+         * 
+         */
+        void close ();
+
         void on_resolve(beast::error_code ec, tcp::resolver::results_type results);
 
         void on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep); 
@@ -88,8 +94,6 @@ class CWSSession : public std::enable_shared_from_this<CWSSession>
         void on_write(beast::error_code ec, std::size_t bytes_transferred);
 
         void on_read(beast::error_code ec, std::size_t bytes_transferred);
-
-        void on_close(beast::error_code ec);
 
         
     private:

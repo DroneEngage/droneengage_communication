@@ -60,7 +60,8 @@ class CUDPCommunicator
 
         struct sockaddr_in  *m_CommunicatorModuleAddress = NULL; 
         int m_SocketFD = -1; 
-        std::thread m_threadSenderID, m_threadCreateUDPSocket;
+        //std::thread m_threadSenderID;
+        std::thread m_threadCreateUDPSocket;
         pthread_t m_thread;
 
         ONRECEIVE_CALLBACK m_OnReceive = NULL;

@@ -16,8 +16,8 @@
 #include "uavos_modules_manager.hpp"
 #include "andruav_comm_server.hpp"
 
-
-
+// Based on Below Model
+// https://www.boost.org/doc/libs/develop/libs/beast/example/websocket/client/async-ssl/websocket_client_async_ssl.cpp
 
 // ------------------------------------------------------------------------------
 //  Pthread Starter Helper Functions
@@ -30,9 +30,21 @@ void* uavos::andruav_servers::startWatchDogThread(void *args)
         
     while (true)
     {
-        andruav_server.connect();
+        // * note that connect does not return when it successfully connects
+        andruav_server.connect(); 
 
-	    usleep(5000000); // check at 0.2Hz
+        for (int i=0;i<50;++i)
+        {
+            if (andruav_server.shouldExit()) 
+            {
+                #ifdef DEBUG
+                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() == true" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                #endif
+
+                return NULL;
+            }
+	        usleep(100000); 
+        }
 
         
     }
@@ -40,29 +52,28 @@ void* uavos::andruav_servers::startWatchDogThread(void *args)
 	return NULL;
 }
 
+
 void uavos::andruav_servers::CAndruavCommServer::start ()
 {
     const int result = pthread_create( &m_watch_dog, NULL, &uavos::andruav_servers::startWatchDogThread, this );
-    
+
     if ( result ) throw result;
+
 }
 
 void uavos::andruav_servers::CAndruavCommServer::connect ()
 {
     try
     {
-        if ((m_status == SOCKET_STATUS_REGISTERED) || (m_status == SOCKET_STATUS_CONNECTING)) 
+
+        if ((m_status == SOCKET_STATUS_REGISTERED) || (m_status == SOCKET_STATUS_CONNECTING))
         {
-            API_sendID("");
+            
             return ;
         }
 
         const uint64_t now_time = get_time_usec();
         
-        // if ((m_status == SOCKET_STATUS_CONNECTING) && (m_next_connect_time < now_time))
-        // {
-            
-        // }
         if (m_next_connect_time > now_time)
         {
             return ;
@@ -71,7 +82,6 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
         m_next_connect_time = now_time + 10000000l; // retry after 10 sec.
 
         uavos::andruav_servers::CAndruavAuthenticator& andruav_auth = uavos::andruav_servers::CAndruavAuthenticator::getInstance();
-        uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
         uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
         const Json& jsonConfig = cConfigFile.GetConfigJSON();
 
@@ -85,7 +95,7 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
         }
     
         
-        andruav_server.connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, jsonConfig["partyID"].get<std::string>() );
+        connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, jsonConfig["partyID"].get<std::string>() );
     }
 
     catch(std::exception const& e)
@@ -142,8 +152,17 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
     #endif
 
     std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << " Andruav Server Connected: Error "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    
-    m_status = SOCKET_STATUS_ERROR;
+    if (m_exit== true)
+    {
+        m_status =  SOCKET_STATUS_DISCONNECTED;  
+    }
+    else
+    {
+        m_status = SOCKET_STATUS_ERROR;
+
+        // TODO Send Internal Message to Modules telling them we are no longer connected.
+    }
+
 }
 
 void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const char * message, const std::size_t datalength)
@@ -352,9 +371,18 @@ void uavos::andruav_servers::CAndruavCommServer::uninit()
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
+    m_exit = true;
+    
+    _cwssession.get()->close();
+    
     // wait for exit
 	pthread_join(m_watch_dog ,NULL);
 	
+
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit OUT " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
 }
 
 

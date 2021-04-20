@@ -116,27 +116,27 @@ void uavos::comm::CUDPCommunicator::stop()
     if (m_SocketFD != -1)
         close (m_SocketFD);
     
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Socket Closed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     try
     {
         //pthread_join(m_threadSenderID, NULL); 	// close the thread
         //pthread_join(m_threadCreateUDPSocket, NULL); 	// close the thread
         m_threadCreateUDPSocket.join();
-        m_threadSenderID.join();
+        //m_threadSenderID.join();
         //pthread_join(m_thread, NULL); 	// close the thread
         //close(m_SocketFD); 					// close UDP socket
         delete m_CommunicatorModuleAddress;
         //delete m_CommunicatorModuleAddress;
 
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     }
     catch(...)
     {
         //std::cerr << e.what() << '\n';
     }
 
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop out" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
     
 
@@ -149,7 +149,12 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    
+    // https://stackoverflow.com/questions/2876024/linux-is-there-a-read-or-recv-from-socket-with-timeout
+    struct timeval tv;
+    tv.tv_sec = 1; // timeout_in_seconds;
+    tv.tv_usec = 0;
+    setsockopt(m_SocketFD, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
     struct sockaddr_in  cliaddr;
     int n;
     __socklen_t sender_address_size = sizeof (cliaddr);

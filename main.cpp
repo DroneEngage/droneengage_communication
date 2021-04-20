@@ -12,6 +12,7 @@
 #include <curl/curl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
@@ -34,12 +35,51 @@ uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
 uavos::comm::CUDPCommunicator& cUDPClient = uavos::comm::CUDPCommunicator::getInstance();  
 uavos::CUavosModulesManager& cUavosModulesManager = uavos::CUavosModulesManager::getInstance();  
 
-
-void onReceive (const char * jsonMessage, int len, struct sockaddr_in *  ssock);
-void uninit ();
-
+pthread_t m_scheduler;
+bool exit_scheduler = false;
 
 
+// void onReceive (const char * jsonMessage, int len, struct sockaddr_in *  ssock);
+// void uninit ();
+
+
+
+
+void * scheduler (void *args)
+{
+
+    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    
+    uint64_t hz_1 = 0;
+    uint64_t every_5_sec = 0;
+
+    while (!exit_scheduler)
+    {
+        hz_1++;
+        every_5_sec ++;
+        
+        if (hz_1 % 10 == 0)
+        {
+            // if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
+            // {
+            //     andruav_server.API_sendID("");
+            // }
+        }
+
+        if (every_5_sec % 50 == 0)
+        {
+            if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
+            {
+                andruav_server.API_sendID("");
+            }
+        }
+
+
+        usleep(100000); // 10Hz
+    }
+
+    return NULL;
+}
 
 
 void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
@@ -83,6 +123,14 @@ void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
             std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Binary Message from UDP ... NOT IMPLEMENTED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
     }
+}
+
+
+void initScheduler()
+{
+    const int result = pthread_create( &m_scheduler, NULL, &scheduler, NULL );
+    if ( result ) throw result;
+
 }
 
 
@@ -147,13 +195,16 @@ void init (int argc, char *argv[])
 
 
     // Reading Configuration
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING PLUGIN ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING UAVOS COMMUNICATOR ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     
     cConfigFile.InitConfigFile (configName.c_str());
     
     defineMe();
     
+
+    initScheduler();
+
     initSockets();
 
     connectToCommServer ();
@@ -164,15 +215,24 @@ void uninit ()
 {
 
     uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
-    
+
+    exit_me = true;
+    exit_scheduler = true;
+    // wait for exit
+	pthread_join(m_scheduler ,NULL);
+	
     andruav_server.uninit();
     
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     
     
     cUDPClient.stop();
 
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint_after Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint_after Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     
     // end program here
 	exit(0);
@@ -189,10 +249,15 @@ void quit_handler( int sig )
 	
 	try 
     {
-        exit_me = true;
         uninit();
 	}
-	catch (int error){}
+	catch (int error)
+    {
+        #ifdef DEBUG
+            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: quit_handler" << std::to_string(error)<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
+
+    }
 
     exit(0);
 }
@@ -203,6 +268,7 @@ void quit_handler( int sig )
 int main (int argc, char *argv[])
 {
     signal(SIGINT,quit_handler);
+    signal(SIGTERM,quit_handler);
 	
     init (argc, argv);
 

@@ -222,17 +222,6 @@ void uavos::andruav_servers::CWSSession::on_read(
     }
 }
 
-void uavos::andruav_servers::CWSSession::on_close(beast::error_code ec)
-{
-    if(ec) return fail(ec, "close");
-
-    // If we get here then the connection is closed gracefully
-
-    // The make_printable() function helps print a ConstBufferSequence
-    std::cout << beast::make_printable(buffer_.data()) << std::endl;
-}
-
-
 
 void uavos::andruav_servers::CWSSession::writeText (const std::string message)
 {
@@ -244,5 +233,12 @@ void uavos::andruav_servers::CWSSession::writeText (const std::string message)
     const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     
     ws_.write(net::buffer(std::string(message)));
+}
+
+
+
+void uavos::andruav_servers::CWSSession::close ()
+{
+    ws_.close(websocket::close_code::normal);
 }
         

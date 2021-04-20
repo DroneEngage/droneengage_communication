@@ -17,7 +17,7 @@ using Json = nlohmann::json;
 #include "global.hpp"
 
 // 5 seconds
-#define Module_TIME_OUT  5000000
+#define MODULE_TIME_OUT  5000000
 
 /**
  * @brief Structure that defines Uavos modules.
@@ -30,7 +30,7 @@ typedef struct
     Json modules_features = Json::array();
     std::string module_key;
     uint64_t module_last_access_time = 0;
-
+    bool is_dead = false;
     std::unique_ptr<struct sockaddr_in> m_module_address;
     
 } MODULE_ITEM_TYPE;
@@ -105,6 +105,16 @@ namespace uavos
              * @return Json 
              */
             Json getCameraList();
+
+            /**
+             * @brief Check m_modules_list for dead modules that recieved no data.
+             * *Note: that restarted modules have the same ID not the same Key.... 
+             * * so restarted modules does overwrite old instances..
+             * 
+             * @return true found new dead modules.... already dead modules are not counted.
+             * @return false no dead modules.
+             */
+            bool HandleDeadModules();
 
         private:
 

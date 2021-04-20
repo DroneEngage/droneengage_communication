@@ -329,7 +329,7 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
         module_item->module_id          = module_id;
         module_item->module_class       = msg_cmd["b"].get<std::string>(); // fcb, video, ...etc.
         module_item->modules_features   = msg_cmd["d"];
-            
+        
         struct sockaddr_in * module_address = new (struct sockaddr_in)();  
         memcpy(module_address, ssock, sizeof(struct sockaddr_in)); 
                 
@@ -346,9 +346,10 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
         // Update Module Info
      
         if ((module_item->module_last_access_time!=0)
-            && (now - module_item->module_last_access_time >= Module_TIME_OUT))
+            && (now - module_item->module_last_access_time >= MODULE_TIME_OUT))
         {
-            //Event Module Restored
+            //TODO Event Module Restored
+            module_item->is_dead = true;
         }
     }
 
@@ -514,4 +515,49 @@ void uavos::CUavosModulesManager::forwardMessageToModule (const Json& jsonMessag
     uavos::comm::CUDPCommunicator::getInstance().SendJMSG(jsonMessage.dump(), &module_address);
 
     return ;
+}
+
+
+bool uavos::CUavosModulesManager::HandleDeadModules ()
+{
+    static std::mutex g_i_mutex; 
+
+    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    
+    bool dead_found = false;
+
+    const uint64_t &now = get_time_usec();
+    
+    MODULE_ITEM_LIST::iterator it;
+    
+    for (it = m_modules_list.begin(); it != m_modules_list.end(); it++)
+    {
+        MODULE_ITEM_TYPE * module_item = it->second.get();
+        const uint64_t diff =  (now - module_item->module_last_access_time);
+
+        if (diff > MODULE_TIME_OUT)
+        {
+            
+            if (!module_item->is_dead)
+            {
+                //TODO Event Module Warning
+                module_item->is_dead = true;
+                dead_found = true;
+            }
+            
+           
+        }
+        else
+        {
+            if (module_item->is_dead)
+            {
+                //TODO Event Module Restored
+                module_item->is_dead = false;
+            }
+            
+        }
+
+    }
+    
+    return dead_found;
 }

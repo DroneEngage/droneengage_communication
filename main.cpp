@@ -57,7 +57,7 @@ void * scheduler (void *args)
     {
         hz_1++;
         every_5_sec ++;
-        
+
         if (hz_1 % 10 == 0)
         {
             // if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
@@ -70,6 +70,7 @@ void * scheduler (void *args)
         {
             if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
             {
+                cUavosModulesManager.HandleDeadModules();
                 andruav_server.API_sendID("");
             }
         }

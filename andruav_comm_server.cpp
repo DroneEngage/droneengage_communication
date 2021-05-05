@@ -307,6 +307,8 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             if (command.contains("p") == true) unit_info.permission = command["p"].get<std::string>();
             
             
+            if (command.contains("C") == true) unit_info.manual_TX_blocked_mode = command["C"].get<int>();
+            
             if (command.contains("o") == true) unit_info.swarm_leader_formation = command["o"].get<int>();
             if (command.contains("q") == true) unit_info.swarm_leader_I_am_following = command["q"].get<std::string>();
             
@@ -429,16 +431,17 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendID (const std::string& 
 
     Json jMsg = 
     {   
-        {"VT", unit_info.vehicle_type},         // vehicle type
-        {"GS", unit_info.is_gcs},               // is gcs
-        {"VR", unit_info.is_video_recording},   // is video recording
-        {"B", unit_info.is_gcs_blocked},        // is gcs blocked
-        {"FM", unit_info.flying_mode},          // Flying mode
-        {"GM", unit_info.gps_mode},             // gps mode
-        {"TP", unit_info.telemetry_protocol},       // m_telemetry_protocol
-        {"UD", jsonConfig["unitID"]},           // unit Name
-        {"DS", jsonConfig["unitDescription"]},  // unit Description
-        {"p", unit_info.permission}            // permissions
+        {"VT", unit_info.vehicle_type},           // vehicle type
+        {"GS", unit_info.is_gcs},                 // is gcs
+        {"VR", unit_info.is_video_recording},     // is video recording
+        {"B",  unit_info.is_gcs_blocked},         // is gcs blocked
+        {"FM", unit_info.flying_mode},            // Flying mode
+        {"GM", unit_info.gps_mode},               // gps mode
+        {"TP", unit_info.telemetry_protocol},     // m_telemetry_protocol
+        {"C",  unit_info.manual_TX_blocked_mode}, // Remote Control RX Mode
+        {"UD", jsonConfig["unitID"]},             // unit Name
+        {"DS", jsonConfig["unitDescription"]},    // unit Description
+        {"p",  unit_info.permission}              // permissions
     };
  
     if (unit_info.is_tracking_mode)

@@ -55,7 +55,7 @@ typedef struct {
   bool is_armed;
   bool is_flying;
 
-  bool manual_TX_blocked_mode;
+  int manual_TX_blocked_mode;
   bool is_tracking_mode;
   int is_video_recording;  // 0 - no recording 1  - one recording .. can be used in uavos cam for multiple recording... 
   int vehicle_type;

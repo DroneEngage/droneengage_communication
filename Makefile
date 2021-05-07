@@ -1,13 +1,14 @@
 
 CXX=g++
-CXXARM=arm-linux-gnueabihf-g++
+CXXARM=/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-g++
+CXXARM3=arm-linux-gnueabihf-g++
 CXXARM2=~/TDisk/raspberry_pi/zero/tools_cross_compiler/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf//bin/arm-linux-gnueabihf-g++
 CXXARM1=~/TDisk/raspberry_pi/zero/tools_cross_compiler/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
 EXE=uavos_comm
 BIN=bin
-INCLUDE= -I /usr/include/x86_64-linux-gnu/curl
-#LIBS=  -pthread  -lcurl -lssl -lcrypto
-LIBS=  -lcurl -pthread -lboost_coroutine -lssl -lcrypto
+INCLUDE= -I ~/TDisk/Boost/boost_1_76_0/ -I /usr/include/x86_64-linux-gnu/curl
+LIBS=  -pthread   -lcurl -L ~/TDisk/Boost/boost_1_76_s0/output_x86 -lboost_coroutine -lssl -lcrypto
+#LIBS=  -lcurl -pthread -lboost_coroutine -lssl -lcrypto
 CXXFLAGS =  -std=c++11
 
 CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s   -Werror=unused-variable -Werror=unused-result

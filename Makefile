@@ -1,13 +1,13 @@
 
 CXX=g++
-CXXARM=/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-g++
-CXXARM3=arm-linux-gnueabihf-g++
-CXXARM2=~/TDisk/raspberry_pi/zero/tools_cross_compiler/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf//bin/arm-linux-gnueabihf-g++
-CXXARM1=~/TDisk/raspberry_pi/zero/tools_cross_compiler/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-g++
+CXXARM=/usr/bin/arm-linux-gnueabihf-g++
+#CXXARM=/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-g++
 EXE=uavos_comm
+EXE_ARM=uavos_comm_arm
 BIN=bin
-INCLUDE= -I ~/TDisk/Boost/boost_1_76_0/ -I /usr/include/x86_64-linux-gnu/curl
-LIBS=  -pthread   -lcurl -L ~/TDisk/Boost/boost_1_76_s0/output_x86 -lboost_coroutine -lssl -lcrypto
+INCLUDE= -I ~/TDisk/Boost/boost_1_76_0/ -I /usr/include/x86_64-linux-gnu
+INCLUDE_ARM =  -I /usr/include -I /usr/include/arm-linux-gnueabihf  -I ~/TDisk/Boost/boost_1_76_0
+LIBS=  -pthread   -lcurl  -lboost_coroutine -lssl -lcrypto
 #LIBS=  -lcurl -pthread -lboost_coroutine -lssl -lcrypto
 CXXFLAGS =  -std=c++11
 
@@ -55,8 +55,13 @@ debug: uavos.debug
 	@echo "building finished ..."; 
 	@echo "DONE."
 
+arm_release: uavos.arm.debug
+	$(CXXARM)  $(CXXFLAGS_RELEASE) -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
+	@echo "building finished ..."; 
+	@echo "DONE."
+
 arm_debug: uavos.arm.debug
-	$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE).so   $(OBJS)   $(LIBS) ;
+	$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
@@ -75,10 +80,17 @@ uavos.debug: copy
 	@echo "compliling finished ..."
 
 
+uavos.arm.release: copy
+	mkdir -p $(BUILD); \
+	cd $(BUILD); \
+	$(CXXARM)   $(CXXFLAGS_RELEASE) -c  $(SRCS)  $(INCLUDE_ARM)  ; 
+	cd .. ; 
+	@echo "compliling finished ..."
+
 uavos.arm.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXXARM)   $(CXXFLAGS_DEBUG) -g -DDEBUG -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXXARM)   $(CXXFLAGS_DEBUG) -c  $(SRCS)  $(INCLUDE_ARM)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 

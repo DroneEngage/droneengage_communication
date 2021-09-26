@@ -3,7 +3,8 @@
 
 #include <iostream>
 
-#include "./helpers/json.hpp"
+#include "../helpers/json.hpp"
+
 using Json = nlohmann::json;
 
 namespace uavos

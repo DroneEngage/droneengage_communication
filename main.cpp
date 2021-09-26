@@ -22,9 +22,9 @@
 #include "configFile.hpp"
 #include "udpCommunicator.hpp"
 
-#include "andruav_unit.hpp"
-#include "andruav_comm_server.hpp"
-#include "uavos_modules_manager.hpp"
+#include "./comm_server/andruav_unit.hpp"
+#include "./comm_server/andruav_comm_server.hpp"
+#include "./uavos/uavos_modules_manager.hpp"
 
 
 

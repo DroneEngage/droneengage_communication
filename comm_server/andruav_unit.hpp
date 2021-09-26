@@ -5,8 +5,8 @@
 #include <string>
 #include <map>
 
-#include "./helpers/helpers.hpp"
-#include "./helpers/json.hpp"
+#include "../helpers/helpers.hpp"
+#include "../helpers/json.hpp"
 using Json = nlohmann::json;
 
 

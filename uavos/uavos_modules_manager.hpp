@@ -11,10 +11,10 @@
 #include <vector> 
 #include <sys/socket.h>
 
-#include "./helpers/json.hpp"
+#include "../helpers/json.hpp"
 using Json = nlohmann::json;
 
-#include "global.hpp"
+#include "../global.hpp"
 
 // 5 seconds
 #define MODULE_TIME_OUT  5000000

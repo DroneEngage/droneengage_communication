@@ -11,16 +11,16 @@
 #include <netinet/in.h> 
 
 
-#include "./helpers/colors.hpp"
-#include "./helpers/helpers.hpp"
+#include "../helpers/colors.hpp"
+#include "../helpers/helpers.hpp"
 
 
-#include "messages.hpp"
-#include "andruav_unit.hpp"
-#include "udpCommunicator.hpp"
-#include "configFile.hpp"
-#include "andruav_comm_server.hpp"
-#include "uavos_modules_manager.hpp"
+#include "../messages.hpp"
+#include "../comm_server/andruav_unit.hpp"
+#include "../udpCommunicator.hpp"
+#include "../configFile.hpp"
+#include "../comm_server/andruav_comm_server.hpp"
+#include "../uavos/uavos_modules_manager.hpp"
 
 
 uavos::CUavosModulesManager::~CUavosModulesManager()

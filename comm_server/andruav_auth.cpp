@@ -3,10 +3,10 @@
 
 
 
-#include "./helpers/colors.hpp"
-#include "./helpers/helpers.hpp"
+#include "../helpers/colors.hpp"
+#include "../helpers/helpers.hpp"
 
-#include "configFile.hpp"
+#include "../configFile.hpp"
 #include "andruav_auth.hpp"
 
 

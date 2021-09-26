@@ -30,12 +30,12 @@ OBJS = $(BUILD)/main.o \
 SRCS = ../main.cpp \
 	   ../udpCommunicator.cpp \
 	   ../configFile.cpp \
-	   ../andruav_comm_session.cpp \
-	   ../andruav_comm_server.cpp \
-	   ../uavos_modules_manager.cpp \
-	   ../andruav_auth.cpp \
+	   ../comm_server/andruav_comm_session.cpp \
+	   ../comm_server/andruav_comm_server.cpp \
+	   ../uavos/uavos_modules_manager.cpp \
+	   ../comm_server/andruav_auth.cpp \
 	   ../helpers/helpers.cpp \
-	   ../andruav_unit.cpp
+	   ../comm_server/andruav_unit.cpp
 	   
 
 

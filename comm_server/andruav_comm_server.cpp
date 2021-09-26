@@ -7,13 +7,13 @@
 
 
 
-#include "./helpers/colors.hpp"
-#include "./helpers/helpers.hpp"
+#include "../helpers/colors.hpp"
+#include "../helpers/helpers.hpp"
 
-#include "messages.hpp"
-#include "configFile.hpp"
+#include "../messages.hpp"
+#include "../configFile.hpp"
 #include "andruav_auth.hpp"
-#include "uavos_modules_manager.hpp"
+#include "../uavos/uavos_modules_manager.hpp"
 #include "andruav_comm_server.hpp"
 
 // Based on Below Model

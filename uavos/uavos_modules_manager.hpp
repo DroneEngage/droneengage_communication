@@ -92,7 +92,8 @@ namespace uavos
             
             ~CUavosModulesManager ();
            
-            void parseIntermoduleMessage (Json& jsonMessage, const struct sockaddr_in* ssock, bool& forward);
+            void parseIntermoduleBinaryMessage (Json& jsonMessage, const char * full_mesage, const int full_mesage_length, const struct sockaddr_in* ssock);
+            void parseIntermoduleMessage (Json& jsonMessage, const struct sockaddr_in* ssock);
             Json createJSONID (const bool& reSend);
             
             void processIncommingServerMessage (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage);
@@ -156,6 +157,8 @@ namespace uavos
              * @brief Update camera list.
              * Adding available camera devices exists in different camera modules.
              * 
+             * @details Update camera list.
+             * Adding available camera devices exists in different camera modules.
              * RX MSG: {
                 "ms" : {
                     "a" : "HorusEye1",
@@ -207,7 +210,7 @@ namespace uavos
             void updateCameraList(const std::string& module_id, const Json& msg_cmd);
 
             /**
-             * @brief Camera module should send a complete list of camera devices.
+             * @details Camera module should send a complete list of camera devices.
              * Any missing camera is one disappeared most likely the module restarted 
              * and generated new camera device ids
              * 
@@ -226,7 +229,8 @@ namespace uavos
 
             
             /**
-             * @brief 
+             * @brief map (message number, List of subscribed modules)
+             * @details 
              * callback list mapped by message ids.
              * when this message is received from andruav-server it should be forwarded to 
              * modules listed in vector of this message id.

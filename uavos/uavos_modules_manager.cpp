@@ -389,24 +389,67 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
 
 /**
  * @brief 
- * Handels CMD_TYPE_INTERMODULE messages.
- * CMD_TYPE_INTERMODULE message types contain many commands. most important is TYPE_AndruavModule_ID
- * Other Andruav based commands can be sent using this type of messages if uavos module wants uavos communicator to process 
- * the message before forwarding it. Although it is not necessary to forward the message to Andruav-Server.
- * @param jsonMessage Json object message.
- * @param port        uavos module port 
- * @param address     uavos module address
- * @param forward     true to forward to Andruav Server
+ * 
+ * @details 
+ * @param full_mesage 
+ * @param full_mesage_length 
+ * @param ssock sender module ip & port
  */
-void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, const struct sockaddr_in* ssock, bool& forward)
+void uavos::CUavosModulesManager::parseIntermoduleBinaryMessage (Json& jsonMessage, const char * full_mesage, const int full_mesage_length, const struct sockaddr_in* ssock)
 {
     // Intermodule Message
     const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
-    //forward = false;
+    
+    uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    
+    const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+    
+    int binary_length = 0; 
+    int binary_start_index = 0;
+    for (int i=0; i<full_mesage_length; ++i)
+    { 
+        if (full_mesage[i]==0)
+        {
+            
+            binary_start_index = i + 1;
+            binary_length = full_mesage_length - binary_start_index;
+            break;
+        }
+
+    }
+
+    const char * binaryMessage = &(full_mesage[binary_start_index]);
+
+    
+    if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_COMM_INDIVIDUAL) != std::string::npos)
+    {
+        // messages to comm-server
+        commServer.API_sendBinaryCMD(jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>(), mt, binaryMessage, binary_length);
+    }
+    else
+    {
+        commServer.API_sendBinaryCMD(std::string(), mt, binaryMessage, binary_length);
+    }
+            
+}
+
+/**
+ * @details 
+ * Handels all messages recieved form a module.
+ * @link CMD_TYPE_INTERMODULE @endlink message types contain many commands. most important is @link TYPE_AndruavModule_ID @endlink
+ * Other Andruav based commands can be sent using this type of messages if uavos module wants uavos communicator to process 
+ * the message before forwarding it. Although it is not necessary to forward the message to Andruav-Server.
+ * @param jsonMessage Json object message.
+ * @param address sender module ip & port
+ */
+void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, const struct sockaddr_in* ssock)
+{
+    // Intermodule Message
+    const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+    
     const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     switch (mt)
     {
-
         case TYPE_AndruavModule_ID:
         {
             const bool updated = handleModuleRegistration (ms, ssock);
@@ -446,13 +489,16 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, co
         default:
         {
             uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
-            if (ms.contains(INTERMODULE_COMMAND_TYPE) && ms[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_COMM_INDIVIDUAL) != std::string::npos)
+            if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_COMM_INDIVIDUAL) != std::string::npos)
             {
                 // messages to comm-server
-                
+                commServer.API_sendCMD(jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>(), mt, ms.dump());
+            }
+            else
+            {
+                commServer.API_sendCMD(std::string(), mt, ms.dump());
             }
             
-            commServer.API_sendCMD(std::string(), mt, ms.dump());
         }
         break;
     }

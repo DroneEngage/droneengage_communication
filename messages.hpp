@@ -6,8 +6,13 @@
 
 
 
-
-
+/**
+ * @brief assume JSON header is never less than 10
+ * @details Assume JSON header is never less than 10
+ * This is to speed up fiding binary message.
+ * @todo Please Confirm.
+ */
+#define MIN_JSON_HEADER_LEANGTH 10
 
 
 

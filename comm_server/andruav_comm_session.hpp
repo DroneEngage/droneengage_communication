@@ -76,7 +76,8 @@ class CWSSession : public std::enable_shared_from_this<CWSSession>
         void run(char const* host, char const* port, char const* url_param);
 
         void writeText (const std::string message);
-
+        void writeBinary (const char * bmsg, const int& length);
+        
         /**
          * @brief Close socket normally.
          * 

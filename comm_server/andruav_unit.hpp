@@ -211,7 +211,7 @@ class CAndruavUnits
 };
 
 
-}; // namespace uavo
+}; // namespace uavos
 
 
 

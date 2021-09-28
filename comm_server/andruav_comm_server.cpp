@@ -388,7 +388,7 @@ void uavos::andruav_servers::CAndruavCommServer::uninit()
 }
 
 
-void uavos::andruav_servers::CAndruavCommServer::API_requestID (const std::string& target_name)
+void uavos::andruav_servers::CAndruavCommServer::API_requestID (const std::string& target_party_id)
 {
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -396,7 +396,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_requestID (const std::strin
 
     Json jMsg = {{"C", TYPE_AndruavResala_ID}};
     
-    API_sendCMD (target_name, TYPE_AndruavResala_RemoteExecute, jMsg.dump());
+    API_sendCMD (target_party_id, TYPE_AndruavResala_RemoteExecute, jMsg.dump());
 }
 
 
@@ -486,7 +486,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendID (const std::string& 
 
 
 /**
- * @brief Sends Andruav Command to Andruav Server
+ * @details Sends Andruav Command to Andruav Server
  *  *_GCS_: broadcast to GCS.
  *  *_AGN_: broadcast to vehicles only.
  *  *_GD_: broadcast to all..
@@ -517,8 +517,8 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
 
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
-        Json jmsg  = this->generateJSONMessage (routing_message, m_party_id, target_name, command_type, msg);
-        _cwssession.get()->writeText(jmsg.dump());
+        Json json_msg  = this->generateJSONMessage (routing_message, m_party_id, target_name, command_type, msg);
+        _cwssession.get()->writeText(json_msg.dump());
 
         // #ifdef DEBUG
         // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << jmsg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -527,7 +527,60 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
 }
 
 
-Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_name, const int messageType, const std::string& message)
+
+/**
+ * @details Sends Andruav Command to Andruav Server
+ *  *_GCS_: broadcast to GCS.
+ *  *_AGN_: broadcast to vehicles only.
+ *  *_GD_: broadcast to all..
+ *  *null: means send to all units if sender is GCS, and if sender is drone means send to all GCS.
+ * @param target_party_id party_id of a target or can be null or _GD_, _AGN_, _GCS_
+ * @param command_type 
+ * @param bmsg 
+ * @param bmsg_length
+ */
+void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const int bmsg_length)
+{
+    static std::mutex g_i_mutex; 
+
+    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
+    std::string routing_message;
+    if (target_party_id.empty() == false)
+    {
+        routing_message = CMD_COMM_INDIVIDUAL;
+    }
+    else
+    {
+        routing_message = CMD_COMM_GROUP;
+    }
+
+    if (m_status == SOCKET_STATUS_REGISTERED)  
+    {
+        Json json  = this->generateJSONMessage (routing_message, m_party_id, target_party_id, command_type, target_party_id);
+        std::string json_msg = json.dump();
+        char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
+        std::unique_ptr<char []> msg = std::unique_ptr<char []> (msg_ptr);
+        strcpy(msg_ptr,json_msg.c_str());
+        msg_ptr[json_msg.length()] = 0;
+        strncpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
+
+
+        _cwssession.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
+        
+        msg.release();
+        // #ifdef DEBUG
+        // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << jmsg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // #endif
+    } 
+}
+
+
+Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const std::string& message)
 {
 
 
@@ -538,12 +591,18 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std:
     Json jMsg;
     jMsg["ty"] = message_routing;
     jMsg["sd"] = sender_name;
-    if (!target_name.empty())
+    if (!target_party_id.empty())
     {
-        jMsg["tg"] = target_name;
+        jMsg["tg"] = target_party_id;
+    }
+    else
+    {
+        // Inconsistent packet.... but dont enforce global packet for security reasons.
+        //jMsg["ty"] = CMD_COMM_GROUP; // enforce group if party id is null.
     }
     jMsg["mt"] = messageType;
     jMsg["ms"] = message;
+    
 
     return jMsg;
 }

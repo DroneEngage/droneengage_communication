@@ -97,7 +97,6 @@ void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
     {
         // Test Message if Binary or Text
         jMsg = Json::parse(jsonMessage);
-        //TODO INTERMODULE_COMMAND_TYPE field should be string.
         if ((!validateField(jMsg, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
         || (!validateField(jMsg, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
         )
@@ -106,23 +105,31 @@ void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
             return ;
         }
         
-        // if (jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().compare(CMD_TYPE_INTERMODULE)==0)
-        // {
-            bool forward = false;
-            char *connected_ip = inet_ntoa(ssock->sin_addr);
-            int port = ntohs(ssock->sin_port); 
+        //char *connected_ip = inet_ntoa(ssock->sin_addr);
 
-
-            cUavosModulesManager.parseIntermoduleMessage(jMsg,
-             ssock, forward);
-            
-        // }
+        cUavosModulesManager.parseIntermoduleMessage(jMsg, ssock);
     }
     else
     {
         // Binary Message
-            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Binary Message from UDP ... NOT IMPLEMENTED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    
+        jMsg = Json::parse(jsonMessage);
+        std::cout<< jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] << std::endl;
+
+        jMsg = Json::parse(jsonMessage);
+        if ((!validateField(jMsg, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
+        || (!validateField(jMsg, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
+        )
+        {
+            // bad message format
+            return ;
+        }
+
+        cUavosModulesManager.parseIntermoduleBinaryMessage(jMsg, jsonMessage, len, ssock);
+
+        // char *connected_ip = inet_ntoa(ssock->sin_addr);
+        // int port = ntohs(ssock->sin_port); 
+
+
     }
 }
 

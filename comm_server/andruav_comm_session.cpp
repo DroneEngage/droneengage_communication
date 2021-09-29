@@ -154,7 +154,7 @@ void uavos::andruav_servers::CWSSession::on_read(
 {
     const std::lock_guard<std::mutex> lock(g_i_mutex_on_read);
 
-    #ifdef DEBUG
+    #ifdef DEBUG_2
          std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "on_read: " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
@@ -183,8 +183,9 @@ void uavos::andruav_servers::CWSSession::on_read(
             
 
         // The make_printable() function helps print a ConstBufferSequence
-        
-        std::cout << "This is a Data:" << beast::make_printable(buffer_.data()) << std::endl;
+        #ifdef DEBUG_2
+            std::cout << "This is a Data:" << beast::make_printable(buffer_.data()) << std::endl;
+        #endif
 
         char * result = new char[bytes_transferred+1];
         int i=0;
@@ -226,7 +227,7 @@ void uavos::andruav_servers::CWSSession::on_read(
 void uavos::andruav_servers::CWSSession::writeText (const std::string message)
 {
 
-    #ifdef DEBUG
+    #ifdef DEBUG_2
          std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
@@ -241,7 +242,7 @@ void uavos::andruav_servers::CWSSession::writeText (const std::string message)
 void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const int& length)
 {
 
-    #ifdef DEBUG
+    #ifdef DEBUG_2
          std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "write Binary" << std::endl;
     #endif
 

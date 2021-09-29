@@ -83,54 +83,18 @@ void * scheduler (void *args)
 }
 
 
-void onReceive (const char * jsonMessage, int len, struct sockaddr_in * ssock)
+void onReceive (const char * message, int len, struct sockaddr_in * ssock)
 {
     static bool bFirstReceived = false;
         
     #ifdef DEBUG        
-        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << jsonMessage << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    
-    Json jMsg;
-    if (jsonMessage[len-1]==125 || (jsonMessage[len-2]==125))   // "}".charCodeAt(0)  IS TEXT / BINARY Msg  
-    {
-        // Test Message if Binary or Text
-        jMsg = Json::parse(jsonMessage);
-        if ((!validateField(jMsg, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
-        || (!validateField(jMsg, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
-        )
-        {
-            // bad message format
-            return ;
-        }
-        
-        //char *connected_ip = inet_ntoa(ssock->sin_addr);
-
-        cUavosModulesManager.parseIntermoduleMessage(jMsg, ssock);
-    }
-    else
-    {
-        // Binary Message
-        jMsg = Json::parse(jsonMessage);
-        std::cout<< jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] << std::endl;
-
-        jMsg = Json::parse(jsonMessage);
-        if ((!validateField(jMsg, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
-        || (!validateField(jMsg, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
-        )
-        {
-            // bad message format
-            return ;
-        }
-
-        cUavosModulesManager.parseIntermoduleBinaryMessage(jMsg, jsonMessage, len, ssock);
+    cUavosModulesManager.parseIntermoduleMessage(message, len, ssock);
 
         // char *connected_ip = inet_ntoa(ssock->sin_addr);
         // int port = ntohs(ssock->sin_port); 
-
-
-    }
 }
 
 

@@ -108,7 +108,6 @@ void uavos::comm::CUDPCommunicator::startReceiver ()
 
 void uavos::comm::CUDPCommunicator::stop()
 {
-
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
     m_stopped_called = true;
@@ -137,11 +136,8 @@ void uavos::comm::CUDPCommunicator::stop()
     }
 
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop out" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    
-    
-
-    
 }
+
 
 void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
 {
@@ -179,7 +175,6 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
     }
 
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
 }
 
 
@@ -187,41 +182,6 @@ void uavos::comm::CUDPCommunicator::SetMessageOnReceive ( ONRECEIVE_CALLBACK onR
 {
     m_OnReceive = onReceive;
 }
-
-
-// /**
-//  * Sending ID Periodically
-//  **/
-// void uavos::comm::CUDPCommunicator::InternelSenderIDEntry()
-// {
-
-//     #ifdef DEBUG        
-//         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-//     #endif
-    
-//     std::cout << "InternelSenderIDEntry called" << std::endl; 
-//     while (!m_stopped_called)
-//     {   
-//         if (m_JsonID.empty() == false)
-//         {
-//             //std::cout << m_JsonID.is_null() << " - " << m_JsonID.empty() << "-" << m_JsonID.is_string() << std::endl;
-//             SendJMSG(m_JsonID);
-//         }
-//         sleep (1);
-//     }
-
-//     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternelSenderIDEntry EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-// }
-
-
-// /**
-//  * Starts ID Sender function 
-//  **/
-// void * uavos::comm::CUDPCommunicator::InternalSenderIDThreadEntryFunc(void * This) {
-// 	((CUDPCommunicator *)This)->InternelSenderIDEntry(); 
-//     return NULL;
-// }
 
 
 void * uavos::comm::CUDPCommunicator::InternalReceiverThreadEntryFunc(void * This) {
@@ -233,16 +193,15 @@ void * uavos::comm::CUDPCommunicator::InternalReceiverThreadEntryFunc(void * Thi
 /**
  * Sends JMSG to Communicator
  **/
-void uavos::comm::CUDPCommunicator::SendJMSG(const std::string& jmsg, struct sockaddr_in * module_address)
+void uavos::comm::CUDPCommunicator::SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address)
 {
-    
     #ifdef DEBUG        
-     //   std::cout << _LOG_CONSOLE_TEXT << "SendJMSG: " << jmsg << _NORMAL_CONSOLE_TEXT_ << std::endl;
+     //   std::cout << _LOG_CONSOLE_TEXT << "SendMsg: " << jmsg << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     try
     {
-    sendto(m_SocketFD, jmsg.c_str(), jmsg.size(),  
+    sendto(m_SocketFD, message, datalength,  
         MSG_CONFIRM, (const struct sockaddr *) module_address, 
             sizeof(struct sockaddr_in));         
     }
@@ -250,5 +209,4 @@ void uavos::comm::CUDPCommunicator::SendJMSG(const std::string& jmsg, struct soc
     {
         std::cerr << e.what() << '\n';
     }
-    
 }

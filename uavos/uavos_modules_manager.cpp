@@ -378,8 +378,8 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
             const Json &msg = createJSONID(false);
             struct sockaddr_in module_address = *module_item->m_module_address.get();  
             //memcpy(module_address, ssock, sizeof(struct sockaddr_in)); 
-                
-            uavos::comm::CUDPCommunicator::getInstance().SendJMSG(msg.dump(), &module_address);
+            std::string msg_dump = msg.dump();    
+            uavos::comm::CUDPCommunicator::getInstance().SendMsg(msg_dump.c_str(), msg_dump.length(), &module_address);
         }
     }
 
@@ -389,65 +389,41 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
 
 /**
  * @brief 
- * 
+ * Process messages recieved from module and may forward to Andruav ommunication server.
  * @details 
  * @param full_mesage 
- * @param full_mesage_length 
+ * @param full_message_length 
  * @param ssock sender module ip & port
  */
-void uavos::CUavosModulesManager::parseIntermoduleBinaryMessage (Json& jsonMessage, const char * full_mesage, const int full_mesage_length, const struct sockaddr_in* ssock)
+void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_in* ssock)
 {
+    Json jsonMessage;
+    try
+    {
+        jsonMessage = Json::parse(full_mesage);
+    }
+    catch (...)
+    {
+        // corrupted message.
+        return ;
+    }
+
+    const bool is_binary =  !(full_mesage[full_message_length-1]==125 || (full_mesage[full_message_length-2]==125));
+    
+    std::cout<< jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE] << std::endl;
+
+    if ((!validateField(jsonMessage, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
+        || (!validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
+        )
+    {
+        // bad message format
+        return ;
+    }
+    
     // Intermodule Message
     const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
-    
-    uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
-    
     const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     
-    int binary_length = 0; 
-    int binary_start_index = 0;
-    for (int i=0; i<full_mesage_length; ++i)
-    { 
-        if (full_mesage[i]==0)
-        {
-            
-            binary_start_index = i + 1;
-            binary_length = full_mesage_length - binary_start_index;
-            break;
-        }
-
-    }
-
-    const char * binaryMessage = &(full_mesage[binary_start_index]);
-
-    
-    if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_COMM_INDIVIDUAL) != std::string::npos)
-    {
-        // messages to comm-server
-        commServer.API_sendBinaryCMD(jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>(), mt, binaryMessage, binary_length);
-    }
-    else
-    {
-        commServer.API_sendBinaryCMD(std::string(), mt, binaryMessage, binary_length);
-    }
-            
-}
-
-/**
- * @details 
- * Handels all messages recieved form a module.
- * @link CMD_TYPE_INTERMODULE @endlink message types contain many commands. most important is @link TYPE_AndruavModule_ID @endlink
- * Other Andruav based commands can be sent using this type of messages if uavos module wants uavos communicator to process 
- * the message before forwarding it. Although it is not necessary to forward the message to Andruav-Server.
- * @param jsonMessage Json object message.
- * @param address sender module ip & port
- */
-void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, const struct sockaddr_in* ssock)
-{
-    // Intermodule Message
-    const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
-    
-    const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     switch (mt)
     {
         case TYPE_AndruavModule_ID:
@@ -489,20 +465,36 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, co
         default:
         {
             uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
+            std::string target_id = std::string();
+
             if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_COMM_INDIVIDUAL) != std::string::npos)
             {
-                // messages to comm-server
-                commServer.API_sendCMD(jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>(), mt, ms.dump());
+                target_id =jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>();
+            }
+
+            if (is_binary)
+            {    
+                // search for char '0' and then binary message is the next byte after it.
+                const char * binary_message = (char *)(memchr (full_mesage, 0x0, full_message_length));
+                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_mesage +1));
+    
+                commServer.API_sendBinaryCMD(target_id, mt, &binary_message[1], binary_length);            
             }
             else
             {
-                commServer.API_sendCMD(std::string(), mt, ms.dump());
+                commServer.API_sendCMD(target_id, mt, ms.dump());            
             }
-            
         }
         break;
     }
+    
+    
+    
+    
+    
+    
 }
+
 
 /**
  * @brief Process messages comming from AndruavServer and forward it to subscribed modules.
@@ -511,7 +503,7 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (Json& jsonMessage, co
  * @param command_type 
  * @param jsonMessage 
  */
-void uavos::CUavosModulesManager::processIncommingServerMessage (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage)
+void uavos::CUavosModulesManager::processIncommingServerMessage (const std::string& sender_party_id, const int& command_type, const char * message, const std::size_t datalength)
 {
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: processIncommingServerMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -533,7 +525,7 @@ void uavos::CUavosModulesManager::processIncommingServerMessage (const std::stri
         {
             
             MODULE_ITEM_TYPE * module_item = uavos_module->second.get();        
-            forwardMessageToModule (jsonMessage, module_item);
+            forwardMessageToModule (message, datalength, module_item);
         }
     }
 
@@ -548,17 +540,17 @@ void uavos::CUavosModulesManager::processIncommingServerMessage (const std::stri
  * @param jsonMessage 
  * @param module_item 
  */
-void uavos::CUavosModulesManager::forwardMessageToModule (const Json& jsonMessage, const MODULE_ITEM_TYPE * module_item)
+void uavos::CUavosModulesManager::forwardMessageToModule ( const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item)
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: forwardMessageToModule: " << jsonMessage.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: forwardMessageToModule: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     
     //const Json &msg = createJSONID(false);
     struct sockaddr_in module_address = *module_item->m_module_address.get();  
                 
-    uavos::comm::CUDPCommunicator::getInstance().SendJMSG(jsonMessage.dump(), &module_address);
+    uavos::comm::CUDPCommunicator::getInstance().SendMsg(message, datalength, &module_address);
 
     return ;
 }

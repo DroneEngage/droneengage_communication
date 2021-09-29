@@ -107,4 +107,3 @@ bool validateField (const Json& message, const char *field_name, const Json::val
 
     return true;
 }
-

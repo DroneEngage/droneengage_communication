@@ -165,16 +165,75 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
 
 }
 
+/**
+ * @brief 
+ * 
+ * @param message first part until byte of value'0' should be XML header.
+ * @param datalength 
+ */
 void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const char * message, const std::size_t datalength)
 {
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onBinaryMessageRecieved " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
+    Json jMsg;
+    jMsg = Json::parse(message);
+    if (!validateField(jMsg, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
+    {
+        // bad message format
+        return ;
+    }
+
+    if (!validateField(jMsg, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
+    {
+        // bad message format
+        return ;
+    }
+
+
+    if (jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().compare(CMD_TYPE_SYSTEM_MSG)==0)
+    {   // System Message
+        
+    }
+    else
+    {
+        if (!validateField(jMsg, ANDRUAV_PROTOCOL_SENDER, Json::value_t::string))
+        {
+            // bad message format
+            return ;
+        }
+
+        std::string sender = jMsg[ANDRUAV_PROTOCOL_SENDER];
+
+        const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+        switch (command_type)
+        {
+            case TYPE_AndruavResala_RemoteExecute:
+            {
+                parseRemoteExecuteCommand(sender, jMsg);
+            }
+            break;
+
+            default:
+            {
+                parseCommand(sender, command_type, jMsg);
+            }
+            break;
+        }
+
+        uavos::CUavosModulesManager& module_manager = uavos::CUavosModulesManager::getInstance();
+        module_manager.processIncommingServerMessage(sender, command_type,  message, datalength);
+    }
     
 }
             
 
+/**
+ * @brief text message recieved from ANdruavServerComm.
+ * 
+ * @param jsonMessage string message in JSON format.
+ */
 void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std::string& jsonMessage)
 {
     #ifdef DEBUG
@@ -253,7 +312,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
         }
 
         uavos::CUavosModulesManager& module_manager = uavos::CUavosModulesManager::getInstance();
-        module_manager.processIncommingServerMessage(sender, command_type,  jMsg);
+        module_manager.processIncommingServerMessage(sender, command_type,  jsonMessage.c_str(), jsonMessage.length());
     }
 }
 
@@ -265,7 +324,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
     #endif
 
     uavos::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);
-    const Json& msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+    const Json& msg_cmd = jsonMessage.contains(ANDRUAV_PROTOCOL_MESSAGE_CMD)?jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]:Json();
     
     switch (command_type)
     {
@@ -505,19 +564,19 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    std::string routing_message;
+    std::string message_routing;
     if (target_name.empty() == false)
     {
-        routing_message = CMD_COMM_INDIVIDUAL;
+        message_routing = CMD_COMM_INDIVIDUAL;
     }
     else
     {
-        routing_message = CMD_COMM_GROUP;
+        message_routing = CMD_COMM_GROUP;
     }
 
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
-        Json json_msg  = this->generateJSONMessage (routing_message, m_party_id, target_name, command_type, msg);
+        Json json_msg  = this->generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
         _cwssession.get()->writeText(json_msg.dump());
 
         // #ifdef DEBUG
@@ -549,25 +608,25 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    std::string routing_message;
+    std::string message_routing;
     if (target_party_id.empty() == false)
     {
-        routing_message = CMD_COMM_INDIVIDUAL;
+        message_routing = CMD_COMM_INDIVIDUAL;
     }
     else
     {
-        routing_message = CMD_COMM_GROUP;
+        message_routing = CMD_COMM_GROUP;
     }
 
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
-        Json json  = this->generateJSONMessage (routing_message, m_party_id, target_party_id, command_type, target_party_id);
+        Json json  = this->generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, std::string(""));
         std::string json_msg = json.dump();
         char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
         std::unique_ptr<char []> msg = std::unique_ptr<char []> (msg_ptr);
         strcpy(msg_ptr,json_msg.c_str());
         msg_ptr[json_msg.length()] = 0;
-        strncpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
+        memcpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
 
 
         _cwssession.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
@@ -579,10 +638,20 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
     } 
 }
 
-
+/**
+ * @brief 
+ * 
+ * @param message_routing @link CMD_COMM_GROUP @endlink, @link CMD_COMM_INDIVIDUAL @endlink
+ * @param sender_name 
+ * @param target_party_id  single target except for the following
+ * *_GD_* all GCS
+ * *_AGN_* all agents
+ * @param messageType 
+ * @param message 
+ * @return Json 
+ */
 Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const std::string& message)
 {
-
 
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;

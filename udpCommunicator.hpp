@@ -42,7 +42,7 @@ class CUDPCommunicator
         void start();
         void stop();
         void SetMessageOnReceive (ONRECEIVE_CALLBACK onReceive);
-        void SendJMSG(const std::string& jmsg, struct sockaddr_in * module_address);
+        void SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address);
 
     protected:
         // This static function only needed once

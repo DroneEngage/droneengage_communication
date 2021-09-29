@@ -18,9 +18,18 @@
 
 // Communication Commands
 
-// group broadcast
+/**
+ * @brief Group boradcast
+ * @details group broad cast overrides individual. @see Andruav_Communication_Server for details.
+ */
 #define CMD_COMM_GROUP                  "g" 
-// individual broadcast
+/**
+ * @brief Individual broadcast.
+ * @details single target except for the following
+ * *_GD_* all GCS
+ * *_AGN_* all agents
+ * @see Andruav_Communication_Server for details.
+ */
 #define CMD_COMM_INDIVIDUAL             "i" 
     
 
@@ -56,6 +65,8 @@
 #define TYPE_AndruavResala_ChangeSpeed          1040
 #define TYPE_AndruavResala_UploadWayPoints      1046
 #define TYPE_AndruavResala_SET_HOME_LOCATION    1048
+
+#define TYPE_AndruavMessage_LightTelemetry      2022
 
 #define TYPE_AndruavResala_ServoChannel         6001
 

@@ -27,6 +27,7 @@ inline int wait_time_nsec (const time_t& seconds, const long& nano_seconds)
 	return nanosleep(&_time_wait, &tim2);
 }
 
+
 extern std::string str_tolower(std::string s);
 
 extern std::vector<std::string> split_string_by_delimeter(const std::string& str, const char& delimeter);

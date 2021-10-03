@@ -134,7 +134,6 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse (const std
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    bool error = true;
     
     const Json& json_response = Json::parse(response);
     

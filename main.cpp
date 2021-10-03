@@ -85,7 +85,6 @@ void * scheduler (void *args)
 
 void onReceive (const char * message, int len, struct sockaddr_in * ssock)
 {
-    static bool bFirstReceived = false;
         
     #ifdef DEBUG        
         std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;

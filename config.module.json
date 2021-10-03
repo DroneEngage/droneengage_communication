@@ -7,7 +7,6 @@
     "module_class"              : "comm",
     "module_messages"           : [],
     // This is the file that is loaded as start file of the plugin.
-    "module_file"               : "./module_engine.js",
     "module_key"                : "E289FEE7-F4AD-44EF-A257-C9A361316BE7",
     /////"vehivle_type"         : 10, //VEHICLE_EYE,
 

@@ -1,16 +1,19 @@
 
 CXX=g++
 CXXARM=/usr/bin/arm-linux-gnueabihf-g++
-#CXXARM=/opt/cross-pi-gcc/bin/arm-linux-gnueabihf-g++
+CXXARM_ZERO=g++
 EXE=uavos_comm
 EXE_ARM=uavos_comm_arm
 BIN=bin
+
 INCLUDE= -I ~/TDisk/Boost/boost_1_76_0/ -I /usr/include/x86_64-linux-gnu
 INCLUDE_ARM =  -I /usr/include -I /usr/include/arm-linux-gnueabihf  -I ~/TDisk/Boost/boost_1_76_0
-LIBS=  -pthread   -lcurl  -lboost_coroutine -lssl -lcrypto
-#LIBS=  -lcurl -pthread -lboost_coroutine -lssl -lcrypto
-CXXFLAGS =  -std=c++11
+INCLUDE_ARM_ZERO =  -I /usr/include/boost/beast -I /usr/include
 
+LIBS=  -pthread   -lcurl  -lboost_coroutine -lssl -lcrypto
+LIBS_ARM_ZERO = -pthread   -lcurl  -lboost_coroutine -lssl -lcrypto
+
+CXXFLAGS =  -std=c++11
 CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s   -Werror=unused-variable -Werror=unused-result
 CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g   
 SRC = src
@@ -55,13 +58,18 @@ debug: uavos.debug
 	@echo "building finished ..."; 
 	@echo "DONE."
 
-arm_release: uavos.arm.debug
+arm_release: uavos.arm.release
 	$(CXXARM)  $(CXXFLAGS_RELEASE) -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_debug: uavos.arm.debug
 	$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
+	@echo "building finished ..."; 
+	@echo "DONE."
+
+arm_release_zero: uavos.arm.release.zero
+	$(CXXARM_ZERO)  $(CXXFLAGS_RELEASE) -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM_ZERO) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
@@ -95,6 +103,13 @@ uavos.arm.debug: copy
 	@echo "compliling finished ..."
 
 
+
+uavos.arm.release.zero: copy
+	mkdir -p $(BUILD); \
+	cd $(BUILD); \
+	$(CXXARM_ZERO)   $(CXXFLAGS_RELEASE) -c  $(SRCS)  $(INCLUDE_ARM_ZERO)  ; 
+	cd .. ; 
+	@echo "compliling finished ..."
 
 git_submodule:
 	git submodule update --init --recursive

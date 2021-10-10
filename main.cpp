@@ -16,6 +16,7 @@
 
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
+#include "./helpers/util_rpi.hpp"
 
 #include "global.hpp"
 #include "messages.hpp"
@@ -157,6 +158,12 @@ void initSockets()
  **/
 void init (int argc, char *argv[]) 
 {
+
+    std::string serial;
+    if (helpers::CUtil_Rpi::getInstance().get_cpu_serial(serial)!=-1)
+    {
+        std::cout << "Unique Key :" << serial << std::endl;
+    }
 
     std::string configName = "config.module.json";
     if (argc > 1)

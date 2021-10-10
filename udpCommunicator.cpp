@@ -113,7 +113,7 @@ void uavos::comm::CUDPCommunicator::stop()
     m_stopped_called = true;
 
     if (m_SocketFD != -1)
-        close (m_SocketFD);
+        shutdown(m_SocketFD, SHUT_RDWR);
     
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Socket Closed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 

@@ -33,8 +33,8 @@ namespace helpers
            
         public:
             int get_rpi_model ()  const;
-            int get_cpu_serial (std::string &cpu_serial)  const;
-
+            bool get_cpu_serial (std::string &cpu_serial)  const;
+            
         protected:
             // Called in the constructor once
             int _check_rpi_version();

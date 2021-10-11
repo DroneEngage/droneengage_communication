@@ -14,13 +14,12 @@ int helpers::CUtil_Rpi::get_rpi_model () const
     return _rpi_version;
 }
 
-int helpers::CUtil_Rpi::get_cpu_serial (std::string &cpu_serial)  const
+bool helpers::CUtil_Rpi::get_cpu_serial (std::string &cpu_serial)   const 
 {
-    std::string serial = "";
-
+    bool found = false;
     FILE *f = fopen("/proc/cpuinfo", "r");
 	if (!f) {
-		return -1;
+		return found;
 	}
 	
 	char line[256]; 
@@ -30,12 +29,15 @@ int helpers::CUtil_Rpi::get_cpu_serial (std::string &cpu_serial)  const
 			char serial_string[16 + 1];
 			strcpy(serial_string, strchr(line, ':') + 2);
             cpu_serial = serial_string;
+            found = true;
 		}
 	}
+    
+    cpu_serial = "NOT FOUND";
+	
+    fclose(f);
 
-	 fclose(f);
-
-     return 0;
+     return found;
 }
 
 int helpers::CUtil_Rpi::_check_rpi_version()

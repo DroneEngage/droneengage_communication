@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <vector>
 #include <sstream>
+#include <stdlib.h>
 
 #include "helpers.hpp"
 
@@ -106,4 +107,19 @@ bool validateField (const Json& message, const char *field_name, const Json::val
         return false;
 
     return true;
+}
+
+
+
+std::string get_linux_machine_id ()
+{
+    FILE *f = fopen("/etc/machine-id", "r");
+	if (!f) {
+		return std::string();
+	}
+    char line[256]; 
+    memset (line,0,255);
+    fgets(line, 256, f);
+    return std::string(line);
+	
 }

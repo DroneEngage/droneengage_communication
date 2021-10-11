@@ -165,6 +165,8 @@ void init (int argc, char *argv[])
         std::cout << "Unique Key :" << serial << std::endl;
     }
 
+    std::cout << "machine id " << get_linux_machine_id() << std::endl;
+
     std::string configName = "config.module.json";
     if (argc > 1)
     {

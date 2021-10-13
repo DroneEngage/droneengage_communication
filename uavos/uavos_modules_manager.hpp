@@ -130,19 +130,10 @@ namespace uavos
              * @return true found new dead modules.... already dead modules are not counted.
              * @return false no dead modules.
              */
-            bool HandleDeadModules();
+            bool handleDeadModules();
 
         private:
 
-            /**
-             * @brief handle TYPE_AndruavModule_ID messages.
-             * Add/Update module definitions.
-             * @param msg_cmd 
-             * @param ssock 
-             * 
-             * @return true module has been added.
-             * @return false no new modules.
-             */
             bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);
 
             /**

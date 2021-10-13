@@ -84,6 +84,7 @@ namespace andruav_servers
             void API_sendCMD (const std::string& target_party_id, const int command_type, const std::string& msg);
             void API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const int bmsg_length);
             void API_sendCameraList(const bool reply, const std::string& target_party_id);
+            void API_sendErrorMessage (const std::string& target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description);
 
             int getStatus ()
             {

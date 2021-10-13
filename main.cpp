@@ -100,7 +100,7 @@ void * scheduler (void *args)
         {
             if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
             {
-                cUavosModulesManager.HandleDeadModules();
+                cUavosModulesManager.handleDeadModules();
                 andruav_server.API_sendID("");
             }
         }

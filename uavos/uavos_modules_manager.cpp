@@ -81,7 +81,6 @@ Json uavos::CUavosModulesManager::createJSONID (const bool& reSend)
         
         return Json();
     }
-
 }
 
 
@@ -377,6 +376,7 @@ bool uavos::CUavosModulesManager::updateModuleSubscribedMessages (const std::str
     return new_module;
 }
 
+
 /**
  * @brief  Communicate with @link uavos::andruav_servers::CAndruavAuthenticator @endlink to validate hardware status
  * 
@@ -397,6 +397,8 @@ void uavos::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * module_
         {
             std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Module License Invalid: " << _ERROR_CONSOLE_TEXT_ << module_item->module_id<< _NORMAL_CONSOLE_TEXT_ << std::endl;
             module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_BAD;
+            uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
+            commServer.API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
         }
     }
     else
@@ -405,6 +407,15 @@ void uavos::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * module_
     }
 }
 
+/**
+* @brief handle TYPE_AndruavModule_ID messages.
+* Add/Update module definitions.
+* @param msg_cmd 
+* @param ssock 
+* 
+* @return true module has been added.
+* @return false no new modules.
+*/
 bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
 {
 
@@ -543,7 +554,8 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
     // Intermodule Message
     const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-    
+    uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
+                
     switch (mt)
     {
         case TYPE_AndruavModule_ID:
@@ -552,14 +564,13 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
             
             if (updated == true)
             {
-                uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
                 commServer.API_sendID(std::string());
             }
             
         }
         break;
 
-        case TYPE_AndruavResala_ID:
+        case TYPE_AndruavMessage_ID:
         {
             uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
             uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
@@ -645,7 +656,16 @@ void uavos::CUavosModulesManager::processIncommingServerMessage (const std::stri
         {
             
             MODULE_ITEM_TYPE * module_item = uavos_module->second.get();        
-            forwardMessageToModule (message, datalength, module_item);
+            if  (module_item->licence_status == LICENSE_VERIFIED_BAD)
+            {
+                uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
+                commServer.API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
+                break;
+            } else if (module_item->is_dead == false)
+            {
+                // clear to send
+                forwardMessageToModule (message, datalength, module_item);
+            }
         }
     }
 
@@ -676,7 +696,7 @@ void uavos::CUavosModulesManager::forwardMessageToModule ( const char * message,
 }
 
 
-bool uavos::CUavosModulesManager::HandleDeadModules ()
+bool uavos::CUavosModulesManager::handleDeadModules ()
 {
     static std::mutex g_i_mutex; 
 

@@ -115,7 +115,7 @@ class CAndruavAuthenticator
         
         std::string stringifyError (const int& error_number);
         void translateResponse_doAuthentication (const std::string& response);    
-        void translateResponse_doValidateHardware (const std::string& response);    
+        bool translateResponse_doValidateHardware (const std::string& response);    
 
 
     private:
@@ -131,6 +131,7 @@ class CAndruavAuthenticator
         std::string m_hardware_error_string;
         
         bool m_is_authentication_ok = false;
+        
 };
 }
 }

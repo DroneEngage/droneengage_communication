@@ -229,7 +229,7 @@ void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const 
         const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
         switch (command_type)
         {
-            case TYPE_AndruavResala_RemoteExecute:
+            case TYPE_AndruavMessage_RemoteExecute:
             {
                 parseRemoteExecuteCommand(sender, jMsg);
             }
@@ -318,7 +318,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
         const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
         switch (command_type)
         {
-            case TYPE_AndruavResala_RemoteExecute:
+            case TYPE_AndruavMessage_RemoteExecute:
             {
                 parseRemoteExecuteCommand(sender, jMsg);
             }
@@ -348,10 +348,10 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
     
     switch (command_type)
     {
-        case TYPE_AndruavResala_ID:
+        case TYPE_AndruavMessage_ID:
         {
             /*
-                TYPE_AndruavResala_ID
+                TYPE_AndruavMessage_ID
                 GS:bool: is gcs
                 UD:string: unit name
                 DS:string: description
@@ -413,7 +413,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
     
     switch (remote_execute_command)
     {
-        case TYPE_AndruavResala_ID:
+        case TYPE_AndruavMessage_ID:
         {
             this->API_sendID(sender_party_id);
     
@@ -422,7 +422,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
         }
         break;
 
-        case TYPE_AndruavResala_CameraList:
+        case TYPE_AndruavMessage_CameraList:
         {
             this->API_sendCameraList (true, sender_party_id);
         }
@@ -473,10 +473,36 @@ void uavos::andruav_servers::CAndruavCommServer::API_requestID (const std::strin
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    Json jMsg = {{"C", TYPE_AndruavResala_ID}};
+    Json jMsg = {{"C", TYPE_AndruavMessage_ID}};
     
-    API_sendCMD (target_party_id, TYPE_AndruavResala_RemoteExecute, jMsg.dump());
+    API_sendCMD (target_party_id, TYPE_AndruavMessage_RemoteExecute, jMsg.dump());
 }
+
+
+void uavos::andruav_servers::CAndruavCommServer::API_sendErrorMessage (const std::string& target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description)  
+{
+    /*
+        EN : error number  "not currently processed".
+        IT : info type indicate what component is reporting the error.
+        NT : sevirity and com,pliant with ardupilot.
+        DS : description message.
+    */
+    Json message =
+        {
+            {"EN", error_number},
+            {"IT", info_type},
+            {"NT", notification_type},
+            {"DS", description}
+        };
+
+    
+    API_sendCMD (target_party_id, TYPE_AndruavMessage_Error, message.dump());
+
+ 
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
+    
+    return ;
+}    
 
 
 void uavos::andruav_servers::CAndruavCommServer::API_sendCameraList(const bool reply, const std::string& target_name)
@@ -495,7 +521,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCameraList(const bool r
         {"T", camera_list}
     };
         
-    API_sendCMD (target_name, TYPE_AndruavResala_CameraList, jMsg.dump());
+    API_sendCMD (target_name, TYPE_AndruavMessage_CameraList, jMsg.dump());
 }
 
 void uavos::andruav_servers::CAndruavCommServer::API_sendID (const std::string& target_name)
@@ -560,7 +586,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendID (const std::string& 
         jMsg["q"] = unit_info.swarm_leader_I_am_following;    
     }
     
-    API_sendCMD (target_name, TYPE_AndruavResala_ID, jMsg.dump());
+    API_sendCMD (target_name, TYPE_AndruavMessage_ID, jMsg.dump());
 }
 
 

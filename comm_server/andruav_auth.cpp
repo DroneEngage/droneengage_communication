@@ -229,12 +229,12 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth_doValidateHardware (
     std::string response;
     if (getAuth (url, param, response))
     {
-        translateResponse_doValidateHardware (response);
-        return true;
+        return translateResponse_doValidateHardware (response);
     }
 
     return false;
 }
+
         
 
 /**
@@ -332,7 +332,7 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
 
 
 
-void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidateHardware (const std::string& response)
+bool uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidateHardware (const std::string& response)
 {
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -347,7 +347,7 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidate
     {   
         m_auth_error = -1;
         m_auth_error_string = "BAD XML";
-        return ;
+        return false;
     }
 
      // Error Should be read before any other validation as if error some fields are not sent.
@@ -361,8 +361,10 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidate
     if (m_auth_error != 0)
     {
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Error Hardware Authentication:  (" << std::to_string(m_auth_error) << " - " << m_hardware_error_string <<_NORMAL_CONSOLE_TEXT_ << std::endl;
-        return ;
+        return false;
     }
+
+    return true;
 }
 
 

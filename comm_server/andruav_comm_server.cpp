@@ -2,6 +2,8 @@
 
 #include <cstdlib>
 #include <string>
+#include <iostream>
+
 
 #define BOOST_BEAST_ALLOW_DEPRECATED
 
@@ -9,6 +11,7 @@
 
 #include "../helpers/colors.hpp"
 #include "../helpers/helpers.hpp"
+#include "../helpers/util_rpi.hpp"
 
 #include "../messages.hpp"
 #include "../configFile.hpp"
@@ -22,6 +25,9 @@
 // ------------------------------------------------------------------------------
 //  Pthread Starter Helper Functions
 // ------------------------------------------------------------------------------
+
+
+
 
 void* uavos::andruav_servers::startWatchDogThread(void *args)
 {
@@ -94,8 +100,22 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
             return ;
         }
     
+
+        std::string serial;
+        if (helpers::CUtil_Rpi::getInstance().get_cpu_serial(serial)!=-1)
+        {
+            std::cout << "Unique Key :" << serial << std::endl;
+        }
+        serial.append(get_linux_machine_id());
+
+        if (!andruav_auth.doValidateHardware(serial, AUTH_HARDWARE_TYPE_CPU))   
+        {
+            //m_status = SOCKET_STATUS_ERROR;
+            //return ;
+        }
         
         connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, jsonConfig["partyID"].get<std::string>() );
+
     }
 
     catch(std::exception const& e)

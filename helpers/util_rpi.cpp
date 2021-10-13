@@ -33,7 +33,7 @@ bool helpers::CUtil_Rpi::get_cpu_serial (std::string &cpu_serial)   const
 		}
 	}
     
-    cpu_serial = "NOT FOUND";
+    if (!found) cpu_serial = "NORPI";
 	
     fclose(f);
 

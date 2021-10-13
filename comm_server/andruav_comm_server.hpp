@@ -96,6 +96,8 @@ namespace andruav_servers
                 return m_exit;
             }
 
+
+            
         private:
 
             void connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);

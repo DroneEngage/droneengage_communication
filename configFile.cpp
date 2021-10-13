@@ -24,7 +24,6 @@ void CConfigFile::InitConfigFile (const char* fileURL)
     CConfigFile::ReadFile (fileURL);
     
     CConfigFile::ParseData (m_fileContents.str());
-    
 }
 
 
@@ -46,9 +45,8 @@ void CConfigFile::ReadFile (const char * fileURL)
     return ;
 }
 
+
 void CConfigFile::ParseData (std::string jsonString)
 {
-
     m_ConfigJSON = Json::parse(removeComments(jsonString));
-    
 }

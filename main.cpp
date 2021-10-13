@@ -13,10 +13,15 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <getopt.h>
 
+
+
+#include "version.h"
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
 #include "./helpers/util_rpi.hpp"
+#include "./helpers/getopt_cpp.hpp"
 
 #include "global.hpp"
 #include "messages.hpp"
@@ -27,6 +32,9 @@
 #include "./comm_server/andruav_comm_server.hpp"
 #include "./uavos/uavos_modules_manager.hpp"
 
+
+using namespace boost;
+using namespace std;
 
 
 bool exit_me = false;
@@ -39,11 +47,32 @@ uavos::CUavosModulesManager& cUavosModulesManager = uavos::CUavosModulesManager:
 pthread_t m_scheduler;
 bool exit_scheduler = false;
 
+    
+static std::string configName = "config.module.json";
 
-// void onReceive (const char * jsonMessage, int len, struct sockaddr_in *  ssock);
-// void uninit ();
+
+void quit_handler( int sig );
+/**
+ * @brief display version info
+ * 
+ */
+void _version (void)
+{
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "UAVOS Communicator Server version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
+}
 
 
+/**
+ * @brief display help for -h command argument.
+ * 
+ */
+void _usage(void)
+{
+    _version ();
+    std::cout << std::endl << _INFO_CONSOLE_TEXT "Options" << _NORMAL_CONSOLE_TEXT_ << std::ends;
+    std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--config:          -c ./config.json   default [./config.module.json]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
+    std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--version:         -v" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+}
 
 
 void * scheduler (void *args)
@@ -76,7 +105,6 @@ void * scheduler (void *args)
             }
         }
 
-
         usleep(100000); // 10Hz
     }
 
@@ -102,14 +130,12 @@ void initScheduler()
 {
     const int result = pthread_create( &m_scheduler, NULL, &scheduler, NULL );
     if ( result ) throw result;
-
 }
 
 
 void defineMe()
 {
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
-    
     uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
     uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
     
@@ -143,14 +169,48 @@ void initSockets()
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
     
     // UDP Server
-    cUDPClient.init(jsonConfig["s2s_udp_target_ip"].get<std::string>().c_str(),
-            std::stoi(jsonConfig["s2s_udp_target_port"].get<std::string>().c_str()),
-            jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
-            std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
+    cUDPClient.init(jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
+                    std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
     
     
     cUDPClient.SetMessageOnReceive (&onReceive);
     cUDPClient.start();
+}
+
+
+void initArguments (int argc, char *argv[])
+{
+    int opt;
+    const struct GetOptLong::option options[] = {
+        {"config",         true,   0, 'c'},
+        {"version",        false,  0, 'v'},
+        {"help",           false,  0, 'h'},
+        {0, false, 0, 0}
+    };
+    // adding ':' means there is extra parameter needed
+    GetOptLong gopt(argc, argv, "c:vh",
+                    options);
+
+    /*
+      parse command line options
+     */
+    while ((opt = gopt.getoption()) != -1) {
+        switch (opt) {
+        case 'c':
+            configName = gopt.optarg;
+            break;
+        case 'v':
+            _version();
+            exit(0);
+            break;
+        case 'h':
+            _usage();
+            exit(0);
+        default:
+            printf("Unknown option '%c'\n", (char)opt);
+            exit(1);
+        }
+    }
 }
 
 /**
@@ -159,24 +219,14 @@ void initSockets()
 void init (int argc, char *argv[]) 
 {
 
-    std::string serial;
-    if (helpers::CUtil_Rpi::getInstance().get_cpu_serial(serial)!=-1)
-    {
-        std::cout << "Unique Key :" << serial << std::endl;
-    }
-
-    std::cout << "machine id " << get_linux_machine_id() << std::endl;
-
-    std::string configName = "config.module.json";
-    if (argc > 1)
-    {
-        configName = argv[1];
-    }
-
+    initArguments (argc, argv);
 
     // Reading Configuration
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING UAVOS COMMUNICATOR ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
+    signal(SIGINT,quit_handler);
+    signal(SIGTERM,quit_handler);
+	
     
     cConfigFile.InitConfigFile (configName.c_str());
     
@@ -247,9 +297,6 @@ void quit_handler( int sig )
 
 int main (int argc, char *argv[])
 {
-    signal(SIGINT,quit_handler);
-    signal(SIGTERM,quit_handler);
-	
     init (argc, argv);
 
     while (!exit_me)

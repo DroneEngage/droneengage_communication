@@ -4,6 +4,19 @@
 #define CMD_TYPE_INTERMODULE "uv"
 #define CMD_TYPE_SYSTEM_MSG  "s"
 
+// JSON InterModule Fields
+#define JSON_INTERMODULE_MODULE_ID              "a"
+#define JSON_INTERMODULE_MODULE_CLASS           "b"
+#define JSON_INTERMODULE_MODULE_MESSAGES_LIST   "c"
+#define JSON_INTERMODULE_MODULE_FEATURES        "d"
+#define JSON_INTERMODULE_MODULE_KEY             "e"
+#define JSON_INTERMODULE_HARDWARE_ID            "s"
+#define JSON_INTERMODULE_HARDWARE_TYPE          "t"
+#define JSON_INTERMODULE_RESEND                 "z"
+
+
+
+#define HARDWARE_TYPE_CPU   1
 
 
 /**
@@ -33,6 +46,7 @@
 #define CMD_COMM_INDIVIDUAL             "i" 
     
 
+// Andruav Protocol Fields
 #define ANDRUAV_PROTOCOL_GROUP_ID       "gr"
 #define ANDRUAV_PROTOCOL_SENDER         "sd"
 #define ANDRUAV_PROTOCOL_COMM_TYPE      "cm"

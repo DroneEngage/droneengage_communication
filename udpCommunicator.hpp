@@ -38,7 +38,7 @@ class CUDPCommunicator
     public:
         
         ~CUDPCommunicator ();
-        void init(const char * targetIP, int broadcatsPort, const char * host, int listenningPort);
+        void init(const char * host, int listenningPort);
         void start();
         void stop();
         void SetMessageOnReceive (ONRECEIVE_CALLBACK onReceive);

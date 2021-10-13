@@ -39,12 +39,10 @@ uavos::comm::CUDPCommunicator::~CUDPCommunicator ()
 /**
  * @brief 
  * 
- * @param targetIP 
- * @param broadcatsPort 
  * @param host address of Communicator
  * @param listenningPort port of communicator
  */
-void uavos::comm::CUDPCommunicator::init (const char * targetIP, int broadcatsPort, const char * host, int listenningPort)
+void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort)
 {
 
     // pthread initialization
@@ -73,8 +71,6 @@ void uavos::comm::CUDPCommunicator::init (const char * targetIP, int broadcatsPo
         std::cout << "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(-1) ;
     } 
-
-    std::cout << "Comm Server Started at " <<  _LOG_CONSOLE_TEXT_BOLD_ << targetIP << ":" <<  broadcatsPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
 }
 
 void uavos::comm::CUDPCommunicator::start()

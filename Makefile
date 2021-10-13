@@ -28,6 +28,7 @@ OBJS = $(BUILD)/main.o \
 	   $(BUILD)/andruav_auth.o \
 	   $(BUILD)/helpers.o \
 	   $(BUILD)/util_rpi.o \
+	   $(BUILD)/getopt_cpp.o \
 	   $(BUILD)/andruav_unit.o
 	   
 
@@ -40,6 +41,7 @@ SRCS = ../main.cpp \
 	   ../comm_server/andruav_auth.cpp \
 	   ../helpers/helpers.cpp \
 	   ../helpers/util_rpi.cpp \
+	   ../helpers/getopt_cpp.cpp \
 	   ../comm_server/andruav_unit.cpp
 	   
 

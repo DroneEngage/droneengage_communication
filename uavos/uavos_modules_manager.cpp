@@ -10,16 +10,16 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
 
-
 #include "../helpers/colors.hpp"
 #include "../helpers/helpers.hpp"
 
 
 #include "../messages.hpp"
-#include "../comm_server/andruav_unit.hpp"
 #include "../udpCommunicator.hpp"
 #include "../configFile.hpp"
+#include "../comm_server/andruav_unit.hpp"
 #include "../comm_server/andruav_comm_server.hpp"
+#include "../comm_server/andruav_auth.hpp"
 #include "../uavos/uavos_modules_manager.hpp"
 
 
@@ -30,8 +30,18 @@ uavos::CUavosModulesManager::~CUavosModulesManager()
 
 
 /**
- * creates JSON message that identifies Module
-**/
+ * @brief creates JSON message that identifies Module
+ * @details generates JSON message that identifies module
+ * 'a': module_id
+ * 'b': module_class. fixed "comm"
+ * 'c': module_messages. can be updated from config file.
+ * 'd': module_features. empty as it is communicator. extra can be added.
+ * 'e': module_key. uniqueley identifies this instance and can be set in config file.
+ * 'f': ONLY SENT BY UAVOS_COMMUNICATOR which contains partyID & GroupID
+ * 'z': resend request flag
+ * @param reSend if true then module should reply with module JSONID
+ * @return const Json 
+ */
 Json uavos::CUavosModulesManager::createJSONID (const bool& reSend)
 {
     try
@@ -46,8 +56,8 @@ Json uavos::CUavosModulesManager::createJSONID (const bool& reSend)
         Json ms;
         
         ms["a"] = jsonConfig["module_id"];
-        ms["b"] = jsonConfig["module_class"];
-        ms["c"] = jsonConfig["module_messages"];
+        ms["b"] = "comm"; // module_class 
+        ms["c"] = ""; // module_messages
         ms["d"] = Json();
         ms["e"] = jsonConfig["module_key"]; 
         ms["f"] = 
@@ -62,8 +72,6 @@ Json uavos::CUavosModulesManager::createJSONID (const bool& reSend)
         jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
         
         return jsonID;
-
-                /* code */
     }
     catch (...)
     {
@@ -77,6 +85,14 @@ Json uavos::CUavosModulesManager::createJSONID (const bool& reSend)
 }
 
 
+/**
+* @brief update UAVOS vehicle permission based on module permissions.
+* ex: "d" : [ "C", "V" ]
+* @param module_permissions 
+* 
+* @return true if permission updated
+* @return false if permissions the samme
+*/
 bool uavos::CUavosModulesManager::updateUavosPermission (const Json& module_permissions)
 {
     uavos::CAndruavUnitMe& andruav_unit_me = uavos::CAndruavUnitMe::getInstance();
@@ -122,6 +138,14 @@ bool uavos::CUavosModulesManager::updateUavosPermission (const Json& module_perm
 }
 
 
+
+/**
+* @details Camera module should send a complete list of camera devices.
+* Any missing camera is one disappeared most likely the module restarted 
+* and generated new camera device ids
+* 
+* @param module_id 
+*/
 void uavos::CUavosModulesManager::cleanOrphanCameraEntries (const std::string& module_id, const uint64_t& time_now)
 {
     auto camera_module = m_camera_list.find(module_id);
@@ -152,6 +176,60 @@ void uavos::CUavosModulesManager::cleanOrphanCameraEntries (const std::string& m
 }
 
 
+/**
+* @brief Update camera list.
+* Adding available camera devices exists in different camera modules.
+* 
+* @details Update camera list.
+* Adding available camera devices exists in different camera modules.
+* RX MSG: {
+*    "ms" : {
+*        "a" : "HorusEye1",
+*        "b" : "camera",
+*        "c" : [ 1005, 1041, 1021 ],
+*        "d" : [ "C", "V" ],
+*        "e" : "E289FEE7-FDAD-44EF-A257-C9A36DDD6BE7",
+*        "m" : [
+*            {
+*                "active" : 0,
+*                "id" : "G59d8d78965966a1a449b44b1",
+*                "ln" : "Droidcam#0",
+*                "p" : 2,
+*                "r" : false,
+*                "v" : true
+*            },
+*            {
+*                "active" : 0,
+*                "id" : "G207ac06d13bf7f2756f2fc51",
+*                "ln" : "Dummy video device (0x0000)#1",
+*                "p" : 2,
+*                "r" : false,
+*                "v" : true
+*            },
+*            {
+*                "active" : 0,
+*                "id" : "G69058c165ac352104cef76d9",
+*                "ln" : "Dummy video device (0x0001)#2",
+*                "p" : 2,
+*                "r" : false,
+*                "v" : true
+*            },
+*            {
+*                "active" : 0,
+*                "id" : "G65a44b9276d1e51e59658bc",
+*                "ln" : "Dummy video device (0x0002)#3",
+*                "p" : 2,
+*                "r" : false,
+*                "v" : true
+*            }
+*            ],
+*        "z" : false
+*        },
+*    "mt" : 9100,
+*    "ty" : "uv"
+* }
+* @param msg_cmd 
+*/
 void uavos::CUavosModulesManager::updateCameraList(const std::string& module_id, const Json& msg_cmd)
 {
 
@@ -299,6 +377,33 @@ bool uavos::CUavosModulesManager::updateModuleSubscribedMessages (const std::str
     return new_module;
 }
 
+/**
+ * @brief  Communicate with @link uavos::andruav_servers::CAndruavAuthenticator @endlink to validate hardware status
+ * 
+ * @param module_item 
+ */
+void uavos::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * module_item)
+{
+    uavos::andruav_servers::CAndruavAuthenticator &auth = uavos::andruav_servers::CAndruavAuthenticator::getInstance();
+
+    if (auth.isAuthenticationOK())
+    {
+        if (auth.doValidateHardware(module_item->hardware_serial, module_item->hardware_type))
+        {
+            std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Module License OK: " << _SUCCESS_CONSOLE_TEXT_ << module_item->module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_OK;
+        }
+        else
+        {
+            std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Module License Invalid: " << _ERROR_CONSOLE_TEXT_ << module_item->module_id<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+            module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_BAD;
+        }
+    }
+    else
+    {
+        module_item->licence_status = ENUM_LICENCE::LICENSE_NOT_VERIFIED;
+    }
+}
 
 bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
 {
@@ -314,7 +419,7 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
     // array of message IDs
     
     MODULE_ITEM_TYPE * module_item;
-    const std::string& module_id = std::string(msg_cmd["a"].get<std::string>()); 
+    const std::string& module_id = std::string(msg_cmd[JSON_INTERMODULE_MODULE_ID].get<std::string>()); 
     /**
     * @brief insert module in @param m_modules_list
     * this is the main list of modules.
@@ -325,19 +430,29 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
         // New Module not registered in m_modules_list
 
         module_item = new MODULE_ITEM_TYPE();
-        module_item->module_key         = msg_cmd["e"].get<std::string>();
+        module_item->module_key         = msg_cmd[JSON_INTERMODULE_MODULE_KEY].get<std::string>();
         module_item->module_id          = module_id;
-        module_item->module_class       = msg_cmd["b"].get<std::string>(); // fcb, video, ...etc.
-        module_item->modules_features   = msg_cmd["d"];
-        
+        module_item->module_class       = msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>(); // fcb, video, ...etc.
+        module_item->modules_features   = msg_cmd[JSON_INTERMODULE_MODULE_FEATURES];
+        if (msg_cmd.contains(JSON_INTERMODULE_HARDWARE_ID))
+        {
+            module_item->hardware_serial    = msg_cmd[JSON_INTERMODULE_HARDWARE_ID];
+            module_item->hardware_type      = msg_cmd[JSON_INTERMODULE_HARDWARE_TYPE].get<int>();
+            
+            checkLicenseStatus(module_item);
+        }
+        else
+        {
+            module_item->licence_status = ENUM_LICENCE::LICENSE_NO_DATA;
+        }
         struct sockaddr_in * module_address = new (struct sockaddr_in)();  
         memcpy(module_address, ssock, sizeof(struct sockaddr_in)); 
                 
         module_item->m_module_address = std::unique_ptr<struct sockaddr_in>(module_address);
                 
-        m_modules_list.insert(std::make_pair(module_item->module_id, std::shared_ptr<MODULE_ITEM_TYPE>(module_item)));
+        m_modules_list.insert(std::make_pair(module_item->module_id, std::unique_ptr<MODULE_ITEM_TYPE>(module_item)));
 
-
+        
     }
     else
     {
@@ -349,7 +464,12 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
             && (now - module_item->module_last_access_time >= MODULE_TIME_OUT))
         {
             //TODO Event Module Restored
-            module_item->is_dead = true;
+            module_item->is_dead = false;
+        }
+
+        if (module_item->licence_status == ENUM_LICENCE::LICENSE_NOT_VERIFIED)
+        {  // module has not been tested last time maybe because Auth was not ready
+            checkLicenseStatus(module_item);
         }
     }
 
@@ -358,17 +478,17 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
             
     // insert message callback
     
-    const Json& message_array = msg_cmd["c"]; 
+    const Json& message_array = msg_cmd[JSON_INTERMODULE_MODULE_MESSAGES_LIST]; 
     updated |= updateModuleSubscribedMessages(module_id, message_array);
 
-    const std::string module_type = msg_cmd["b"].get<std::string>(); 
+    const std::string module_type = module_item->module_class; //msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>(); 
     if (module_type.find("camera")==0)
     {
         // update camera list
         updateCameraList(module_id, msg_cmd);
     }   
 
-    updated |= updateUavosPermission(msg_cmd["d"]);
+    updated |= updateUavosPermission(module_item->modules_features); //msg_cmd["d"]);
 
     // reply with identification if required by module
     if (validateField(msg_cmd, "z", Json::value_t::boolean))
@@ -582,8 +702,6 @@ bool uavos::CUavosModulesManager::HandleDeadModules ()
                 module_item->is_dead = true;
                 dead_found = true;
             }
-            
-           
         }
         else
         {

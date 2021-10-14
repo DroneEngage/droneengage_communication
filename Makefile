@@ -53,22 +53,22 @@ all: release
 
 
 release: uavos.release
-	$(CXX)  $(CXXFLAGS_RELEASE)  -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
+	$(CXX)  $(CXXFLAGS_RELEASE)  -O2 -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 debug: uavos.debug
-	$(CXX) $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE).so     $(OBJS)   $(LIBS) ;
+	$(CXX) $(CXXFLAGS_DEBUG) -Og -o $(BIN)/$(EXE).so     $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_release: uavos.arm.release
-	$(CXXARM)  $(CXXFLAGS_RELEASE) -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
+	$(CXXARM)  $(CXXFLAGS_RELEASE) -O2 -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_debug: uavos.arm.debug
-	$(CXXARM)  $(CXXFLAGS_DEBUG) -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
+	$(CXXARM)  $(CXXFLAGS_DEBUG)  -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
@@ -95,7 +95,7 @@ uavos.debug: copy
 uavos.arm.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXXARM)   $(CXXFLAGS_RELEASE) -c  $(SRCS)  $(INCLUDE_ARM)  ; 
+	$(CXXARM)   $(CXXFLAGS_RELEASE) -O2 -c  $(SRCS)  $(INCLUDE_ARM)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 

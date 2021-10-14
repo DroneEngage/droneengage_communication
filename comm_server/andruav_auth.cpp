@@ -61,8 +61,6 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
        
     const bool res = getAuth_doAuthentication (url, param);
 
-    uavos::CUavosModulesManager& module_manager = uavos::CUavosModulesManager::getInstance();
-    
     if (!res) //(res !=CURLE_OK) || (getErrorCode() !=0))
     {
         // error 

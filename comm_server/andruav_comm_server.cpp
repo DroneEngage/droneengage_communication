@@ -108,12 +108,6 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
         }
         serial.append(get_linux_machine_id());
 
-        if (!andruav_auth.doValidateHardware(serial, AUTH_HARDWARE_TYPE_CPU))   
-        {
-            //m_status = SOCKET_STATUS_ERROR;
-            //return ;
-        }
-        
         connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, jsonConfig["partyID"].get<std::string>() );
 
     }

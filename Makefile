@@ -2,8 +2,8 @@
 CXX=g++
 CXXARM=/usr/bin/arm-linux-gnueabihf-g++
 CXXARM_ZERO=g++
-EXE=uavos_comm
-EXE_ARM=uavos_comm_arm
+EXE=de_comm
+EXE_ARM=de_comm_arm
 BIN=bin
 
 INCLUDE= -I ~/TDisk/Boost/boost_1_76_0/ -I /usr/include/x86_64-linux-gnu

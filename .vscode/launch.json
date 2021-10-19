@@ -8,7 +8,7 @@
             "name": "(gdb) Launch andruav-client",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/uavos_comm.so",
+            "program": "${workspaceFolder}/bin/de_comm.so",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/",

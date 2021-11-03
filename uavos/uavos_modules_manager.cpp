@@ -445,6 +445,7 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
         module_item->module_id          = module_id;
         module_item->module_class       = msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>(); // fcb, video, ...etc.
         module_item->modules_features   = msg_cmd[JSON_INTERMODULE_MODULE_FEATURES];
+        module_item->time_stamp         = msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>();
         if (msg_cmd.contains(JSON_INTERMODULE_HARDWARE_ID))
         {
             module_item->hardware_serial    = msg_cmd[JSON_INTERMODULE_HARDWARE_ID];
@@ -471,6 +472,13 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
                 
         // Update Module Info
      
+        if (module_item->time_stamp != msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>())
+        {
+            // module restarted
+            //TODO: Send notification message here Event Module Restarted
+            module_item->time_stamp = msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>();
+        }
+
         if ((module_item->module_last_access_time!=0)
             && (now - module_item->module_last_access_time >= MODULE_TIME_OUT))
         {

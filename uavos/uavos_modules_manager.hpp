@@ -5,7 +5,7 @@
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
-
+#include <ctime>
 #include <map>
 #include <memory> 
 #include <vector> 
@@ -48,7 +48,7 @@ typedef struct
     bool is_dead = false;
     ENUM_LICENCE licence_status = ENUM_LICENCE::LICENSE_NO_DATA;
     std::unique_ptr<struct sockaddr_in> m_module_address;
-    
+    std::time_t time_stamp = 0;
 } MODULE_ITEM_TYPE;
 
 

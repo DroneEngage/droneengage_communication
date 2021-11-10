@@ -49,7 +49,7 @@ void* uavos::andruav_servers::startWatchDogThread(void *args)
 
                 return NULL;
             }
-	        usleep(100000); 
+	        usleep(10000); 
         }
 
         
@@ -67,6 +67,11 @@ void uavos::andruav_servers::CAndruavCommServer::start ()
 
 }
 
+
+/**
+ * @brief Main function that connects to Andruav Authentication
+ * 
+ */
 void uavos::andruav_servers::CAndruavCommServer::connect ()
 {
     try
@@ -94,7 +99,7 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
         
         m_status = SOCKET_STATUS_CONNECTING;
         
-        if (!andruav_auth.doAuthentication())   
+        if (!andruav_auth.doAuthentication() || !andruav_auth.isAuthenticationOK())   
         {
             m_status = SOCKET_STATUS_ERROR;
             return ;
@@ -119,6 +124,14 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
     }
 }
 
+/**
+ * @brief Connects to Andruav Communication Server
+ * 
+ * @param server_ip 
+ * @param server_port 
+ * @param key 
+ * @param party_id 
+ */
 void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id)
 {
     try

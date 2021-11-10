@@ -69,7 +69,11 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
     }
     else
     {
-        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Andruav Authentication Process Done !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        if (m_is_authentication_ok)
+        {
+            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Andruav Authentication Process Done !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+
         return true;
     }
 }
@@ -247,7 +251,8 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    
+    m_is_authentication_ok = false;
+
     const Json& json_response = Json::parse(response);
     
     m_auth_error = 0; //reset error;
@@ -256,7 +261,6 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
     {   
         m_auth_error = -1;
         m_auth_error_string = "BAD XML";
-        m_is_authentication_ok = false;
         return ;
     }
 
@@ -273,27 +277,23 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
     if (m_auth_error != 0)
     {
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Error Andruav Authentication:  (" << std::to_string(m_auth_error) << " - " << m_auth_error_string <<_NORMAL_CONSOLE_TEXT_ << std::endl;
-        m_is_authentication_ok = false;
         return ;
     }
 
 
     if (!validateField (json_response, "sid", Json::value_t::string))
     {
-        m_is_authentication_ok = false;
         return ;
     }
 
     
     if (!validateField (json_response, "per", Json::value_t::string))
     {
-        m_is_authentication_ok = false;
         return ;
     }
 
     if (!validateField (json_response, AUTH_REPLY_COMM_SERVER, Json::value_t::object))
     {
-        m_is_authentication_ok = false;
         return ;
     }
     
@@ -301,19 +301,16 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
 
     if (!validateField (json_comm_server, AUTH_REPLY_COMM_SERVER_PUBLIC_HOST, Json::value_t::string))
     {
-        m_is_authentication_ok = false;
         return ;
     }
 
     if (!validateField (json_comm_server, AUTH_REPLY_COMM_SERVER_PORT, Json::value_t::number_unsigned))
     {
-        m_is_authentication_ok = false;
         return ;
     }
 
     if (!validateField (json_comm_server, AUTH_REPLY_COMM_SERVER_LOGIN_TEMP_KEY, Json::value_t::string))
     {
-        m_is_authentication_ok = false;
         return ;
     }
 

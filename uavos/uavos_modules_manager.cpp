@@ -552,7 +552,9 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
 
     const bool is_binary =  !(full_mesage[full_message_length-1]==125 || (full_mesage[full_message_length-2]==125));
     
-    std::cout<< jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE] << std::endl;
+    #ifdef DEBUG
+        std::cout<< jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE] << std::endl;
+    #endif
 
     if ((!validateField(jsonMessage, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
         || (!validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
@@ -654,7 +656,10 @@ void uavos::CUavosModulesManager::processIncommingServerMessage (const std::stri
     std::vector<std::string> &v = m_module_messages[command_type];
     for(std::vector<std::string>::iterator it = v.begin(); it != v.end(); ++it) 
     {
-        std::cout << *it << std::endl;
+        #ifdef DEBUG
+            std::cout << *it << std::endl;
+        #endif
+        
         auto uavos_module = m_modules_list.find(*it);
         if (uavos_module == m_modules_list.end()) 
         {

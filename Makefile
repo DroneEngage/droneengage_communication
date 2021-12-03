@@ -14,7 +14,7 @@ LIBS=  -pthread   -lcurl  -lboost_coroutine -lssl -lcrypto
 LIBS_ARM_ZERO = -pthread   -lcurl  -lboost_coroutine -lssl -lcrypto
 
 CXXFLAGS =  -std=c++11
-CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s   -Werror=unused-variable -Werror=unused-result
+CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s   -Werror=unused-variable -Werror=unused-result -Werror=parentheses
 CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g   
 SRC = src
 BUILD = build

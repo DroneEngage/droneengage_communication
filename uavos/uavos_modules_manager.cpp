@@ -19,6 +19,7 @@
 #include "../configFile.hpp"
 #include "../comm_server/andruav_unit.hpp"
 #include "../comm_server/andruav_comm_server.hpp"
+#include "../comm_server/andruav_facade.hpp"
 #include "../comm_server/andruav_auth.hpp"
 #include "../uavos/uavos_modules_manager.hpp"
 
@@ -55,19 +56,20 @@ Json uavos::CUavosModulesManager::createJSONID (const bool& reSend)
         jsonID[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
         Json ms;
         
-        ms["a"] = jsonConfig["module_id"];
-        ms["b"] = "comm"; // module_class 
-        ms["c"] = ""; // module_messages
-        ms["d"] = Json();
-        ms["e"] = jsonConfig["module_key"]; 
-        ms["f"] = 
+        ms[JSON_INTERMODULE_MODULE_ID] = jsonConfig["module_id"];
+        ms[JSON_INTERMODULE_MODULE_CLASS] = "comm"; // module_class 
+        ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST] = ""; // module_messages
+        ms[JSON_INTERMODULE_MODULE_FEATURES] = Json();
+        ms[JSON_INTERMODULE_MODULE_KEY] = jsonConfig["module_key"]; 
+        ms[JSON_INTERMODULE_PARTY_RECORD] = 
         {
             {"sd", jsonConfig["partyID"]},
             {"gr", jsonConfig["groupID"]}
         };
         
         // this is NEW in communicator and could be ignored by current UAVOS modules.
-        ms["z"] = reSend;
+        ms[JSON_INTERMODULE_SOCKET_STATUS] = uavos::andruav_servers::CAndruavCommServer::getInstance().getStatus();
+        ms[JSON_INTERMODULE_RESEND] = reSend;
 
         jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD] = ms;
         
@@ -397,8 +399,7 @@ void uavos::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * module_
         {
             std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Module License Invalid: " << _ERROR_CONSOLE_TEXT_ << module_item->module_id<< _NORMAL_CONSOLE_TEXT_ << std::endl;
             module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_BAD;
-            uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
-            commServer.API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
+            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
         }
     }
     else
@@ -478,15 +479,18 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
         if ((msg_cmd.contains(JSON_INTERMODULE_TIMESTAMP_INSTANCE)) && (module_item->time_stamp != msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>()))
         {
             // module restarted
-            //TODO: Send notification message here Event Module Restarted
+            //MODULE HAS BEEN RESTARTED
             module_item->time_stamp = msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>();
+            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " has been restarted."));
+        
         }
 
         if ((module_item->module_last_access_time!=0)
             && (now - module_item->module_last_access_time >= MODULE_TIME_OUT))
         {
-            //TODO Event Module Restored
+            //MODULE IS NOT RESPONDING
             module_item->is_dead = false;
+            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_EMERGENCY, std::string("Module " + module_item->module_id + " is not responding."));
         }
 
         if (module_item->licence_status == ENUM_LICENCE::LICENSE_NOT_VERIFIED)
@@ -518,10 +522,8 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
         if (msg_cmd["z"].get<bool>() == true)
         {
             const Json &msg = createJSONID(false);
-            struct sockaddr_in module_address = *module_item->m_module_address.get();  
-            //memcpy(module_address, ssock, sizeof(struct sockaddr_in)); 
             std::string msg_dump = msg.dump();    
-            uavos::comm::CUDPCommunicator::getInstance().SendMsg(msg_dump.c_str(), msg_dump.length(), &module_address);
+            forwardMessageToModule(msg_dump.c_str(), msg_dump.length(),module_item);
         }
     }
 
@@ -567,7 +569,6 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
     // Intermodule Message
     const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-    uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
                 
     switch (mt)
     {
@@ -577,7 +578,7 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
             
             if (updated == true)
             {
-                commServer.API_sendID(std::string());
+                uavos::andruav_servers::CAndruavFacade::getInstance().API_sendID(std::string());
             }
             
         }
@@ -601,14 +602,12 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
             unit_info.manual_TX_blocked_mode    = ms["C"].get<int>();
             unit_info.is_gcs_blocked            = ms["B"].get<bool>();
 
-            uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
-            commServer.API_sendID(std::string());
+            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendID(std::string());
         }
         break;
 
         default:
         {
-            uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
             std::string target_id = std::string();
 
             if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_COMM_INDIVIDUAL) != std::string::npos)
@@ -622,20 +621,15 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
                 const char * binary_message = (char *)(memchr (full_mesage, 0x0, full_message_length));
                 int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_mesage +1));
     
-                commServer.API_sendBinaryCMD(target_id, mt, &binary_message[1], binary_length);            
+                uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, &binary_message[1], binary_length);            
             }
             else
             {
-                commServer.API_sendCMD(target_id, mt, ms.dump());            
+                uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD(target_id, mt, ms.dump());            
             }
         }
         break;
     }
-    
-    
-    
-    
-    
     
 }
 
@@ -663,7 +657,7 @@ void uavos::CUavosModulesManager::processIncommingServerMessage (const std::stri
         auto uavos_module = m_modules_list.find(*it);
         if (uavos_module == m_modules_list.end()) 
         {
-            // module not available
+            // no module is registered for this message.
             std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Module " << *it  << " for message " << command_type << " is not available" << _NORMAL_CONSOLE_TEXT_ << std::endl;
             
             continue;
@@ -674,8 +668,7 @@ void uavos::CUavosModulesManager::processIncommingServerMessage (const std::stri
             MODULE_ITEM_TYPE * module_item = uavos_module->second.get();        
             if  (module_item->licence_status == LICENSE_VERIFIED_BAD)
             {
-                uavos::andruav_servers::CAndruavCommServer& commServer = uavos::andruav_servers::CAndruavCommServer::getInstance();
-                commServer.API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
+                uavos::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
                 break;
             } else if (module_item->is_dead == false)
             {
@@ -711,7 +704,14 @@ void uavos::CUavosModulesManager::forwardMessageToModule ( const char * message,
     return ;
 }
 
-
+/**
+* @brief Check m_modules_list for dead modules that recieved no data.
+* *Note: that restarted modules have the same ID not the same Key.... 
+* * so restarted modules does overwrite old instances..
+* 
+* @return true found new dead modules.... already dead modules are not counted.
+* @return false no dead modules.
+*/
 bool uavos::CUavosModulesManager::handleDeadModules ()
 {
     static std::mutex g_i_mutex; 
@@ -752,4 +752,26 @@ bool uavos::CUavosModulesManager::handleDeadModules ()
     }
     
     return dead_found;
+}
+
+/**
+ * @brief Called from @link CAndruavCommServer @endlink when connection status is updated.
+ * @details all modules should be notified with status to take approbriate actions.
+ * 
+ * @param status 
+ */
+void uavos::CUavosModulesManager::handleOnAndruavServerConnection (const int status)
+{
+    MODULE_ITEM_LIST::iterator it;
+    const Json &msg = createJSONID(false);
+    std::string msg_dump = msg.dump();    
+    
+
+    for (it = m_modules_list.begin(); it != m_modules_list.end(); it++)
+    {
+        MODULE_ITEM_TYPE * module_item = it->second.get();
+
+
+        forwardMessageToModule(msg_dump.c_str(), msg_dump.length(),module_item);
+    }
 }

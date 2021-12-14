@@ -18,6 +18,7 @@
 #include "andruav_auth.hpp"
 #include "../uavos/uavos_modules_manager.hpp"
 #include "andruav_comm_server.hpp"
+#include "andruav_facade.hpp"
 
 // Based on Below Model
 // https://www.boost.org/doc/libs/develop/libs/beast/example/websocket/client/async-ssl/websocket_client_async_ssl.cpp
@@ -27,6 +28,7 @@
 // ------------------------------------------------------------------------------
 
 
+using namespace uavos::andruav_servers;
 
 
 void* uavos::andruav_servers::startWatchDogThread(void *args)
@@ -98,10 +100,10 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
 
         
         m_status = SOCKET_STATUS_CONNECTING;
-        
         if (!andruav_auth.doAuthentication() || !andruav_auth.isAuthenticationOK())   
         {
             m_status = SOCKET_STATUS_ERROR;
+            uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
             return ;
         }
     
@@ -190,6 +192,7 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
         // TODO Send Internal Message to Modules telling them we are no longer connected.
     }
 
+    uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
 }
 
 /**
@@ -287,8 +290,9 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
         const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
         switch (command_type)
         {
+            // Server replied when connection  has been established.
             case TYPE_AndruavSystem_ConnectedCommServer:
-            {
+            {   
                 // example onMessageRecieved {"ty":"s","mt":9007,"ms":{"s":"OK:connected:tcp:192.168.1.144:37196"}}
                 Json message_cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
                 if (message_cmd["s"].get<std::string>().find("OK")==0)
@@ -296,16 +300,22 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " Andruav Server Connected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
                     m_status = SOCKET_STATUS_REGISTERED;
                     //_cwssession.get()->writeText("OK");
-                    API_requestID(std::string(""));
+                    uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID(std::string(""));
+                    uavos::andruav_servers::CAndruavFacade::getInstance().API_loadTasksByScope(ENUM_TASK_SCOPE::SCOPE_GROUP, TYPE_AndruavMessage_ExternalGeoFence);
                 }
                 else
                 {
                     std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << " Andruav Server Connected: Failed "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
                     m_status = SOCKET_STATUS_ERROR;
                 }
+                uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
             }
             break;
 
+            case TYPE_AndruavSystem_LoadTasks:
+            {
+                    //TODO: Execute load tasks ... asked by server  
+            }
             default:
                 break;
         }
@@ -338,8 +348,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
             break;
         }
 
-        uavos::CUavosModulesManager& module_manager = uavos::CUavosModulesManager::getInstance();
-        module_manager.processIncommingServerMessage(sender, command_type,  jsonMessage.c_str(), jsonMessage.length());
+        uavos::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  jsonMessage.c_str(), jsonMessage.length());
     }
 }
 
@@ -422,16 +431,16 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
     {
         case TYPE_AndruavMessage_ID:
         {
-            this->API_sendID(sender_party_id);
+            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendID(sender_party_id);
     
-            if (unit_info.is_new == true)  API_requestID (sender_party_id);    // ask for identification in return.  
+            if (unit_info.is_new == true)  uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    // ask for identification in return.  
     
         }
         break;
 
         case TYPE_AndruavMessage_CameraList:
         {
-            this->API_sendCameraList (true, sender_party_id);
+            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendCameraList (true, sender_party_id);
         }
         break;
 
@@ -444,7 +453,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
             }
             if (msg_cmd["Act"].get<bool>()==true)
             {
-                this->API_sendCameraList (true, sender_party_id);
+                uavos::andruav_servers::CAndruavFacade::getInstance().API_sendCameraList (true, sender_party_id);
             }
         }
 		break;
@@ -474,128 +483,20 @@ void uavos::andruav_servers::CAndruavCommServer::uninit()
 }
 
 
-void uavos::andruav_servers::CAndruavCommServer::API_requestID (const std::string& target_party_id)
-{
-    #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
 
-    Json jMsg = {{"C", TYPE_AndruavMessage_ID}};
-    
-    API_sendCMD (target_party_id, TYPE_AndruavMessage_RemoteExecute, jMsg.dump());
+void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int command_type, const std::string& msg) const 
+{
+    if (m_status == SOCKET_STATUS_REGISTERED)  
+    {
+        Json json_msg  = this->generateJSONSystemMessage (command_type, msg);
+        _cwssession.get()->writeText(json_msg.dump());
+
+        #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << json_msg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
+    } 
 }
-
-
-void uavos::andruav_servers::CAndruavCommServer::API_sendErrorMessage (const std::string& target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description)  
-{
-    /*
-        EN : error number  "not currently processed".
-        IT : info type indicate what component is reporting the error.
-        NT : sevirity and com,pliant with ardupilot.
-        DS : description message.
-    */
-    Json message =
-        {
-            {"EN", error_number},
-            {"IT", info_type},
-            {"NT", notification_type},
-            {"DS", description}
-        };
-
-    
-    API_sendCMD (target_party_id, TYPE_AndruavMessage_Error, message.dump());
-
- 
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
-    
-    return ;
-}    
-
-
-void uavos::andruav_servers::CAndruavCommServer::API_sendCameraList(const bool reply, const std::string& target_name)
-{
-    #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-    
-    uavos::CUavosModulesManager& module_manager = uavos::CUavosModulesManager::getInstance();
-    
-    Json camera_list = module_manager.getCameraList();
-
-    const Json jMsg = 
-    {
-        {"R", reply},
-        {"T", camera_list}
-    };
-        
-    API_sendCMD (target_name, TYPE_AndruavMessage_CameraList, jMsg.dump());
-}
-
-void uavos::andruav_servers::CAndruavCommServer::API_sendID (const std::string& target_name)
-{
-    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
-
-
-    uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
-   
-
-    Json jMsg = 
-    {   
-        {"VT", unit_info.vehicle_type},           // vehicle type
-        {"GS", unit_info.is_gcs},                 // is gcs
-        {"VR", unit_info.is_video_recording},     // is video recording
-        {"B",  unit_info.is_gcs_blocked},         // is gcs blocked
-        {"FM", unit_info.flying_mode},            // Flying mode
-        {"GM", unit_info.gps_mode},               // gps mode
-        {"TP", unit_info.telemetry_protocol},     // m_telemetry_protocol
-        {"C",  unit_info.manual_TX_blocked_mode}, // Remote Control RX Mode
-        {"UD", jsonConfig["unitID"]},             // unit Name
-        {"DS", jsonConfig["unitDescription"]},    // unit Description
-        {"p",  unit_info.permission}              // permissions
-    };
- 
-    if (unit_info.is_tracking_mode)
-    {
-        jMsg["b"] = unit_info.is_tracking_mode;
-    }
-    if (unit_info.use_fcb)
-    {
-        jMsg["FI"] = unit_info.use_fcb;
-    }
-    if (unit_info.is_flying)
-    {
-        jMsg["FL"] = unit_info.is_flying;   // is flying or sinking
-    }
-    if (unit_info.is_armed)
-    {
-        jMsg["AR"] = unit_info.is_armed;    // is armed
-    }
-    if (unit_info.is_shutdown)
-    {
-        jMsg["SD"] = unit_info.is_shutdown;    // is armed
-    }
-    if (unit_info.is_flashing)
-    {
-        jMsg["x"] = unit_info.is_flashing;    // is flashing
-    }
-    if (unit_info.is_whisling)
-    {
-        jMsg["y"] = unit_info.is_whisling;    // is whisling
-    }
-    if (unit_info.swarm_leader_formation)
-    {
-        jMsg["o"] = unit_info.swarm_leader_formation;    
-    }
-    if (!unit_info.swarm_leader_I_am_following.empty())
-    {
-        jMsg["q"] = unit_info.swarm_leader_I_am_following;    
-    }
-    
-    API_sendCMD (target_name, TYPE_AndruavMessage_ID, jMsg.dump());
-}
-
+            
 
 /**
  * @details Sends Andruav Command to Andruav Server
@@ -619,7 +520,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
     
     std::string message_routing;
     if (target_name.empty() == false)
-    {
+    {  // BUG HERE PLease ensure that it sends ind.
         message_routing = CMD_COMM_INDIVIDUAL;
     }
     else
@@ -703,7 +604,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
  * @param message 
  * @return Json 
  */
-Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const std::string& message)
+Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const std::string& message) const
 {
 
     #ifdef DEBUG
@@ -711,19 +612,36 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std:
     #endif
 
     Json jMsg;
-    jMsg["ty"] = message_routing;
-    jMsg["sd"] = sender_name;
+    jMsg[INTERMODULE_COMMAND_TYPE] = message_routing;
+    jMsg[ANDRUAV_PROTOCOL_SENDER] = sender_name;
     if (!target_party_id.empty())
     {
-        jMsg["tg"] = target_party_id;
+        jMsg[ANDRUAV_PROTOCOL_TARGET_ID] = target_party_id;
     }
     else
     {
         // Inconsistent packet.... but dont enforce global packet for security reasons.
-        //jMsg["ty"] = CMD_COMM_GROUP; // enforce group if party id is null.
+        //jMsg[INTERMODULE_COMMAND_TYPE] = CMD_COMM_GROUP; // enforce group if party id is null.
     }
-    jMsg["mt"] = messageType;
-    jMsg["ms"] = message;
+    jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] = messageType;
+    jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = message;
+    
+
+    return jMsg;
+}
+
+
+Json uavos::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (const int messageType, const std::string& message) const
+{
+
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
+    Json jMsg;
+    jMsg[INTERMODULE_COMMAND_TYPE]      = CMD_COMM_SYSTEM;
+    jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] = messageType;
+    jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD]  = message;
     
 
     return jMsg;

@@ -72,6 +72,7 @@ typedef struct {
   std::string permission;  
   std::string party_id;
   std::string unit_name;
+  std::string group_name;
   std::string description;
   uint64_t last_access_time;
         

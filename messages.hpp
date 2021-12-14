@@ -10,6 +10,8 @@
 #define JSON_INTERMODULE_MODULE_MESSAGES_LIST   "c"
 #define JSON_INTERMODULE_MODULE_FEATURES        "d"
 #define JSON_INTERMODULE_MODULE_KEY             "e"
+#define JSON_INTERMODULE_PARTY_RECORD           "f"
+#define JSON_INTERMODULE_SOCKET_STATUS          "g"
 #define JSON_INTERMODULE_HARDWARE_ID            "s"
 #define JSON_INTERMODULE_HARDWARE_TYPE          "t"
 #define JSON_INTERMODULE_TIMESTAMP_INSTANCE     "u"
@@ -34,7 +36,8 @@
 
 /**
  * @brief Group boradcast
- * @details group broad cast overrides individual. @see Andruav_Communication_Server for details.
+ * @details group broad cast overrides individual. 
+ * @see Andruav_Communication_Server for details.
  */
 #define CMD_COMM_GROUP                  "g" 
 /**
@@ -46,6 +49,13 @@
  */
 #define CMD_COMM_INDIVIDUAL             "i" 
     
+/**
+ * @brief System command.
+ * @details this should be handled by communication server. e.g. task access messages.
+ * @see Andruav_Communication_Server for details.
+ */
+#define CMD_COMM_SYSTEM                 "s" 
+  
 
 // Andruav Protocol Fields
 #define ANDRUAV_PROTOCOL_GROUP_ID       "gr"
@@ -58,7 +68,7 @@
 #define INTERMODULE_MODULE_KEY          "GU"
 
 
-
+// SYstem Messages
 #define TYPE_AndruavSystem_LoadTasks		    9001
 #define TYPE_AndruavSystem_SaveTasks		    9002
 #define TYPE_AndruavSystem_DeleteTasks	        9003
@@ -70,32 +80,49 @@
 
 
 
+// Andruav Messages
+#define TYPE_AndruavMessage_GPS                     1002
+#define TYPE_AndruavMessage_POWER                   1003
+#define TYPE_AndruavMessage_ID 	                    1004
+#define TYPE_AndruavMessage_RemoteExecute 		    1005     
+#define TYPE_AndruavMessage_Error                   1008    
+#define TYPE_AndruavMessage_FlightControl           1010
+#define TYPE_AndruavMessage_CameraList 			    1012  //RX: {"tg":"GCS1","sd":"zxcv","ty":"c","gr":"1","cm":"i","mt":1012,"ms":"{\"E\":2,\"P\":0,\"I\":\"zxcv\"}"}
+#define TYPE_AndruavMessage_DroneReport             1020
+#define TYPE_AndruavMessage_Signaling               1021
+#define TYPE_AndruavMessage_HomeLocation            1022
+#define TYPE_AndruavMessage_GeoFence                1023
+#define TYPE_AndruavMessage_ExternalGeoFence        1024
+#define TYPE_AndruavMessage_WayPoints               1027
+#define TYPE_AndruavMessage_Arm                     1030
+#define TYPE_AndruavMessage_ChangeAltitude          1031
+#define TYPE_AndruavMessage_Land                    1032
+#define TYPE_AndruavMessage_GuidedPoint             1033
+#define TYPE_AndruavMessage_CirclePoint             1034
+#define TYPE_AndruavMessage_DoYAW                   1035
+#define TYPE_AndruavMessage_NAV_INFO                1036
+#define TYPE_AndruavMessage_DistinationLocation     1037
+#define TYPE_AndruavMessage_ConfigCOM               1038
+#define TYPE_AndruavMessage_ConfigFCB               1039
+#define TYPE_AndruavMessage_ChangeSpeed             1040
+#define TYPE_AndruavMessage_Ctrl_Cameras            1041
+#define TYPE_AndruavMessage_TrackingTarget          1042
+#define TYPE_AndruavMessage_TargetLoackedAt         1043
+#define TYPE_AndruavMessage_TargetLost              1044
+#define TYPE_AndruavMessage_UploadWayPoints         1046
+#define TYPE_AndruavMessage_RemoteControlSettings	1047
+#define TYPE_AndruavMessage_SET_HOME_LOCATION       1048
+#define TYPE_AndruavMessage_CameraFlash		        1051
+#define TYPE_AndruavMessage_RemoteControl2		    1052
+#define TYPE_AndruavMessage_FollowHim_Request       1054
 
-#define TYPE_AndruavMessage_GPS                  1002
-#define TYPE_AndruavMessage_POWER                1003
-#define TYPE_AndruavMessage_ID 	                1004
-#define TYPE_AndruavMessage_RemoteExecute 		1005     
-#define TYPE_AndruavMessage_Error                1008    
-#define TYPE_AndruavMessage_FlightControl        1010
-#define TYPE_AndruavMessage_CameraList 			1012  //RX: {"tg":"GCS1","sd":"zxcv","ty":"c","gr":"1","cm":"i","mt":1012,"ms":"{\"E\":2,\"P\":0,\"I\":\"zxcv\"}"}
-#define TYPE_AndruavMessage_DroneReport          1020
-#define TYPE_AndruavMessage_HomeLocation         1022
-#define TYPE_AndruavMessage_WayPoints            1027
-#define TYPE_AndruavMessage_Arm                  1030
-#define TYPE_AndruavMessage_ChangeAltitude       1031
-#define TYPE_AndruavMessage_Land                 1032
-#define TYPE_AndruavMessage_GuidedPoint          1033
-#define TYPE_AndruavMessage_DoYAW                1035
-#define TYPE_AndruavMessage_NAV_INFO             1036
-#define TYPE_AndruavMessage_ChangeSpeed          1040
-#define TYPE_AndruavMessage_UploadWayPoints      1046
-#define TYPE_AndruavMessage_SET_HOME_LOCATION    1048
-
-#define TYPE_AndruavMessage_LightTelemetry      2022
+#define TYPE_AndruavMessage_LightTelemetry          2022
 
 // New Binary Messages 
-#define TYPE_AndruavMessage_ServoChannel         6001
-#define TYPE_AndruavMessage_MAVLINK             6502
+#define TYPE_AndruavMessage_ServoChannel            6001
+#define TYPE_AndruavMessage_MAVLINK                 6502
+
+
 
 
 // Andruav Mission Types
@@ -184,3 +211,11 @@
 #define WAYPOINT_NO_CHUNK                       0
 #define WAYPOINT_CHUNK                          1
 #define WAYPOINT_LAST_CHUNK                     999
+
+
+
+#define SPECIAL_NAME_ANY                "_any_"
+#define SPECIAL_NAME_SYS_NAME           "_sys_"
+#define SPECIAL_NAME_ALL_RECEIVERS      "_generic_"
+#define SPECIAL_NAME_VEHICLE_RECEIVERS  "_drone_"
+#define SPECIAL_NAME_GCS_RECEIVERS      "_gcs_"

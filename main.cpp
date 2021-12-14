@@ -30,6 +30,7 @@
 
 #include "./comm_server/andruav_unit.hpp"
 #include "./comm_server/andruav_comm_server.hpp"
+#include "./comm_server/andruav_facade.hpp"
 #include "./uavos/uavos_modules_manager.hpp"
 
 
@@ -79,6 +80,7 @@ void * scheduler (void *args)
 {
 
     uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    uavos::andruav_servers::CAndruavFacade& andruav_facade = uavos::andruav_servers::CAndruavFacade::getInstance();
     
     uint64_t hz_1 = 0;
     uint64_t every_5_sec = 0;
@@ -101,7 +103,7 @@ void * scheduler (void *args)
             if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
             {
                 cUavosModulesManager.handleDeadModules();
-                andruav_server.API_sendID("");
+                andruav_facade.API_sendID("");
             }
         }
 
@@ -141,6 +143,8 @@ void defineMe()
     
     unit_info.party_id = jsonConfig["partyID"].get<std::string>();
     unit_info.unit_name = jsonConfig["userName"].get<std::string>();
+    unit_info.unit_name = jsonConfig["userName"].get<std::string>();
+    unit_info.group_name = jsonConfig["groupID"].get<std::string>();
     unit_info.description = jsonConfig["unitDescription"].get<std::string>();
 }
 

@@ -81,8 +81,7 @@ typedef std::map <std::string, std::unique_ptr<std::map
 namespace uavos
 {
     /**
-     * @brief 
-     * Handles different uavos modules registration, updating, message forwarding and calling back.
+     * @brief Handles different uavos modules registration, updating, message forwarding and calling back.
      * 
      */
     class CUavosModulesManager
@@ -122,16 +121,10 @@ namespace uavos
              */
             Json getCameraList();
 
-            /**
-             * @brief Check m_modules_list for dead modules that recieved no data.
-             * *Note: that restarted modules have the same ID not the same Key.... 
-             * * so restarted modules does overwrite old instances..
-             * 
-             * @return true found new dead modules.... already dead modules are not counted.
-             * @return false no dead modules.
-             */
             bool handleDeadModules();
 
+            void handleOnAndruavServerConnection (const int status);
+            
         private:
 
             bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);

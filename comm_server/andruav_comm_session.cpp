@@ -245,10 +245,13 @@ void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const i
     #ifdef DEBUG_2
          std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "write Binary" << std::endl;
     #endif
-
+ 
     const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     ws_.binary(true);
     ws_.write(net::buffer(bmsg, length));
+ 
+    //TODO: BUG exception happens hear and disconnect socket. You need to reconnect socket again. Otherwise it fakes a valid connection but telemetry dies.
+    
     
 }
 

@@ -79,12 +79,9 @@ namespace andruav_servers
 
         public:
 
-            void API_requestID (const std::string& target_party_id);
-            void API_sendID (const std::string& target_party_id);
+            void API_sendSystemMessage(const int command_type, const std::string& msg) const;
             void API_sendCMD (const std::string& target_party_id, const int command_type, const std::string& msg);
             void API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const int bmsg_length);
-            void API_sendCameraList(const bool reply, const std::string& target_party_id);
-            void API_sendErrorMessage (const std::string& target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description);
 
             int getStatus ()
             {
@@ -105,7 +102,8 @@ namespace andruav_servers
             void parseCommand (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage);
             void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json& jsonMessage);
             
-            Json generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const std::string& message);
+            Json generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const std::string& message) const;
+            Json generateJSONSystemMessage (const int messageType, const std::string& message) const;
             
         private:
             std::shared_ptr<uavos::andruav_servers::CWSSession> _cwssession;  

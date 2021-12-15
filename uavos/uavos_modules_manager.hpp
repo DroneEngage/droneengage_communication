@@ -110,6 +110,7 @@ namespace uavos
             void parseIntermoduleMessage (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_in* ssock);
             Json createJSONID (const bool& reSend);
             
+            void processModuleRemoteExecute (const Json ms);
             void processIncommingServerMessage (const std::string& sender_party_id, const int& command_type, const char * message, const std::size_t datalength);
 
             void forwardMessageToModule (const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item);

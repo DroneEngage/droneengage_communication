@@ -24,6 +24,9 @@
 #include "../uavos/uavos_modules_manager.hpp"
 
 
+
+
+
 uavos::CUavosModulesManager::~CUavosModulesManager()
 {
 
@@ -584,6 +587,12 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
         }
         break;
 
+        case TYPE_AndruavModule_RemoteExecute:
+        {
+            processModuleRemoteExecute(ms);
+        }
+        break;
+        
         case TYPE_AndruavMessage_ID:
         {
             uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
@@ -631,6 +640,27 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
         break;
     }
     
+}
+
+/**
+ * @brief process requests from module to comm module.
+ * 
+ * @param ms 
+ */
+void uavos::CUavosModulesManager::processModuleRemoteExecute (const Json ms)
+{
+    if (!validateField(ms, "C", Json::value_t::number_unsigned)) return ;
+    const int cmd = ms["C"].get<int>();
+    
+    switch (cmd)
+    {
+        case TYPE_AndruavSystem_LoadTasks:
+        {
+            uavos::andruav_servers::CAndruavFacade::getInstance().API_loadTasksByScope(uavos::andruav_servers::ENUM_TASK_SCOPE::SCOPE_GROUP, TYPE_AndruavMessage_ExternalGeoFence);
+        }
+        break;
+    }
+   
 }
 
 

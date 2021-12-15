@@ -68,7 +68,7 @@
 #define INTERMODULE_MODULE_KEY          "GU"
 
 
-// SYstem Messages
+// System Messages
 #define TYPE_AndruavSystem_LoadTasks		    9001
 #define TYPE_AndruavSystem_SaveTasks		    9002
 #define TYPE_AndruavSystem_DeleteTasks	        9003
@@ -76,7 +76,10 @@
 #define TYPE_AndruavSystem_Ping                 9005
 #define TYPE_AndruavSystem_LogoutCommServer     9006
 #define TYPE_AndruavSystem_ConnectedCommServer  9007
+
+// Inter Module Commands
 #define TYPE_AndruavModule_ID                   9100
+#define TYPE_AndruavModule_RemoteExecute        9101
 
 
 

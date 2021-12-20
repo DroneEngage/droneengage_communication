@@ -97,6 +97,7 @@
 #define TYPE_AndruavMessage_GeoFence                1023
 #define TYPE_AndruavMessage_ExternalGeoFence        1024
 #define TYPE_AndruavMessage_WayPoints               1027
+#define TYPE_AndruavMessage_GeoFenceAttachStatus    1029
 #define TYPE_AndruavMessage_Arm                     1030
 #define TYPE_AndruavMessage_ChangeAltitude          1031
 #define TYPE_AndruavMessage_Land                    1032

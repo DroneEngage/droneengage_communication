@@ -476,6 +476,7 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
     else
     {
         module_item = module_entry->second.get();
+        module_item->is_dead = false;
                 
         // Update Module Info
 
@@ -487,15 +488,7 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
             uavos::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " has been restarted."));
         
         }
-
-        if ((module_item->module_last_access_time!=0)
-            && (now - module_item->module_last_access_time >= MODULE_TIME_OUT))
-        {
-            //MODULE IS NOT RESPONDING
-            module_item->is_dead = false;
-            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_EMERGENCY, std::string("Module " + module_item->module_id + " is not responding."));
-        }
-
+        
         if (module_item->licence_status == ENUM_LICENCE::LICENSE_NOT_VERIFIED)
         {  // module has not been tested last time maybe because Auth was not ready
             checkLicenseStatus(module_item);
@@ -767,13 +760,15 @@ bool uavos::CUavosModulesManager::handleDeadModules ()
                 //TODO Event Module Warning
                 module_item->is_dead = true;
                 dead_found = true;
+                uavos::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_EMERGENCY, std::string("Module " + module_item->module_id + " is not responding."));
             }
         }
         else
         {
             if (module_item->is_dead)
             {
-                //TODO Event Module Restored
+                //This should not happen as is_dead = false is done when receiving any message from a module. 
+                //because you dont want running consequence operation on a dead module.
                 module_item->is_dead = false;
             }
             

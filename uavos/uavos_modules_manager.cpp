@@ -650,6 +650,7 @@ void uavos::CUavosModulesManager::processModuleRemoteExecute (const Json ms)
         case TYPE_AndruavSystem_LoadTasks:
         {
             uavos::andruav_servers::CAndruavFacade::getInstance().API_loadTasksByScope(uavos::andruav_servers::ENUM_TASK_SCOPE::SCOPE_GROUP, TYPE_AndruavMessage_ExternalGeoFence);
+            uavos::andruav_servers::CAndruavFacade::getInstance().API_loadTasksByScope(uavos::andruav_servers::ENUM_TASK_SCOPE::SCOPE_GROUP, TYPE_AndruavMessage_UploadWayPoints);
         }
         break;
     }

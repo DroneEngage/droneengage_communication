@@ -27,7 +27,7 @@ void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& t
 
     Json jMsg = {{"C", TYPE_AndruavMessage_ID}};
     
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_RemoteExecute, jMsg.dump());
+    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_RemoteExecute, jMsg);
 }
 
 
@@ -93,7 +93,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         jMsg["q"] = unit_info.swarm_leader_I_am_following;    
     }
     
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_name, TYPE_AndruavMessage_ID, jMsg.dump());
+    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_name, TYPE_AndruavMessage_ID, jMsg);
 }
 
 void uavos::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, const std::string& target_party_id) const 
@@ -112,7 +112,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply
         {"T", camera_list}
     };
         
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_CameraList, jMsg.dump());
+    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_CameraList, jMsg);
 }
 
 
@@ -135,7 +135,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::st
         };
 
     
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Error, message.dump());
+    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Error, message);
 
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
     

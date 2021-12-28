@@ -627,7 +627,7 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
             }
             else
             {
-                uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD(target_id, mt, ms.dump());            
+                uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD(target_id, mt, ms);            
             }
         }
         break;

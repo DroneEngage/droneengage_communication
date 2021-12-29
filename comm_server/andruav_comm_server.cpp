@@ -422,6 +422,9 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: parseRemoteExecuteCommand " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     const Json& msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+    
+    if (!msg_cmd.contains("C")) return ;
+
     int remote_execute_command = msg_cmd["C"];
 
     uavos::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);

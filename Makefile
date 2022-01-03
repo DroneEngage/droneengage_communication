@@ -1,17 +1,19 @@
 
 CXX=g++
 CXXARM=/usr/bin/arm-linux-gnueabihf-g++
-CXXARM_ZERO=g++
+CXXARM_ZERO=/opt/cross-pi-gcc-10.2.0-0/bin/arm-linux-gnueabihf-g++
 EXE=de_comm
-EXE_ARM=de_comm_arm
+EXE_ARM=de_comm
 BIN=bin
 
-INCLUDE= -I ~/TDisk/Boost/boost_1_76_0/ -I /usr/include/x86_64-linux-gnu
-INCLUDE_ARM =  -I /usr/include -I /usr/include/arm-linux-gnueabihf  -I ~/TDisk/Boost/boost_1_76_0
-INCLUDE_ARM_ZERO =  -I /usr/include/boost/beast -I /usr/include
+INCLUDE= -I ~/TDisk/Boost/boost_1_76_0/ 
+INCLUDE_ARM =  -I /home/pi/boost_1_76_0/ -I /usr/include -I /usr/include/arm-linux-gnueabihf  
+INCLUDE_ARM_ZERO =  -I ~/TDisk/Boost/RPIZ/boost_1_76_0/ -I /usr/include/arm-linux-gnueabihf/  -I /usr/include 
 
-LIBS=  -pthread   -lcurl  -lboost_coroutine -lssl -lcrypto
-LIBS_ARM_ZERO = -pthread   -lcurl  -lboost_coroutine -lssl -lcrypto
+
+LIBS=  -pthread   -lcurl  -lssl -lcrypto /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_thread.a /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_system.a /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_chrono.a /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_context.a
+LIBS_ARM = -pthread   -lcurl  -lssl -lcrypto   /home/pi/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/pi/boost_1_76_0/stage/lib/libboost_thread.a /home/pi/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/pi/boost_1_76_0/stage/lib/libboost_system.a /home/pi/boost_1_76_0/stage/lib/libboost_chrono.a /home/pi/boost_1_76_0/stage/lib/libboost_context.a
+LIBS_ARM_ZERO = -L /usr/lib/arm-linux-gnueabihf -pthread   -lcurl  -lssl -lcrypto /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_thread.a /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_system.a /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_chrono.a /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_context.a
 
 CXXFLAGS =  -std=c++11
 CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s   -Werror=unused-variable -Werror=unused-result -Werror=parentheses
@@ -60,17 +62,17 @@ release: uavos.release
 	@echo "DONE."
 
 debug: uavos.debug
-	$(CXX) $(CXXFLAGS_DEBUG) -Og -o $(BIN)/$(EXE).so     $(OBJS)   $(LIBS) ;
+	$(CXX) $(CXXFLAGS_DEBUG) -Og -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_release: uavos.arm.release
-	$(CXXARM)  $(CXXFLAGS_RELEASE) -O2 -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
+	$(CXXARM)  $(CXXFLAGS_RELEASE) -O2 -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_debug: uavos.arm.debug
-	$(CXXARM)  $(CXXFLAGS_DEBUG)  -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS) ;
+	$(CXXARM)  $(CXXFLAGS_DEBUG)  -Og -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 

@@ -18,7 +18,6 @@ LIBS_ARM_ZERO = -L /usr/lib/arm-linux-gnueabihf -pthread   -lcurl  -lssl -lcrypt
 CXXFLAGS =  -std=c++11
 CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s   -Werror=unused-variable -Werror=unused-result -Werror=parentheses
 CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g   
-SRC = src
 BUILD = build
 
 OBJS = $(BUILD)/main.o \
@@ -67,7 +66,7 @@ debug: uavos.debug
 	@echo "DONE."
 
 arm_release: uavos.arm.release
-	$(CXXARM)  $(CXXFLAGS_RELEASE) -O2 -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
+	$(CXXARM)  $(CXXFLAGS_RELEASE)  -O2  -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
@@ -99,7 +98,7 @@ uavos.debug: copy
 uavos.arm.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXXARM)   $(CXXFLAGS_RELEASE) -O2 -c  $(SRCS)  $(INCLUDE_ARM)  ; 
+	$(CXXARM)   $(CXXFLAGS_RELEASE)  -c  $(SRCS)  $(INCLUDE_ARM)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 
@@ -125,7 +124,6 @@ git_submodule:
 
 copy: clean
 	mkdir -p $(BIN); \
-	touch config.null.json; \
 	cp config.*.json $(BIN); 
 	@echo "copying finished"
 

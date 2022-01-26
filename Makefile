@@ -56,27 +56,27 @@ all: release
 
 
 release: uavos.release
-	$(CXX)  $(CXXFLAGS_RELEASE)  -O2 -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
+	$(CXX)   -O2 -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 debug: uavos.debug
-	$(CXX) $(CXXFLAGS_DEBUG) -Og -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS) ;
+	$(CXX) -Og -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_release: uavos.arm.release
-	$(CXXARM)  $(CXXFLAGS_RELEASE)  -O2  -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
+	$(CXXARM)    -O2  -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_debug: uavos.arm.debug
-	$(CXXARM)  $(CXXFLAGS_DEBUG)  -Og -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
+	$(CXXARM)    -Og -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
 arm_release_zero: uavos.arm.release.zero
-	$(CXXARM_ZERO)  $(CXXFLAGS_RELEASE) -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM_ZERO) ;
+	$(CXXARM_ZERO)  -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM_ZERO) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 

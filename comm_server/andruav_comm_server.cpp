@@ -300,7 +300,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " Andruav Server Connected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
                     m_status = SOCKET_STATUS_REGISTERED;
                     //_cwssession.get()->writeText("OK");
-                    uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID(std::string(""));
+                    uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID(std::string());
                 //    uavos::andruav_servers::CAndruavFacade::getInstance().API_loadTasksByScope(ENUM_TASK_SCOPE::SCOPE_GROUP, TYPE_AndruavMessage_ExternalGeoFence);
                 }
                 else

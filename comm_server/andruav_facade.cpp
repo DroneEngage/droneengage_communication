@@ -43,17 +43,17 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
 
     Json jMsg = 
     {   
-        {"VT", unit_info.vehicle_type},           // vehicle type
-        {"GS", unit_info.is_gcs},                 // is gcs
-        {"VR", unit_info.is_video_recording},     // is video recording
-        {"B",  unit_info.is_gcs_blocked},         // is gcs blocked
-        {"FM", unit_info.flying_mode},            // Flying mode
-        {"GM", unit_info.gps_mode},               // gps mode
-        {"TP", unit_info.telemetry_protocol},     // m_telemetry_protocol
-        {"C",  unit_info.manual_TX_blocked_mode}, // Remote Control RX Mode
-        {"UD", jsonConfig["unitID"]},             // unit Name
-        {"DS", jsonConfig["unitDescription"]},    // unit Description
-        {"p",  unit_info.permission}              // permissions
+        {"VT", unit_info.vehicle_type},                     // vehicle type
+        {"GS", unit_info.is_gcs},                           // is gcs
+        {"VR", unit_info.is_video_recording},               // is video recording
+        {"B",  unit_info.is_gcs_blocked},                   // is gcs blocked
+        {"FM", unit_info.flying_mode},                      // Flying mode
+        {"GM", unit_info.gps_mode},                         // gps mode
+        {"TP", unit_info.telemetry_protocol},               // m_telemetry_protocol
+        {"C",  unit_info.manual_TX_blocked_mode},           // Remote Control RX Mode
+        {"UD", jsonConfig["unitID"]},                       // unit Name
+        {"DS", jsonConfig["unitDescription"]},              // unit Description
+        {"p",  unit_info.permission},                       // permissions
     };
  
     if (unit_info.is_tracking_mode)
@@ -84,11 +84,12 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
     {
         jMsg["y"] = unit_info.is_whisling;    // is whisling
     }
-    if (unit_info.swarm_leader_formation)
+    if (unit_info.swarm_leader_formation != FORMATION_NO_SWARM) // NO Formation
     {
         jMsg["o"] = unit_info.swarm_leader_formation;    
     }
-    if (!unit_info.swarm_leader_I_am_following.empty())
+
+    if ((!unit_info.swarm_leader_I_am_following.empty()) && (!unit_info.swarm_leader_I_am_following.length()==0))
     {
         jMsg["q"] = unit_info.swarm_leader_I_am_following;    
     }
@@ -169,7 +170,7 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGlobal(const in
         SPECIAL_NAME_ANY,
         SPECIAL_NAME_ANY,
         SPECIAL_NAME_ANY,
-        std::string(""),
+        std::string(),
         SPECIAL_NAME_VEHICLE_RECEIVERS,
         task_type,
         true
@@ -184,7 +185,7 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeAccount(const i
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
         SPECIAL_NAME_ANY,
         SPECIAL_NAME_ANY,
-        std::string(""),
+        std::string(),
         SPECIAL_NAME_VEHICLE_RECEIVERS,
         task_type,
         true
@@ -198,7 +199,7 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGroup(const int
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
         SPECIAL_NAME_ANY,
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().group_name,
-        std::string(""),
+        std::string(),
         SPECIAL_NAME_VEHICLE_RECEIVERS,
         task_type,
         true
@@ -212,7 +213,7 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopePartyID(const i
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().party_id,
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().group_name,
-        std::string(""),
+        std::string(),
         SPECIAL_NAME_VEHICLE_RECEIVERS,
         task_type,
         true

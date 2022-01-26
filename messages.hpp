@@ -119,6 +119,9 @@
 #define TYPE_AndruavMessage_CameraFlash		        1051
 #define TYPE_AndruavMessage_RemoteControl2		    1052
 #define TYPE_AndruavMessage_FollowHim_Request       1054
+#define TYPE_AndruavMessage_FollowMe_Guided         1055
+#define TYPE_AndruavMessage_MAKE_SWARM              1056
+#define TYPE_AndruavMessage_UpdateSwarm             1058
 
 #define TYPE_AndruavMessage_LightTelemetry          2022
 
@@ -217,9 +220,12 @@
 #define WAYPOINT_LAST_CHUNK                     999
 
 
+#define FORMATION_NO_SWARM                      0
+
 
 #define SPECIAL_NAME_ANY                "_any_"
 #define SPECIAL_NAME_SYS_NAME           "_sys_"
 #define SPECIAL_NAME_ALL_RECEIVERS      "_generic_"
 #define SPECIAL_NAME_VEHICLE_RECEIVERS  "_drone_"
 #define SPECIAL_NAME_GCS_RECEIVERS      "_gcs_"
+

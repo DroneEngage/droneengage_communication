@@ -591,18 +591,20 @@ void uavos::CUavosModulesManager::parseIntermoduleMessage (const char * full_mes
             uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
             uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
             
-            unit_info.vehicle_type              = ms["VT"].get<int>();
-            unit_info.flying_mode               = ms["FM"].get<int>();
-            unit_info.gps_mode                  = ms["GM"].get<int>();
-            unit_info.use_fcb                   = ms["FI"].get<bool>();
-            unit_info.is_armed                  = ms["AR"].get<bool>();
-            unit_info.is_flying                 = ms["FL"].get<bool>();
-            unit_info.telemetry_protocol        = ms["TP"].get<int>();
-            unit_info.flying_last_start_time    = ms["z"].get<long long>();
-            unit_info.flying_total_duration     = ms["a"].get<long long>();
-            unit_info.is_tracking_mode          = ms["b"].get<bool>();
-            unit_info.manual_TX_blocked_mode    = ms["C"].get<int>();
-            unit_info.is_gcs_blocked            = ms["B"].get<bool>();
+            unit_info.vehicle_type                  = ms["VT"].get<int>();
+            unit_info.flying_mode                   = ms["FM"].get<int>();
+            unit_info.gps_mode                      = ms["GM"].get<int>();
+            unit_info.use_fcb                       = ms["FI"].get<bool>();
+            unit_info.is_armed                      = ms["AR"].get<bool>();
+            unit_info.is_flying                     = ms["FL"].get<bool>();
+            unit_info.telemetry_protocol            = ms["TP"].get<int>();
+            unit_info.flying_last_start_time        = ms["z"].get<long long>();
+            unit_info.flying_total_duration         = ms["a"].get<long long>();
+            unit_info.is_tracking_mode              = ms["b"].get<bool>();
+            unit_info.manual_TX_blocked_mode        = ms["C"].get<int>();
+            unit_info.is_gcs_blocked                = ms["B"].get<bool>();
+            unit_info.swarm_leader_formation        = ms["o"].get<int>();
+            unit_info.swarm_leader_I_am_following   = ms["q"].get<std::string>();
 
             uavos::andruav_servers::CAndruavFacade::getInstance().API_sendID(std::string());
         }

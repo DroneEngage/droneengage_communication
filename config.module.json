@@ -17,5 +17,8 @@
     "partyID"                   :"UL1",
     "unitID"                    :"drone1",
     "groupID"                   :"1",
-    "unitDescription"          :"uavos_unit 1"
+    "unitDescription"          :"uavos_unit 1",
+    
+    "enable_led"                :true
+    
 }

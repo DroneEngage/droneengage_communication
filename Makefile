@@ -8,12 +8,12 @@ BIN=bin
 
 INCLUDE= -I ~/TDisk/Boost/boost_1_76_0/ 
 INCLUDE_ARM =  -I /home/pi/boost_1_76_0/ -I /usr/include -I /usr/include/arm-linux-gnueabihf  
-INCLUDE_ARM_ZERO =  -I ~/TDisk/Boost/RPIZ/boost_1_76_0/ -I /usr/include/arm-linux-gnueabihf/  -I /usr/include 
+INCLUDE_ARM_ZERO =  -I /home/pi/boost_1_76_0/  -I /usr/include/arm-linux-gnueabihf/  -I /usr/include 
 
 
 LIBS=  -pthread   -lcurl  -lssl -lcrypto /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_thread.a /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_system.a /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_chrono.a /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_context.a
 LIBS_ARM = -pthread   -lcurl  -lssl -lcrypto   /home/pi/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/pi/boost_1_76_0/stage/lib/libboost_thread.a /home/pi/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/pi/boost_1_76_0/stage/lib/libboost_system.a /home/pi/boost_1_76_0/stage/lib/libboost_chrono.a /home/pi/boost_1_76_0/stage/lib/libboost_context.a
-LIBS_ARM_ZERO = -L /usr/lib/arm-linux-gnueabihf -pthread   -lcurl  -lssl -lcrypto /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_thread.a /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_system.a /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_chrono.a /home/mhefny/TDisk/Boost/RPIZ/boost_1_76_0/stage/lib/libboost_context.a
+LIBS_ARM_ZERO = -pthread   -lcurl  -lssl -lcrypto   /home/pi/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/pi/boost_1_76_0/stage/lib/libboost_thread.a /home/pi/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/pi/boost_1_76_0/stage/lib/libboost_system.a /home/pi/boost_1_76_0/stage/lib/libboost_chrono.a /home/pi/boost_1_76_0/stage/lib/libboost_context.a
 
 CXXFLAGS =  -std=c++11
 CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s   -Werror=unused-variable -Werror=unused-result -Werror=parentheses
@@ -31,6 +31,11 @@ OBJS = $(BUILD)/main.o \
 	   $(BUILD)/helpers.o \
 	   $(BUILD)/util_rpi.o \
 	   $(BUILD)/getopt_cpp.o \
+	   $(BUILD)/gpio.o \
+	   $(BUILD)/notification.o \
+	   $(BUILD)/rpi_gpio.o \
+	   $(BUILD)/leds.o \
+	   $(BUILD)/buzzer.o \
 	   $(BUILD)/andruav_unit.o
 	   
 
@@ -45,7 +50,13 @@ SRCS = ../main.cpp \
 	   ../helpers/helpers.cpp \
 	   ../helpers/util_rpi.cpp \
 	   ../helpers/getopt_cpp.cpp \
+	   ../hal/gpio.cpp \
+	   ../hal_linux/rpi_gpio.cpp \
+	   ../notification_module/notification.cpp \
+	   ../notification_module/leds.cpp \
+	   ../notification_module/buzzer.cpp \
 	   ../comm_server/andruav_unit.cpp
+	   
 	   
 
 

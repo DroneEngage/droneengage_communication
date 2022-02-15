@@ -71,8 +71,8 @@ int helpers::CUtil_Rpi::_check_rpi_version_by_rev()
         { revision:"902120", cpu_code:2}    // Zero 2 W
     };
 
-    // assume 0 if unknown
-    _rpi_version = 0;
+    // -1 if unknown
+    _rpi_version = -1;
 
     char buffer[MAX_SIZE_LINE] = { 0 };
     
@@ -84,13 +84,17 @@ int helpers::CUtil_Rpi::_check_rpi_version_by_rev()
     }
     else {
 
+        bool _revision_found = false;
         // loop till Revision line        
         while (fgets(buffer, MAX_SIZE_LINE, f) != nullptr) {
-            if (strstr(buffer, "Revision") == nullptr) {
-                continue;
+            if (strstr(buffer, "Revision") != nullptr) {
+                _revision_found = true;
+                break;
             }
-            fclose(f);
         }   
+
+        fclose(f);
+        if (!_revision_found) return _rpi_version;
         
         // extract number in "Revision	: 9000c1"
         char * pch;
@@ -149,7 +153,6 @@ int helpers::CUtil_Rpi::_check_rpi_version()
 {
     const unsigned int MAX_SIZE_LINE = 50;
     char buffer[MAX_SIZE_LINE];
-    int hw;
 
     memset(buffer, 0, MAX_SIZE_LINE);
     FILE *f = fopen("/sys/firmware/devicetree/base/model", "r");

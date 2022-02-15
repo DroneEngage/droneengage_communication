@@ -12,7 +12,9 @@
 #include <curl/curl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <pthread.h>
+//#include <pthread.h>
+#include <thread>
+
 #include <getopt.h>
 
 
@@ -32,7 +34,8 @@
 #include "./comm_server/andruav_comm_server.hpp"
 #include "./comm_server/andruav_facade.hpp"
 #include "./uavos/uavos_modules_manager.hpp"
-
+//#include "./hal_linux/rpi_gpio.hpp"
+#include "./notification_module/leds.hpp"
 
 using namespace boost;
 using namespace std;
@@ -45,7 +48,10 @@ uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
 uavos::comm::CUDPCommunicator& cUDPClient = uavos::comm::CUDPCommunicator::getInstance();  
 uavos::CUavosModulesManager& cUavosModulesManager = uavos::CUavosModulesManager::getInstance();  
 
-pthread_t m_scheduler;
+//hal_linux::CRPI_GPIO &cGPIO = hal_linux::CRPI_GPIO::getInstance();
+notification::CLEDs &cLeds = notification::CLEDs::getInstance();
+
+std::thread m_scheduler;
 bool exit_scheduler = false;
 
     
@@ -76,7 +82,7 @@ void _usage(void)
 }
 
 
-void * scheduler (void *args)
+void scheduler ()
 {
 
     uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
@@ -89,6 +95,8 @@ void * scheduler (void *args)
     {
         hz_1++;
         every_5_sec ++;
+        
+        cLeds.update();
 
         if (hz_1 % 10 == 0)
         {
@@ -110,7 +118,7 @@ void * scheduler (void *args)
         usleep(100000); // 10Hz
     }
 
-    return NULL;
+    return ;
 }
 
 
@@ -130,8 +138,9 @@ void onReceive (const char * message, int len, struct sockaddr_in * ssock)
 
 void initScheduler()
 {
-    const int result = pthread_create( &m_scheduler, NULL, &scheduler, NULL );
-    if ( result ) throw result;
+    m_scheduler = std::thread (scheduler);
+    //const int result = pthread_create( &m_scheduler, NULL, &scheduler, NULL );
+    //if ( result ) throw result;
 }
 
 
@@ -181,6 +190,18 @@ void initSockets()
     cUDPClient.start();
 }
 
+
+void initGPIO()
+{
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    if (!jsonConfig.contains("enable_led")) return ;
+    if (jsonConfig["enable_led"].get<bool>()==true)
+    {
+        cLeds.init();
+    }
+    
+     
+}
 
 void initArguments (int argc, char *argv[])
 {
@@ -236,6 +257,7 @@ void init (int argc, char *argv[])
     
     defineMe();
     
+    initGPIO();
 
     initScheduler();
 
@@ -253,7 +275,8 @@ void uninit ()
     exit_me = true;
     exit_scheduler = true;
     // wait for exit
-	pthread_join(m_scheduler ,NULL);
+    m_scheduler.join();
+	//pthread_join(m_scheduler ,NULL);
 	
     andruav_server.uninit();
     

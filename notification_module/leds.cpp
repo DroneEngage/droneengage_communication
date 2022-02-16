@@ -61,7 +61,7 @@ void CLEDs::init (const std::vector<uint8_t>& led_pins)
 
     for (auto pin : m_led_pins)
     {
-        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Initalize LED at GPIO " << pin << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Initalize LED at GPIO " << std::to_string(pin) << std::endl; 
         hal_linux::CRPI_GPIO::getInstance().pinMode(pin, HAL_GPIO_OUTPUT);
         hal_linux::CRPI_GPIO::getInstance().write(pin, GPIO_LED_OFF);
     }

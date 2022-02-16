@@ -26,8 +26,6 @@ CRPI_GPIO::CRPI_GPIO()
 
 bool CRPI_GPIO::openMemoryDevice()
 {
-    std::cout << "openMemoryDevice" << std::endl;
-        
     _system_memory_device = open(_system_memory_device_path.c_str(), O_RDWR|O_SYNC|O_CLOEXEC);
     if (_system_memory_device < 0) {
         return false;
@@ -55,8 +53,6 @@ void CRPI_GPIO::init()
         return ;
     }
     
-    std::cout << "B1" << std::endl;
-
     CRPI_GPIO::Address peripheral_base;
     
     if(rpi_version == 1) {

@@ -12,7 +12,7 @@
 #include <curl/curl.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-//#include <pthread.h>
+#include <vector>
 #include <thread>
 
 #include <getopt.h>
@@ -194,10 +194,29 @@ void initSockets()
 void initGPIO()
 {
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
-    if (!jsonConfig.contains("enable_led")) return ;
+    if (!jsonConfig.contains("enable_led")) 
+    {
+        std::cout  << _INFO_CONSOLE_TEXT << "Notification Module: disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return ;
+    }
+
+    if (jsonConfig.contains("led_pins"))
+    {
+        std::cout  << _INFO_CONSOLE_TEXT << "LEDs pins \"led_pins\" are not defined. Notification will be DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+    }
+
+
+    std::vector<uint8_t> led_pins;
+
+    for (auto pin : jsonConfig["led_pins"])
+    {
+        led_pins.push_back(pin);
+    }
+    
     if (jsonConfig["enable_led"].get<bool>()==true)
     {
-        cLeds.init();
+        cLeds.init(led_pins);
     }
     
      

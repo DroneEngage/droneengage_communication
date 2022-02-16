@@ -150,6 +150,7 @@ class CRPI_GPIO :  public hal::CGPIO
     // Path to memory device (E.g: /dev/mem)
     const std::string _system_memory_device_path = "/dev/mem";
     
+    bool m_initialized = false;
 };
 };
 

@@ -1,6 +1,7 @@
 #ifndef HAL_LED_MODULE_H
 #define HAL_LED_MODULE_H
 
+#include <vector>
 #include "notification.hpp"
 
 namespace notification
@@ -32,10 +33,17 @@ class CLEDs : public CNotification
 
     public:
 
-        void init() override;    
+        void init() override;  
+        void init (const std::vector<uint8_t>& led_pins);
         void update() override;
 
         
+        int getLEDS() const;
+        void switchLED(const uint8_t led_index, const bool onOff);
+
+    private:
+
+        std::vector<uint8_t> m_led_pins;
 };
 
 }

@@ -46,7 +46,8 @@ void CRPI_GPIO::closeMemoryDevice()
 
 void CRPI_GPIO::init()
 {
-
+    if (m_initialized) return ;
+    
     const int rpi_version = helpers::CUtil_Rpi::getInstance().get_rpi_model();
     if (rpi_version == -1) 
     {
@@ -80,6 +81,8 @@ void CRPI_GPIO::init()
 
     // No need to keep mem_fd open after mmap
     closeMemoryDevice();
+
+    m_initialized = true;
 
 }
 

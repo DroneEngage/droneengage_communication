@@ -19,6 +19,7 @@
     "groupID"                   :"1",
     "unitDescription"          :"uavos_unit 1",
     
-    "enable_led"                :true
+    "enable_led"                :true,
+    "led_pins"                  :[25,24] // LIST GPIO
     
 }

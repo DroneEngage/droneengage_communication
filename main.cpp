@@ -196,14 +196,14 @@ void initGPIO()
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
     if (!jsonConfig.contains("enable_led")) 
     {
-        std::cout  << _INFO_CONSOLE_TEXT << "Notification Module: disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_TEXT << "Notification Module: " << _INFO_CONSOLE_TEXT << "disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return ;
     }
 
-    if (jsonConfig.contains("led_pins"))
+    if (!jsonConfig.contains("led_pins"))
     {
-        std::cout  << _INFO_CONSOLE_TEXT << "LEDs pins \"led_pins\" are not defined. Notification will be DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        
+        std::cout  << _INFO_CONSOLE_TEXT << "LEDs pins \"led_pins\" are not defined. Notification will be " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return ;
     }
 
 

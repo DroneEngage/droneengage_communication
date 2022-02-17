@@ -160,7 +160,6 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     if(!easyhandle) return CURLE_FAILED_INIT;
     /* Set the default value: strict certificate check please */
     curl_easy_setopt(easyhandle, CURLOPT_URL, url.c_str());
-
     curl_easy_setopt(easyhandle, CURLOPT_DEFAULT_PROTOCOL, "https");
 
     /* Now specify the POST data */ 
@@ -172,8 +171,8 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
         long verify = true;
     #endif
 
-    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYPEER, verify);
-    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYHOST, verify);
+    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYPEER, false);
+    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYHOST, false);
         
 
     curl_easy_setopt(easyhandle, CURLOPT_WRITEFUNCTION, _WriteCallback);
@@ -190,7 +189,6 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     curl_easy_cleanup(easyhandle);
     
     /* free headers */ 
-    //curl_slist_free_all(headers);
     curl_global_cleanup();
 
     if (res == CURLE_OK)

@@ -30,9 +30,15 @@ class STATUS {
 
         public:
 
-            bool is_online()
+            inline bool is_online() const
             {
                 return uavos::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED;
+            }
+
+
+            inline bool is_fcb_connected() const
+            {
+                return m_fcb_connected;
             }
 
             // std::bool is_online(const std::bool online)

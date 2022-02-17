@@ -11,8 +11,8 @@
 #define GPIO_LED_CONNECTION      19
 #define GPIO_LED_FLASH           26
 
-#define GPIO_LED_ON     0
-#define GPIO_LED_OFF    1
+#define GPIO_LED_ON     1
+#define GPIO_LED_OFF    0
 
 using namespace notification;
 
@@ -113,14 +113,20 @@ void CLEDs::update()
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
 
     if (STATUS::getInstance().m_exit_me) return ;
-
-    if (STATUS::getInstance().is_online())
+    
+    if ((STATUS::getInstance().is_online()) && (STATUS::getInstance().is_fcb_connected()))
     {
         hal_linux::CRPI_GPIO::getInstance().write(m_led_pins[0], GPIO_LED_ON);
     }
-    else
+    else if (!STATUS::getInstance().is_online())
     {
         hal_linux::CRPI_GPIO::getInstance().toggle(m_led_pins[0]);
     }
+    else if (m_counter % 3)
+    {
+        hal_linux::CRPI_GPIO::getInstance().toggle(m_led_pins[0]);
+    }
+
+    m_counter++;
 }
 

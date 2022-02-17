@@ -24,7 +24,7 @@ class CLEDs : public CNotification
 
         CLEDs()
         {
-
+            m_counter = 0;
         }
 
     public:
@@ -43,7 +43,7 @@ class CLEDs : public CNotification
         void switchLED(const uint8_t led_index, const bool onOff);
 
     private:
-
+        uint32_t m_counter;
         std::vector<uint8_t> m_led_pins;
 };
 

@@ -36,7 +36,8 @@ class CLEDs : public CNotification
         void init() override;  
         void init (const std::vector<uint8_t>& led_pins);
         void update() override;
-
+        void uninit() override;  
+        
         
         int getLEDS() const;
         void switchLED(const uint8_t led_index, const bool onOff);

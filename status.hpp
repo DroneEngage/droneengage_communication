@@ -39,6 +39,8 @@ class STATUS {
             // {
             //     ;
             // }
+            bool m_fcb_connected = false;
+            bool m_exit_me = false;
         private:
 
 

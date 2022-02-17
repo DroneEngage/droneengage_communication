@@ -68,6 +68,20 @@ void CLEDs::init (const std::vector<uint8_t>& led_pins)
 
 }
 
+void CLEDs::uninit()
+{
+    if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
+
+    // Reset pins again to start condition.   
+    for (auto pin : m_led_pins)
+    {
+        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Initalize LED at GPIO " << std::to_string(pin) << std::endl; 
+        hal_linux::CRPI_GPIO::getInstance().write(pin, GPIO_LED_OFF);
+    }
+    
+    m_error = ENUM_Module_Error_Code::ERR_UNINITIALIZED;
+}
+
 
 /**
  * @brief returns available LEDS including status LED.
@@ -97,6 +111,8 @@ void CLEDs::switchLED(const uint8_t led_index, const bool onOff)
 void CLEDs::update() 
 {
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
+
+    if (STATUS::getInstance().m_exit_me) return ;
 
     if (STATUS::getInstance().is_online())
     {

@@ -13,7 +13,7 @@
 #include "../helpers/colors.hpp"
 #include "../helpers/helpers.hpp"
 
-
+#include "../status.hpp"
 #include "../messages.hpp"
 #include "../udpCommunicator.hpp"
 #include "../configFile.hpp"
@@ -101,36 +101,31 @@ bool uavos::CUavosModulesManager::updateUavosPermission (const Json& module_perm
 {
     uavos::CAndruavUnitMe& andruav_unit_me = uavos::CAndruavUnitMe::getInstance();
     bool updated = false;
-    const int&  len = module_permissions.size();
-    for (int i=0; i<len; ++i)
+    //const int&  len = module_permissions.size();
+    for (const auto permission : module_permissions)
     {
-        const std::string& permission_item = module_permissions[i].get<std::string>();
+        const std::string& permission_item = permission.get<std::string>(); //module_permissions[i].get<std::string>();
+        uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
         if (permission_item.compare("T") ==0)
         {
-            uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
             if (andruav_unit_info.permission[4]=='T') break;
             andruav_unit_info.permission[4] = 'T';
-            andruav_unit_info.use_fcb = true;
             updated = true;
         }
         else if (permission_item.compare("R") ==0)
         {
-            uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
             if (andruav_unit_info.permission[6]=='R') break;
             andruav_unit_info.permission[6] = 'R';
-            andruav_unit_info.use_fcb = true;
             updated = true;
         }
         else if (permission_item.compare("V") ==0)
         {
-            uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
             if (andruav_unit_info.permission[8]=='V') break;
             andruav_unit_info.permission[8] = 'V';
             updated = true;
         }
         else if (permission_item.compare("C") ==0)
         {
-            uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
             if (andruav_unit_info.permission[10]=='C') break;
             andruav_unit_info.permission[10] = 'C';
             updated = true;
@@ -503,12 +498,19 @@ bool uavos::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd,
     const Json& message_array = msg_cmd[JSON_INTERMODULE_MODULE_MESSAGES_LIST]; 
     updated |= updateModuleSubscribedMessages(module_id, message_array);
 
-    const std::string module_type = module_item->module_class; //msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>(); 
-    if (module_type.find("camera")==0)
+    const std::string module_class = module_item->module_class; //msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>(); 
+    if (module_class.find("camera")==0)
     {
         // update camera list
         updateCameraList(module_id, msg_cmd);
-    }   
+    }
+    else if (module_class.find("fcb")==0)
+    {
+        uavos::CAndruavUnitMe& andruav_unit_me = uavos::CAndruavUnitMe::getInstance();
+        uavos::ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
+        andruav_unit_info.use_fcb = true;
+        STATUS::getInstance().m_fcb_connected = true;
+    } 
 
     updated |= updateUavosPermission(module_item->modules_features); //msg_cmd["d"]);
 

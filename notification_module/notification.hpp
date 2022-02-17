@@ -20,7 +20,8 @@ class CNotification
 
         virtual void init()     = 0;  
         virtual void update()   = 0;
-
+        virtual void uninit()   {};
+        
         virtual ENUM_Module_Error_Code getStatus()
         {
             return m_error;

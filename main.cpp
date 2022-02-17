@@ -17,7 +17,7 @@
 
 #include <getopt.h>
 
-
+#include "status.hpp"
 
 #include "version.h"
 #include "./helpers/colors.hpp"
@@ -39,9 +39,6 @@
 
 using namespace boost;
 using namespace std;
-
-
-bool exit_me = false;
 
 
 uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
@@ -291,7 +288,7 @@ void uninit ()
 
     uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
 
-    exit_me = true;
+    STATUS::getInstance().m_exit_me = true;
     exit_scheduler = true;
     // wait for exit
     m_scheduler.join();
@@ -345,7 +342,7 @@ int main (int argc, char *argv[])
 {
     init (argc, argv);
 
-    while (!exit_me)
+    while (!STATUS::getInstance().m_exit_me)
     {
        std::this_thread::sleep_for(std::chrono::seconds(1));
        

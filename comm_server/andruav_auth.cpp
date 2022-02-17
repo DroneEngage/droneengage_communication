@@ -54,7 +54,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
                 + AUTH_EXTRA_PARAMETER + "uavos"
                 + AUTH_ACTOR_TYPE_PARAMETER + AUTH_ACTOR_DRONE;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _LOG_CONSOLE_TEXT << " connection established " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " successfully" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " Connecting... " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #ifdef DEBUG
     std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
@@ -160,6 +160,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     if(!easyhandle) return CURLE_FAILED_INIT;
     /* Set the default value: strict certificate check please */
     curl_easy_setopt(easyhandle, CURLOPT_URL, url.c_str());
+
     curl_easy_setopt(easyhandle, CURLOPT_DEFAULT_PROTOCOL, "https");
 
     /* Now specify the POST data */ 
@@ -171,8 +172,8 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
         long verify = true;
     #endif
 
-    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYPEER, false);
-    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYHOST, false);
+    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYPEER, verify);
+    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYHOST, verify);
         
 
     curl_easy_setopt(easyhandle, CURLOPT_WRITEFUNCTION, _WriteCallback);
@@ -189,6 +190,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     curl_easy_cleanup(easyhandle);
     
     /* free headers */ 
+    //curl_slist_free_all(headers);
     curl_global_cleanup();
 
     if (res == CURLE_OK)

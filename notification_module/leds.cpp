@@ -70,12 +70,14 @@ void CLEDs::init (const std::vector<uint8_t>& led_pins)
 
 void CLEDs::uninit()
 {
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: LEDS Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
 
     // Reset pins again to start condition.   
     for (auto pin : m_led_pins)
     {
-        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Initalize LED at GPIO " << std::to_string(pin) << std::endl; 
+        std::cout << _SUCCESS_CONSOLE_TEXT_ << "reset LED at GPIO " << std::to_string(pin) << std::endl; 
         hal_linux::CRPI_GPIO::getInstance().write(pin, GPIO_LED_OFF);
     }
     
@@ -122,7 +124,7 @@ void CLEDs::update()
     {
         hal_linux::CRPI_GPIO::getInstance().toggle(m_led_pins[0]);
     }
-    else if (m_counter % 3)
+    else if (m_counter % 3 == 0)
     {
         hal_linux::CRPI_GPIO::getInstance().toggle(m_led_pins[0]);
     }

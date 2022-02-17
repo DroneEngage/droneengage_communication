@@ -294,6 +294,8 @@ void uninit ()
     m_scheduler.join();
 	//pthread_join(m_scheduler ,NULL);
 	
+    cLeds.uninit();
+    
     andruav_server.uninit();
     
     #ifdef DEBUG

@@ -31,11 +31,11 @@ class CRPI_GPIO :  public hal::CGPIO
 
     public:
         
-        void pinMode (uint8_t pin, uint8_t output);
-        uint8_t read (uint8_t pin);
-        void write(uint8_t pin, uint8_t value);
-        void toggle(uint8_t pin);
-        void init ();
+        void pinMode (uint8_t pin, uint8_t output) override ;
+        uint8_t read (uint8_t pin) override ;
+        void write(uint8_t pin, uint8_t value) override ;
+        uint8_t toggle(uint8_t pin) override ;
+        bool init () override;
     
     private:
     
@@ -138,17 +138,17 @@ class CRPI_GPIO :  public hal::CGPIO
 
 
     // Memory pointer to gpio registers
-    volatile uint32_t* _gpio;
+    volatile uint32_t* m_gpio;
     // Memory range for the gpio registers
-    static const uint8_t _gpio_registers_memory_range;
+    static const uint8_t m_gpio_registers_memory_range;
     // File descriptor for the memory device file
     // If it's negative, then there was an error opening the file.
-    int _system_memory_device;
+    int m_system_memory_device;
     // store GPIO output status.
-    uint32_t _gpio_output_port_status = 0x00;
+    uint32_t m_gpio_output_port_status = 0x00;
 
     // Path to memory device (E.g: /dev/mem)
-    const std::string _system_memory_device_path = "/dev/mem";
+    const std::string m_system_memory_device_path = "/dev/mem";
     
     bool m_initialized = false;
 };

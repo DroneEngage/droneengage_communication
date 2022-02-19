@@ -1,11 +1,23 @@
 #ifndef HAL_LED_MODULE_H
 #define HAL_LED_MODULE_H
 
-#include <vector>
+/**
+ * @file leds.hpp
+ * @author Mohammad Hefny
+ * @brief LED ON/OFF & Toggle Driver
+ * @version 0.1
+ * @date 2022-02-19
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #include "notification.hpp"
 
 namespace notification
 {
+
+
 class CLEDs : public CNotification
 {
     public:
@@ -33,18 +45,15 @@ class CLEDs : public CNotification
 
     public:
 
-        void init() override;  
-        void init (const std::vector<uint8_t>& led_pins);
+        bool init (const std::vector<PORT_STATUS>& led_pins) override;
         void update() override;
         void uninit() override;  
         
         
-        int getLEDS() const;
         void switchLED(const uint8_t led_index, const bool onOff);
 
     private:
         uint32_t m_counter;
-        std::vector<uint8_t> m_led_pins;
 };
 
 }

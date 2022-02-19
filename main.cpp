@@ -36,6 +36,7 @@
 #include "./uavos/uavos_modules_manager.hpp"
 //#include "./hal_linux/rpi_gpio.hpp"
 #include "./notification_module/leds.hpp"
+#include "./notification_module/buzzer.hpp"
 
 using namespace boost;
 using namespace std;
@@ -47,6 +48,7 @@ uavos::CUavosModulesManager& cUavosModulesManager = uavos::CUavosModulesManager:
 
 //hal_linux::CRPI_GPIO &cGPIO = hal_linux::CRPI_GPIO::getInstance();
 notification::CLEDs &cLeds = notification::CLEDs::getInstance();
+notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
 
 std::thread m_scheduler;
 bool exit_scheduler = false;
@@ -94,7 +96,8 @@ void scheduler ()
         every_5_sec ++;
         
         cLeds.update();
-
+        cBuzzer.update();
+        
         if (hz_1 % 10 == 0)
         {
             // if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
@@ -191,11 +194,6 @@ void initSockets()
 void initGPIO()
 {
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
-    if (!jsonConfig.contains("enable_led")) 
-    {
-        std::cout  << _LOG_CONSOLE_TEXT << "Notification Module: " << _INFO_CONSOLE_TEXT << "disabled." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        return ;
-    }
 
     if (!jsonConfig.contains("led_pins"))
     {
@@ -204,19 +202,35 @@ void initGPIO()
     }
 
 
-    std::vector<uint8_t> led_pins;
+    std::vector<notification::PORT_STATUS> led_pins;
 
     for (auto pin : jsonConfig["led_pins"])
     {
-        led_pins.push_back(pin);
+        
+        led_pins.push_back({pin, LED_STATUS_OFF});
     }
     
-    if (jsonConfig["enable_led"].get<bool>()==true)
-    {
-        cLeds.init(led_pins);
-    }
+    cLeds.init(led_pins);
     
      
+
+     if (!jsonConfig.contains("led_pins"))
+    {
+        std::cout  << _INFO_CONSOLE_TEXT << "LEDs pins \"led_pins\" are not defined. Notification will be " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return ;
+    }
+
+
+    std::vector<notification::PORT_STATUS> buzzer_pins;
+
+    for (auto pin : jsonConfig["buzzer_pin"])
+    {
+        
+        buzzer_pins.push_back({pin, LED_STATUS_OFF});
+    }
+    
+    cBuzzer.init(buzzer_pins);
+    
 }
 
 void initArguments (int argc, char *argv[])

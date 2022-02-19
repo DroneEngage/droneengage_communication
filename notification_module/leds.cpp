@@ -109,7 +109,7 @@ void CLEDs::update()
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: LEDS Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
-    STATUS &status = status;
+    STATUS &status = STATUS::getInstance();
     if (status.m_exit_me) return ;
     
     std::cout <<"2" << std::endl;

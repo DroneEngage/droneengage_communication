@@ -48,7 +48,7 @@ uavos::CUavosModulesManager& cUavosModulesManager = uavos::CUavosModulesManager:
 
 //hal_linux::CRPI_GPIO &cGPIO = hal_linux::CRPI_GPIO::getInstance();
 notification::CLEDs &cLeds = notification::CLEDs::getInstance();
-//notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
+notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
 
 std::thread m_scheduler;
 bool exit_scheduler = false;
@@ -96,7 +96,7 @@ void scheduler ()
         every_5_sec ++;
         
         cLeds.update();
-        //cBuzzer.update();
+        cBuzzer.update();
         
         if (hz_1 % 10 == 0)
         {
@@ -228,7 +228,7 @@ void initGPIO()
         buzzer_pins.push_back({pin, GPIO_OFF});
     }
     
-    //cBuzzer.init(buzzer_pins);
+    cBuzzer.init(buzzer_pins);
     
 }
 

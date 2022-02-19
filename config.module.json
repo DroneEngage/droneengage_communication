@@ -17,10 +17,10 @@
     "partyID"                   :"UL1",
     "unitID"                    :"drone1",
     "groupID"                   :"1",
-    "unitDescription"          :"uavos_unit 1",
+    "unitDescription"           :"uavos_unit 1",
     
     "led_pins"                  :[26,19],  // LIST GPIO
-    "buzzer_pin"                :[13,6]      // LIST .. first one is for system.
+    "buzzer_pins"               :[13,6]    // LIST .. first one is for system.
     //"allow_temp":               cat /sys/class/thermal/thermal_zone0
     
     

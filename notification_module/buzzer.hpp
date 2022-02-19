@@ -45,43 +45,45 @@ class CBuzzer: public CNotification
     public:
         
         ~CBuzzer (){};
+
+    public:
+        // Patterns - how many beeps will be played; read from
+        // left-to-right, each bit represents 100ms
+        static const uint32_t    SINGLE_BUZZ = 0b10000000000000000000000000000000UL;
+        static const uint32_t    DOUBLE_BUZZ = 0b10100000000000000000000000000000UL;
+        static const uint32_t    ARMING_BUZZ = 0b11111111111111111111111111111100UL; // 3s
+        static const uint32_t      BARO_BUZZ = 0b10101010100000000000000000000000UL;
+        static const uint32_t        EKF_BAD = 0b11101101010000000000000000000000UL;
+
     public:
 
         bool init (const std::vector<PORT_STATUS>& buzzer_pins);
         void update() override;
         void uninit() override;  
-        const bool isBuzzerEnabled() const { return m_buzzer_enabled;}
-        void isBuzzerEnabled(const bool enabled) { m_buzzer_enabled = enabled;}
 
+        void switchBuzzer(const uint8_t buzzer_index, const bool onOff, const uint32_t tone);
+        
+        /// on - turns the buzzer on or off
+        void on(const uint8_t buzzer_index, const bool turn_on);
 
+        
     private:
-        bool m_buzzer_enabled = false;
-    private:
 
-    /// on - turns the buzzer on or off
-    void on(const bool on_off);
+        
+        
+        /// play_pattern - plays the defined buzzer pattern
+        void play_pattern(const uint32_t pattern);
 
-    // Patterns - how many beeps will be played; read from
-    // left-to-right, each bit represents 100ms
-    static const uint32_t    SINGLE_BUZZ = 0b10000000000000000000000000000000UL;
-    static const uint32_t    DOUBLE_BUZZ = 0b10100000000000000000000000000000UL;
-    static const uint32_t    ARMING_BUZZ = 0b11111111111111111111111111111100UL; // 3s
-    static const uint32_t      BARO_BUZZ = 0b10101010100000000000000000000000UL;
-    static const uint32_t        EKF_BAD = 0b11101101010000000000000000000000UL;
+        /// buzzer_flag_type - bitmask of current state and ap_notify states we track
+        uint32_t _pattern;           // current pattern
+        uint8_t _pin;
+        uint32_t _pattern_start_time;
 
-    /// play_pattern - plays the defined buzzer pattern
-    void play_pattern(const uint32_t pattern);
+        // enforce minumum 100ms interval between patterns:
+        const uint64_t _pattern_start_interval_time_us = (32*100 + 100) * 1000; 
 
-    /// buzzer_flag_type - bitmask of current state and ap_notify states we track
-    uint32_t _pattern;           // current pattern
-    uint8_t _pin;
-    uint32_t _pattern_start_time;
-
-    // enforce minumum 100ms interval between patterns:
-    const uint64_t _pattern_start_interval_time_us = (32*100 + 100) * 1000; 
-
-    void update_playing_pattern();
-    void update_pattern_to_play();
+        void update_playing_pattern();
+        void update_pattern_to_play();
 
 
     private:

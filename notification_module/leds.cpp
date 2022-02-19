@@ -24,6 +24,8 @@ bool CLEDs::init (const std::vector<PORT_STATUS>& led_pins)
 {
     if (led_pins.size() == 0) 
     {
+        std::cout << _LOG_CONSOLE_TEXT << "LEDs " << _INFO_CONSOLE_TEXT << "Disabled" << std::endl; 
+        
         m_error = ENUM_Module_Error_Code::ERR_NO_HW_AVAILABLE;
         return false;
     }
@@ -90,6 +92,8 @@ void CLEDs::uninit()
 void CLEDs::switchLED(const uint8_t led_index, const bool onOff)
 {
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
+    
+    if (m_port_pins.size()>=led_index) return ;
     
     hal_linux::CRPI_GPIO::getInstance().write(led_index, onOff?GPIO_ON:GPIO_OFF);
     

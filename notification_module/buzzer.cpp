@@ -187,9 +187,14 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
             return ;
         }
     }
-    
+
     m_buzzer_status[buzzer_index].counter ++;
     const uint32_t bit = m_buzzer_status[buzzer_index].counter; // delta / 100UL; // each bit is 100ms
+    #ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: bit " << std::to_string(bit) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+        
+    
     on(buzzer_index, m_buzzer_status[buzzer_index].tone & (1U<<(31-bit)));
 }
 

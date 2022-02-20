@@ -26,6 +26,7 @@ typedef struct
     uint32_t pattern_start_time =0UL;
     uint32_t tone =0UL;
     uint32_t repeats =0UL;
+    uint32_t counter =0UL;
 } BUZZER_STATUS;
 
 class CBuzzer: public CNotification

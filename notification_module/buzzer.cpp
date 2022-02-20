@@ -59,7 +59,7 @@ bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
         hal_linux::CRPI_GPIO::getInstance().write(pin.gpio_pin, GPIO_OFF);
 
         
-        m_buzzer_status.push_back({0UL, 0UL, 0UL});
+        m_buzzer_status.push_back({0UL, 0UL, 0UL, 0UL});
     }
     
     return true;
@@ -187,7 +187,9 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
             return ;
         }
     }
-    const uint32_t bit = delta / 100UL; // each bit is 100ms
+    
+    m_buzzer_status[buzzer_index].counter ++;
+    const uint32_t bit = m_buzzer_status[buzzer_index].counter; // delta / 100UL; // each bit is 100ms
     on(buzzer_index, m_buzzer_status[buzzer_index].tone & (1U<<(31-bit)));
 }
 

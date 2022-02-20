@@ -31,11 +31,11 @@ int main ()
         };
 
     cBuzzer.init(buzzer_pins);
-    cBuzzer.switchBuzzer(1,true,notification::CBuzzer::ARMING_BUZZ,10);
+    cBuzzer.switchBuzzer(1,true,notification::CBuzzer::EKF_BAD,10);
     
     //cBuzzer.update();
     bool O = true;
-    int i = 50;
+    int i = 500;
     while (i>0)
     {
         --i;

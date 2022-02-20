@@ -63,7 +63,7 @@ class CBuzzer: public CNotification
         static const uint32_t    DOUBLE_BUZZ = 0b10100000000000000000000000000000UL;
         static const uint32_t    ARMING_BUZZ = 0b11111111111111111111111111111100UL; // 3s
         static const uint32_t      BARO_BUZZ = 0b10101010100000000000000000000000UL;
-        static const uint32_t        EKF_BAD = 0b11101101010000000000000000000000UL;
+        static const uint32_t        EKF_BAD = 0b11111000001111100000111110000000UL;
 
     public:
 

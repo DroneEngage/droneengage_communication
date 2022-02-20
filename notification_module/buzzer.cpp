@@ -202,6 +202,10 @@ void CBuzzer::on(const uint8_t buzzer_index, const bool turn_on)
     //        return;
     // }
 
+    #ifdef DEBUG
+          std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: turn_on " << std::to_string(turn_on) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
     hal_linux::CRPI_GPIO::getInstance().write(m_port_pins[buzzer_index].gpio_pin, turn_on? LED_STATUS_ON : LED_STATUS_OFF);
     m_port_pins[buzzer_index].status = turn_on?GPIO_ON:GPIO_OFF;
 }

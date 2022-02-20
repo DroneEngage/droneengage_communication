@@ -103,7 +103,7 @@ void CBuzzer::update_pattern_to_play()
     if ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time < _pattern_start_interval_time_us) {
         // do not interrupt playing patterns / enforce minumum separation
         #ifdef DEBUG
-            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: do not interrupt playing patterns / enforce minumum separation" << std::to_string ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: do not interrupt playing patterns / enforce minumum separation:" << std::to_string ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time) << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
     
         return;
@@ -159,7 +159,7 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
     #endif
 
 
-    if (_pattern == 0UL) {
+    if (m_buzzer_status[buzzer_index].tone == 0UL) {
         #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Null Pattern" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif

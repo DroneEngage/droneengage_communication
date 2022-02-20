@@ -87,7 +87,6 @@ class CBuzzer: public CNotification
 
 
     private:
-    bool m_turn_on= false;
     struct buzzer_flag_type {
         bool m_fcb_connected = false;
         bool m_is_online = false;

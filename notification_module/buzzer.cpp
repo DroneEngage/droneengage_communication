@@ -103,7 +103,7 @@ void CBuzzer::update_pattern_to_play()
     if ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time < _pattern_start_interval_time_us) {
         // do not interrupt playing patterns / enforce minumum separation
         #ifdef DEBUG
-            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: do not interrupt playing patterns / enforce minumum separation" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: do not interrupt playing patterns / enforce minumum separation" << std::to_string ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time) << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
     
         return;
@@ -155,7 +155,7 @@ void CBuzzer::update_pattern_to_play()
 void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
 {
     #ifdef DEBUG
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: update_playing_pattern" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: update_playing_pattern index:" << std::to_string(buzzer_index) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 
@@ -196,7 +196,10 @@ void CBuzzer::on(const uint8_t buzzer_index, const bool turn_on)
 {
     // return immediately if nothing to do
     if ((bool)(m_port_pins[buzzer_index].status) == turn_on) {
-        return;
+        #ifdef DEBUG
+            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: return immediately if nothing to do " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
+           return;
     }
 
     hal_linux::CRPI_GPIO::getInstance().write(m_port_pins[buzzer_index].gpio_pin, turn_on? LED_STATUS_ON : LED_STATUS_OFF);

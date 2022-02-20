@@ -171,6 +171,9 @@ void CBuzzer::on(const uint8_t buzzer_index, const bool turn_on)
 /// play_pattern - plays the defined buzzer pattern
 void CBuzzer::play_pattern(const uint32_t pattern)
 {
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint" << std::to_string(pattern) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     _pattern = pattern;
     _pattern_start_time = get_time_usec() & 0xFFFFFFFF;
 }

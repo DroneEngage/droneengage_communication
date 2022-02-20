@@ -52,39 +52,39 @@ all: release
 
 
 
-release: uavos.release
+release: buzzer.release
 	$(CXX)   -O2 -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
-buzzer: uavos.debug
+debug: buzzer.debug
 	$(CXX) -Og -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
-arm_release: uavos.arm.release
+arm_release: buzzer.arm.release
 	$(CXXARM)    -O2  -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
-arm_debug: uavos.arm.debug
+arm_debug: buzzer.arm.debug
 	$(CXXARM)    -Og -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
-arm_release_zero: uavos.arm.release.zero
+arm_release_zero: buzzer.arm.release.zero
 	$(CXXARM_ZERO)  -o $(BIN)/$(EXE_ARM).so   $(OBJS)   $(LIBS_ARM_ZERO) ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 
-uavos.release: copy
+buzzer.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
 	$(CXX)   $(CXXFLAGS_RELEASE)  -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 
-uavos.debug: copy
+buzzer.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
 	$(CXX)   $(CXXFLAGS_DEBUG)  -c  $(SRCS)  $(INCLUDE);
@@ -92,14 +92,14 @@ uavos.debug: copy
 	@echo "compliling finished ..."
 
 
-uavos.arm.release: copy
+buzzer.arm.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
 	$(CXXARM)   $(CXXFLAGS_RELEASE)  -c  $(SRCS)  $(INCLUDE_ARM)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 
-uavos.arm.debug: copy
+buzzer.arm.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
 	$(CXXARM)   $(CXXFLAGS_DEBUG) -c  $(SRCS)  $(INCLUDE_ARM)  ; 
@@ -108,7 +108,7 @@ uavos.arm.debug: copy
 
 
 
-uavos.arm.release.zero: copy
+buzzer.arm.release.zero: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
 	$(CXXARM_ZERO)   $(CXXFLAGS_RELEASE) -c  $(SRCS)  $(INCLUDE_ARM_ZERO)  ; 

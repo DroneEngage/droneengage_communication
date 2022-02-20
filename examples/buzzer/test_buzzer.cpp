@@ -20,7 +20,7 @@ int main ()
         };
 
     cBuzzer.init(buzzer_pins);
-    cBuzzer.switchBuzzer(0,true,BARO_BUZZ);
+    cBuzzer.switchBuzzer(0,true,notification::CBuzzer::BARO_BUZZ);
     
     //cBuzzer.update();
     bool O = true;

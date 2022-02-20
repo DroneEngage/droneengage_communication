@@ -173,9 +173,9 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: delta " << std::to_string(delta) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
         
-    if (delta >= 3200) {
+    if (delta >= 3200000) {
         // finished playing pattern
-        on(0,false);
+        on(buzzer_index,false);
         if (--m_buzzer_status[buzzer_index].repeats ==0)
         {
             m_buzzer_status[buzzer_index].tone = 0UL;
@@ -188,7 +188,7 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
         }
     }
     const uint32_t bit = delta / 100UL; // each bit is 100ms
-    on(0, _pattern & (1U<<(31-bit)));
+    on(buzzer_index, _pattern & (1U<<(31-bit)));
 }
 
 // on - LOW LEVEL turns the buzzer on or off 

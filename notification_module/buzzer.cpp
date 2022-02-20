@@ -100,14 +100,14 @@ void CBuzzer::update_pattern_to_play()
 {
     STATUS &status = STATUS::getInstance();
     
-    if ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time < _pattern_start_interval_time_us) {
-        // do not interrupt playing patterns / enforce minumum separation
-        #ifdef DEBUG
-            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: do not interrupt playing patterns / enforce minumum separation:" << std::to_string ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        #endif
+    // if ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time < _pattern_start_interval_time_us) {
+    //     // do not interrupt playing patterns / enforce minumum separation
+    //     #ifdef DEBUG
+    //         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: do not interrupt playing patterns / enforce minumum separation:" << std::to_string ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    //     #endif
     
-        return;
-    }
+    //     return;
+    // }
 
     // check if armed status has changed
     if (m_flags.m_fcb_connected != status.is_online())

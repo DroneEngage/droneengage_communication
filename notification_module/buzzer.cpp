@@ -173,7 +173,7 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: delta " << std::to_string(delta) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
         
-    if (m_buzzer_status[buzzer_index].counter  = 32) {
+    if (m_buzzer_status[buzzer_index].counter  == 32) {
         // finished playing pattern
         on(buzzer_index,false);
         m_buzzer_status[buzzer_index].counter = 0;

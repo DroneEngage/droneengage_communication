@@ -15,7 +15,7 @@ namespace notification
 typedef struct  
 {
     uint8_t gpio_pin;
-    uint8_t status; 
+    uint8_t status;
 } PORT_STATUS;
 
 enum class ENUM_Module_Error_Code

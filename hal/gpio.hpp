@@ -20,8 +20,6 @@ class CGPIO
 
     public:
         
-
-
         CGPIO (CGPIO const &)           = delete;
         void operator=(CGPIO const &)   = delete;
     

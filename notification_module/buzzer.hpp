@@ -21,6 +21,13 @@
 namespace notification
 {
 
+typedef struct  
+{
+    uint32_t pattern_start_time =0UL;
+    uint32_t tone =0UL;
+    uint32_t repeats =0UL;
+} BUZZER_STATUS;
+
 class CBuzzer: public CNotification
 {
     public:
@@ -44,7 +51,9 @@ class CBuzzer: public CNotification
 
     public:
         
-        ~CBuzzer (){};
+        ~CBuzzer (){
+            uninit();
+        };
 
     public:
         // Patterns - how many beeps will be played; read from
@@ -61,19 +70,17 @@ class CBuzzer: public CNotification
         void update() override;
         void uninit() override;  
 
-        void switchBuzzer(const uint8_t buzzer_index, const bool onOff, const uint32_t tone);
+        void switchBuzzer(const uint8_t buzzer_index, const bool onOff, const uint32_t tone, const uint32_t repeats);
         
         /// on - turns the buzzer on or off
         void on(const uint8_t buzzer_index, const bool turn_on);
 
-        
+
     private:
 
         
         
-        /// play_pattern - plays the defined buzzer pattern
-        void play_pattern(const uint32_t pattern);
-
+        
         /// buzzer_flag_type - bitmask of current state and ap_notify states we track
         uint32_t _pattern;           // current pattern
         uint8_t _pin;
@@ -82,11 +89,14 @@ class CBuzzer: public CNotification
         // enforce minumum 100ms interval between patterns:
         const uint64_t _pattern_start_interval_time_us = (32*100 + 100) * 1000; 
 
-        void update_playing_pattern();
+        void update_playing_pattern(const uint8_t buzzer_index);
         void update_pattern_to_play();
 
 
     private:
+
+    std::vector <notification::BUZZER_STATUS> m_buzzer_status;
+
     struct buzzer_flag_type {
         bool m_fcb_connected = false;
         bool m_is_online = false;

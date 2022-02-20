@@ -49,7 +49,7 @@ bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
         return false;
     }
 
-   
+    
     m_error = ENUM_Module_Error_Code::ERR_NON;
 
     for (auto pin : m_port_pins)
@@ -57,6 +57,9 @@ bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
         std::cout << _SUCCESS_CONSOLE_TEXT_ << "Initalize Buzzer at GPIO " << _INFO_CONSOLE_TEXT << std::to_string(pin.gpio_pin) << std::endl; 
         hal_linux::CRPI_GPIO::getInstance().pinMode(pin.gpio_pin, HAL_GPIO_OUTPUT);
         hal_linux::CRPI_GPIO::getInstance().write(pin.gpio_pin, GPIO_OFF);
+
+        
+        m_buzzer_status.push_back({0UL, 0UL, 0UL});
     }
     
     return true;
@@ -65,7 +68,9 @@ bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
 
 void CBuzzer::uninit()
 {
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: LEDS Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Buzzer Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
 
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
 
@@ -84,15 +89,23 @@ void CBuzzer::uninit()
 void CBuzzer::update()
 {
     update_pattern_to_play();
-    update_playing_pattern();
+    const std::size_t size = m_buzzer_status.size();
+    for (std::size_t i=0; i<size;++i)
+    {
+        update_playing_pattern(i);
+    }
 }
 
 void CBuzzer::update_pattern_to_play()
 {
     STATUS &status = STATUS::getInstance();
     
-    if ((get_time_usec() & 0xFFFFFFFF) - _pattern_start_time < _pattern_start_interval_time_us) {
+    if ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time < _pattern_start_interval_time_us) {
         // do not interrupt playing patterns / enforce minumum separation
+        #ifdef DEBUG
+            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: do not interrupt playing patterns / enforce minumum separation" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
+    
         return;
     }
 
@@ -102,11 +115,11 @@ void CBuzzer::update_pattern_to_play()
         m_flags.m_fcb_connected = status.is_online();
         if (m_flags.m_fcb_connected) 
         {
-            play_pattern(ARMING_BUZZ);
+            switchBuzzer(0, true, ARMING_BUZZ, 1);
         }
         else
         {
-            play_pattern(SINGLE_BUZZ);
+            switchBuzzer(0, true, SINGLE_BUZZ, 1);
         }
         return;
     }
@@ -134,26 +147,51 @@ void CBuzzer::update_pattern_to_play()
     // }
 }
 
-
-void CBuzzer::update_playing_pattern()
+/**
+ * @brief determines next state of buzzer to run a pattern
+ * the tone consists of 32 on/off bits determined by a timer.
+ * @param buzzer_index 
+ */
+void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
 {
+    #ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: update_playing_pattern" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
+
     if (_pattern == 0UL) {
+        #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Null Pattern" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
         return;
     }
 
     const uint32_t now = get_time_usec() & 0xFFFFFFFF;
-    const uint32_t delta = now - _pattern_start_time;
+    const uint32_t delta = now -  m_buzzer_status[buzzer_index].pattern_start_time;
+    
+    #ifdef DEBUG
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: delta " << std::to_string(delta) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+        
     if (delta >= 3200) {
         // finished playing pattern
         on(0,false);
-        _pattern = 0UL;
-        return;
+        if (--m_buzzer_status[buzzer_index].repeats ==0)
+        {
+            m_buzzer_status[buzzer_index].tone = 0UL;
+            return;
+        }
+        else
+        {
+            switchBuzzer(buzzer_index, true, m_buzzer_status[buzzer_index].tone, m_buzzer_status[buzzer_index].repeats);
+            return ;
+        }
     }
     const uint32_t bit = delta / 100UL; // each bit is 100ms
     on(0, _pattern & (1U<<(31-bit)));
 }
 
-// on - turns the buzzer on or off
+// on - LOW LEVEL turns the buzzer on or off 
 void CBuzzer::on(const uint8_t buzzer_index, const bool turn_on)
 {
     // return immediately if nothing to do
@@ -165,24 +203,24 @@ void CBuzzer::on(const uint8_t buzzer_index, const bool turn_on)
     m_port_pins[buzzer_index].status = turn_on?GPIO_ON:GPIO_OFF;
 }
 
-/// play_pattern - plays the defined buzzer pattern
-void CBuzzer::play_pattern(const uint32_t pattern)
-{
-    #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint" << std::to_string(pattern) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-    _pattern = pattern;
-    _pattern_start_time = get_time_usec() & 0xFFFFFFFF;
-}
-
-
-void CBuzzer::switchBuzzer(const uint8_t buzzer_index, const bool onOff, const uint32_t tone)
+void CBuzzer::switchBuzzer(const uint8_t buzzer_index, const bool onOff, const uint32_t tone, const uint32_t repeats)
 {
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
     
     if (m_port_pins.size()<=buzzer_index) return ;
 
-    play_pattern(tone);
+    if (onOff==false)
+    {
+        on(buzzer_index, false);
+        m_buzzer_status[buzzer_index].tone = 0UL;
+        m_buzzer_status[buzzer_index].repeats = 0UL;
+        return ;
+    }
+
+    m_buzzer_status[buzzer_index].tone = tone;
+    m_buzzer_status[buzzer_index].repeats = repeats;
+    m_buzzer_status[buzzer_index].pattern_start_time = get_time_usec() & 0xFFFFFFFF;
+
 }
 
 

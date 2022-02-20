@@ -88,7 +88,7 @@ void CBuzzer::uninit()
 // update - updates led according to timed_updated.  Should be called at 50Hz
 void CBuzzer::update()
 {
-    update_pattern_to_play();
+    //update_pattern_to_play();
     const std::size_t size = m_buzzer_status.size();
     for (std::size_t i=0; i<size;++i)
     {

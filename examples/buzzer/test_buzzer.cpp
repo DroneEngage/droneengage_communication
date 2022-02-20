@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <signal.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <vector>
@@ -8,8 +9,18 @@
 #include "../../hal/gpio.hpp"
 #include "../../notification_module/buzzer.hpp"
 
+
+void quit_handler( int sig )
+{
+    notification::CBuzzer::getInstance().uninit();	
+}
+
 int main ()
 {
+
+    signal(SIGINT,quit_handler);
+    signal(SIGTERM,quit_handler);
+	
     notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
 
     std::vector<notification::PORT_STATUS> buzzer_pins=
@@ -24,8 +35,10 @@ int main ()
     
     //cBuzzer.update();
     bool O = true;
-    while (true)
+    int i = 50;
+    while (i>0)
     {
+        --i;
         cBuzzer.update();
 
         // std::cout << "0:" << std::to_string(O) << std::endl;

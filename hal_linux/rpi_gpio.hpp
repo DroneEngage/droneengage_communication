@@ -27,7 +27,7 @@ class CRPI_GPIO :  public hal::CGPIO
         CRPI_GPIO();
 
     public:
-        ~CRPI_GPIO(){};
+        virtual ~CRPI_GPIO(){};
 
     public:
         

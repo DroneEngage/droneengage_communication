@@ -28,7 +28,7 @@ class CGPIO
 
         
     public:
-        ~CGPIO() {};
+        virtual ~CGPIO() {};
     
     public:
         

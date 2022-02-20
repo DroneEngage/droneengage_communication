@@ -180,7 +180,7 @@ void CBuzzer::switchBuzzer(const uint8_t buzzer_index, const bool onOff, const u
 {
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
     
-    if (m_port_pins.size()>=buzzer_index) return ;
+    if (m_port_pins.size()<=buzzer_index) return ;
 
     play_pattern(tone);
 }

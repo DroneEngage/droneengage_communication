@@ -19,43 +19,28 @@ CXXFLAGS =  -std=c++11
 CXXFLAGS_RELEASE= $(CXXFLAGS) -DRELEASE -s   -Werror=unused-variable -Werror=unused-result -Werror=parentheses
 CXXFLAGS_DEBUG= $(CXXFLAGS)  -DDEBUG -g   
 BUILD = build
+ROOT= ../../../
 
 OBJS =  $(BUILD)/test_buzzer.o \
 		$(BUILD)/configFile.o \
-		$(BUILD)/andruav_comm_session.o \
-		$(BUILD)/andruav_comm_server.o \
-		$(BUILD)/andruav_facade.o \
-		$(BUILD)/uavos_modules_manager.o \
-		$(BUILD)/andruav_auth.o \
-		$(BUILD)/andruav_unit.o \
 		$(BUILD)/helpers.o \
 		$(BUILD)/util_rpi.o \
-		$(BUILD)/getopt_cpp.o \
 		$(BUILD)/gpio.o \
 		$(BUILD)/rpi_gpio.o \
 		$(BUILD)/notification.o \
 		$(BUILD)/leds.o \
-		$(BUILD)/buzzer.o \
-		$(BUILD)/udpCommunicator.o \
+		$(BUILD)/buzzer.o
 		
 	   
 
-SRCS = ../../udpCommunicator.cpp \
-	   ../../configFile.cpp \
-	   ../../helpers/helpers.cpp \
-	   ../../helpers/util_rpi.cpp \
-	   ../../helpers/getopt_cpp.cpp \
-	   ../../comm_server/andruav_comm_session.cpp \
-	   ../../comm_server/andruav_comm_server.cpp \
-	   ../../comm_server/andruav_facade.cpp \
-	   ../../comm_server/andruav_auth.cpp \
-	   ../../comm_server/andruav_unit.cpp \
-	   ../../uavos/uavos_modules_manager.cpp \
-	   ../../hal/gpio.cpp \
-	   ../../hal_linux/rpi_gpio.cpp \
-	   ../../notification_module/notification.cpp \
-	   ../../notification_module/leds.cpp \
-	   ../../notification_module/buzzer.cpp \
+SRCS = $(ROOT)configFile.cpp \
+	   $(ROOT)helpers/helpers.cpp \
+	   $(ROOT)helpers/util_rpi.cpp \
+	   $(ROOT)hal/gpio.cpp \
+	   $(ROOT)hal_linux/rpi_gpio.cpp \
+	   $(ROOT)notification_module/notification.cpp \
+	   $(ROOT)notification_module/leds.cpp \
+	   $(ROOT)notification_module/buzzer.cpp \
 	   ../test_buzzer.cpp 
 	   
 	   
@@ -136,7 +121,7 @@ git_submodule:
 
 copy: clean
 	mkdir -p $(BIN); \
-	cp ../config.*.json $(BIN); 
+	cp ../../config.*.json $(BIN); 
 	@echo "copying finished"
 
 clean:

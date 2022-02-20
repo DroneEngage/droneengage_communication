@@ -89,12 +89,15 @@ void scheduler ()
     
     uint64_t hz_1 = 0;
     uint64_t every_5_sec = 0;
+    STATUS &status = STATUS::getInstance();
 
     while (!exit_scheduler)
     {
         hz_1++;
         every_5_sec ++;
         
+        status.is_online(uavos::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED);
+
         cLeds.update();
         cBuzzer.update();
         
@@ -108,9 +111,9 @@ void scheduler ()
 
         if (every_5_sec % 50 == 0)
         {
-            if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
+            if (status.is_online())
             {
-                cUavosModulesManager.handleDeadModules();
+                cUavosModulesManager.handleDeadModules(); //TODO: Why when online only ??
                 andruav_facade.API_sendID("");
             }
         }

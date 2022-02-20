@@ -7,6 +7,7 @@
 
 #include "../helpers/colors.hpp"
 #include "../helpers/util_rpi.hpp"
+#include "../helpers/helpers.hpp"
 
 #include "../hal_linux/rpi_gpio.hpp"
 
@@ -27,7 +28,7 @@ bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
     }
 
     m_port_pins = buzzer_pins;
-    
+
     const int rpi_version = helpers::CUtil_Rpi::getInstance().get_rpi_model();
     if (rpi_version == -1) 
     {

@@ -4,8 +4,8 @@
 #include <vector>
 
 
-#include "../hal/gpio.hpp"
-#include "../notification_module/buzzer.hpp"
+#include "../../hal/gpio.hpp"
+#include "../../notification_module/buzzer.hpp"
 
 int main ()
 {

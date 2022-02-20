@@ -1,7 +1,6 @@
 #ifndef HAL_STATUS_H
 #define HAL_STATUS_H
 
-#include "comm_server/andruav_comm_server.hpp"
 
 class STATUS {
     
@@ -32,9 +31,13 @@ class STATUS {
 
             inline bool is_online() const
             {
-                return uavos::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED;
+                return m_online;
             }
 
+            inline void is_online(const bool online) 
+            {
+                m_online = online; 
+            }
 
             inline bool is_fcb_connected() const
             {
@@ -45,6 +48,7 @@ class STATUS {
             // {
             //     ;
             // }
+            bool m_online = false;
             bool m_fcb_connected = false;
             bool m_exit_me = false;
         private:

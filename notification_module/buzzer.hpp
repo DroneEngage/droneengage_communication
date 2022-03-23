@@ -79,9 +79,6 @@ class CBuzzer: public CNotification
 
     private:
 
-        
-        
-        
         /// buzzer_flag_type - bitmask of current state and ap_notify states we track
         uint32_t _pattern;           // current pattern
         uint8_t _pin;
@@ -99,7 +96,7 @@ class CBuzzer: public CNotification
     std::vector <notification::BUZZER_STATUS> m_buzzer_status;
 
     struct buzzer_flag_type {
-        bool m_fcb_connected = false;
+        bool m_fcb_module_connected = false;
         bool m_is_online = false;
     }   m_flags;
 };

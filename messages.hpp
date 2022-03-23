@@ -122,7 +122,7 @@
 #define TYPE_AndruavMessage_FollowMe_Guided         1055
 #define TYPE_AndruavMessage_MAKE_SWARM              1056
 #define TYPE_AndruavMessage_UpdateSwarm             1058
-
+#define TYPE_AndruavMessage_Prepherials             1070
 #define TYPE_AndruavMessage_LightTelemetry          2022
 
 // New Binary Messages 

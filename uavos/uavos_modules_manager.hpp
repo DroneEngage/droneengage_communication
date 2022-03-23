@@ -1,7 +1,7 @@
 #ifndef UAVOS_MODULES_MANAGER_H_
 #define UAVOS_MODULES_MANAGER_H_
 
-
+#include <iostream>
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
@@ -16,6 +16,7 @@
 using Json = nlohmann::json;
 
 #include "../global.hpp"
+#include "../status.hpp"
 
 // 5 seconds
 #define MODULE_TIME_OUT  5000000
@@ -178,7 +179,7 @@ namespace uavos
             MODULE_CAMERA_LIST m_camera_list;
 
             
-    
+            uavos::STATUS &m_status = uavos::STATUS::getInstance();
             
     };
 }

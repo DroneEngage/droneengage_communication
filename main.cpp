@@ -89,7 +89,7 @@ void scheduler ()
     
     uint64_t hz_1 = 0;
     uint64_t every_5_sec = 0;
-    STATUS &status = STATUS::getInstance();
+    uavos::STATUS &status = uavos::STATUS::getInstance();
 
     while (!exit_scheduler)
     {
@@ -207,10 +207,10 @@ void initGPIO()
 
     std::vector<notification::PORT_STATUS> led_pins;
 
-    for (auto pin : jsonConfig["led_pins"])
+    uint8_t index = 0;
+    for (auto const& pin : jsonConfig["led_pins"])
     {
-        
-        led_pins.push_back({pin, LED_STATUS_OFF});
+            led_pins.push_back({pin["name"].get<std::string>(),static_cast<uint8_t>(pin["gpio"].get<int>()), LED_STATUS_OFF});
     }
     
     cLeds.init(led_pins);
@@ -225,10 +225,9 @@ void initGPIO()
 
     std::vector<notification::PORT_STATUS> buzzer_pins;
 
-    for (auto pin : jsonConfig["buzzer_pins"])
+    for (auto const& pin : jsonConfig["buzzer_pins"])
     {
-        
-        buzzer_pins.push_back({pin, GPIO_OFF});
+        buzzer_pins.push_back({pin["name"].get<std::string>(),static_cast<uint8_t>(pin["gpio"].get<int>()), GPIO_OFF});
     }
     
     cBuzzer.init(buzzer_pins);
@@ -304,7 +303,7 @@ void uninit ()
 
     uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
 
-    STATUS::getInstance().m_exit_me = true;
+    uavos::STATUS::getInstance().m_exit_me = true;
     exit_scheduler = true;
     // wait for exit
     m_scheduler.join();
@@ -360,7 +359,7 @@ int main (int argc, char *argv[])
 {
     init (argc, argv);
 
-    while (!STATUS::getInstance().m_exit_me)
+    while (!uavos::STATUS::getInstance().m_exit_me)
     {
        std::this_thread::sleep_for(std::chrono::seconds(1));
        

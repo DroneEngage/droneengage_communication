@@ -44,6 +44,10 @@ void CRPI_GPIO::closeMemoryDevice()
 
 bool CRPI_GPIO::init()
 {
+    #ifdef SIMULATE_GPIO
+        return true;        
+    #endif
+
     // do not initialize
     // get_memory_pointer may return another address and may invalidate the current one.
     if (m_initialized) return true;
@@ -108,6 +112,10 @@ volatile uint32_t* CRPI_GPIO::get_memory_pointer(uint32_t address, uint32_t rang
 
 void CRPI_GPIO::pinMode (uint8_t pin, uint8_t output)
 {
+    #ifdef SIMULATE_GPIO
+        return ;        
+    #endif
+
     if (output == HAL_GPIO_INPUT) {
         setGPIOModeIn(pin);
     } else {
@@ -119,6 +127,10 @@ void CRPI_GPIO::pinMode (uint8_t pin, uint8_t output)
 
 void CRPI_GPIO::setGPIOModeIn(int pin)
 {
+    #ifdef SIMULATE_GPIO
+        return ;        
+    #endif
+
     // Each register can contain 10 pins
     const uint8_t pins_per_register = 10;
     // Calculates the position of the 3 bit mask in the 32 bits register
@@ -132,6 +144,10 @@ void CRPI_GPIO::setGPIOModeIn(int pin)
 
 void CRPI_GPIO::setGPIOModeOut(int pin)
 {
+    #ifdef SIMULATE_GPIO
+        return ;        
+    #endif
+
     // Each register can contain 10 pins
     const uint8_t pins_per_register = 10;
     // Calculates the position of the 3 bit mask in the 32 bits register
@@ -148,6 +164,10 @@ void CRPI_GPIO::setGPIOModeOut(int pin)
 
 void CRPI_GPIO::setGPIOHigh(int pin)
 {
+    #ifdef SIMULATE_GPIO
+        return ;        
+    #endif
+
     // Calculate index of the array for the register GPSET0 (0x7E20'001C)
     constexpr uint32_t gpset0_memory_offset_value = 0x1c;
     constexpr uint32_t gpset0_index_value = gpset0_memory_offset_value / sizeof(*m_gpio);
@@ -156,6 +176,10 @@ void CRPI_GPIO::setGPIOHigh(int pin)
 
 void CRPI_GPIO::setGPIOLow(int pin)
 {
+    #ifdef SIMULATE_GPIO
+        return ;        
+    #endif
+
     // Calculate index of the array for the register GPCLR0 (0x7E20'0028)
     constexpr uint32_t gpclr0_memory_offset_value = 0x28;
     constexpr uint32_t gpclr0_index_value = gpclr0_memory_offset_value / sizeof(*m_gpio);
@@ -164,6 +188,10 @@ void CRPI_GPIO::setGPIOLow(int pin)
 
 bool CRPI_GPIO::getGPIOLogicState(int pin)
 {
+    #ifdef SIMULATE_GPIO
+        return false; // not ON        
+    #endif
+
     // Calculate index of the array for the register GPLEV0 (0x7E20'0034)
     constexpr uint32_t gplev0_memory_offset_value = 0x34;
     constexpr uint32_t gplev0_index_value = gplev0_memory_offset_value / sizeof(*m_gpio);
@@ -172,6 +200,10 @@ bool CRPI_GPIO::getGPIOLogicState(int pin)
 
 uint8_t CRPI_GPIO::read (uint8_t pin)
 {
+    #ifdef SIMULATE_GPIO
+        return 0;        
+    #endif
+
     if (pin >= GPIO_RPI_MAX_NUMBER_PINS) {
         return 0;
     }
@@ -189,15 +221,24 @@ void CRPI_GPIO::write(uint8_t pin, uint8_t value)
 
 uint8_t CRPI_GPIO::toggle(uint8_t pin)
 {
+    
     if (pin >= GPIO_RPI_MAX_NUMBER_PINS) {
         return -1; //255 as uint8_t is +
     }
     const uint32_t flag = (1 << pin);
     m_gpio_output_port_status ^= flag;
     const uint8_t status = (m_gpio_output_port_status & flag) >> pin;
+    
+    #ifdef SIMULATE_GPIO
+        return status;        
+    #else
+
     write(pin, status);
 
     return status;
+
+    #endif
+
 }
 
 

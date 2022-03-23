@@ -19,8 +19,15 @@
     "groupID"                   :"1",
     "unitDescription"           :"uavos_unit 1",
     
-    "led_pins"                  :[26,19],  // LIST GPIO
-    "buzzer_pins"               :[13,6]    // LIST .. first one is for system.
+    "led_pins"                  :[
+                                    {"name":"status", "gpio":26},
+                                    {"name":"LED1", "gpio":19}
+                                ],  // LIST GPIO
+    "buzzer_pins"               :[
+                                    {"name":"status", "gpio":13},
+                                    {"name":"LoudBuzzer", "gpio":6}
+                                ]
+
     //"allow_temp":               cat /sys/class/thermal/thermal_zone0
     
     

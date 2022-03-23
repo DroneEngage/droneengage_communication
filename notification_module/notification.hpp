@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include "../status.hpp"
+
 namespace notification
 {
 
@@ -14,6 +16,7 @@ namespace notification
 
 typedef struct  
 {
+    std::string name;
     uint8_t gpio_pin;
     uint8_t status;
 } PORT_STATUS;
@@ -50,6 +53,8 @@ class CNotification
         ENUM_Module_Error_Code m_error = ENUM_Module_Error_Code::ERR_UNINITIALIZED;
 
         std::vector<PORT_STATUS> m_port_pins;
+
+        uavos::STATUS &m_status = uavos::STATUS::getInstance();
 
 };
 

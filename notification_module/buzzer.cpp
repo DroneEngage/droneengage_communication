@@ -13,9 +13,11 @@
 
 #include "buzzer.hpp"
 
-#include "../status.hpp"
 
 using namespace notification;
+
+
+
 
 bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
 {
@@ -29,17 +31,7 @@ bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
 
     m_port_pins = buzzer_pins;
 
-    const int rpi_version = helpers::CUtil_Rpi::getInstance().get_rpi_model();
-    if (rpi_version == -1) 
-    {
-        std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Cannot initialize Buzzer GPIO because it is not RPI-Board" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-        m_error = ENUM_Module_Error_Code::ERR_INIT_FAILED;
-
-        return false;
-    }
-
-
+    
     if (!hal_linux::CRPI_GPIO::getInstance().init())
     {
         std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Could not initialize Buzzer GPIO pins." << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -62,6 +54,8 @@ bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
         m_buzzer_status.push_back({0UL, 0UL, 0UL, 0UL});
     }
     
+    m_status.is_buzzer_connected(true);
+   
     return true;
 }
 
@@ -98,8 +92,6 @@ void CBuzzer::update()
 
 void CBuzzer::update_pattern_to_play()
 {
-    STATUS &status = STATUS::getInstance();
-    
     // if ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time < _pattern_start_interval_time_us) {
     //     // do not interrupt playing patterns / enforce minumum separation
     //     #ifdef DEBUG
@@ -110,10 +102,10 @@ void CBuzzer::update_pattern_to_play()
     // }
 
     // check if armed status has changed
-    if (m_flags.m_fcb_connected != status.is_online())
+    if (m_flags.m_fcb_module_connected != m_status.is_online())
     {
-        m_flags.m_fcb_connected = status.is_online();
-        if (m_flags.m_fcb_connected) 
+        m_flags.m_fcb_module_connected = m_status.is_online();
+        if (m_flags.m_fcb_module_connected) 
         {
             switchBuzzer(0, true, ARMING_BUZZ, 1);
         }

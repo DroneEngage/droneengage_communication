@@ -94,14 +94,14 @@ arm_release_zero: uavos.arm.release.zero
 uavos.release: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   $(CXXFLAGS_RELEASE)  -c   $(SRCS)  $(INCLUDE)  ; 
+	$(CXX)   -DSIMULATE_GPIO $(CXXFLAGS_RELEASE)  -c   $(SRCS)  $(INCLUDE)  ; 
 	cd .. ; 
 	@echo "compliling finished ..."
 
 uavos.debug: copy
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
-	$(CXX)   $(CXXFLAGS_DEBUG)  -c  $(SRCS)  $(INCLUDE);
+	$(CXX)   -DSIMULATE_GPIO $(CXXFLAGS_DEBUG)  -c  $(SRCS)  $(INCLUDE);
 	cd .. ; 
 	@echo "compliling finished ..."
 

@@ -48,16 +48,18 @@ namespace andruav_servers
         public:
             void API_sendID (const std::string& target_party_id) const ;
             void API_requestID (const std::string& target_party_id) const ;
-            void API_sendCameraList(const bool reply, const std::string& target_party_id) const ;
+            void API_sendCameraList (const bool reply, const std::string& target_party_id) const ;
             void API_sendErrorMessage (const std::string& target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const ;
      
-            void API_loadTasksByScope(const ENUM_TASK_SCOPE scope, const int task_type) const;
-            void API_loadTasksByScopeGlobal(const int task_type) const;
-            void API_loadTasksByScopeAccount(const int task_type) const;
-            void API_loadTasksByScopeGroup(const int task_type) const;
-            void API_loadTasksByScopePartyID(const int task_type) const;
+            void API_loadTasksByScope (const ENUM_TASK_SCOPE scope, const int task_type) const;
+            void API_loadTasksByScopeGlobal (const int task_type) const;
+            void API_loadTasksByScopeAccount (const int task_type) const;
+            void API_loadTasksByScopeGroup (const int task_type) const;
+            void API_loadTasksByScopePartyID (const int task_type) const;
 
-            void API_loadTask(const int larger_than_SID, const std::string& account_id, const std::string& party_sid, const std::string& group_name, const std::string& sender, const std::string& receiver, const int msg_type, bool is_permanent ) const;
+            void API_loadTask (const int larger_than_SID, const std::string& account_id, const std::string& party_sid, const std::string& group_name, const std::string& sender, const std::string& receiver, const int msg_type, bool is_permanent ) const;
+
+            void API_sendPrepherals (const std::string& target_party_id) const ;
     };
 
 }

@@ -25,13 +25,13 @@ int main ()
 
     std::vector<notification::PORT_STATUS> buzzer_pins=
         {
-            {16,GPIO_OFF},
-            {20,GPIO_OFF},
-            {21,GPIO_OFF},
+            {"buzzer",16,GPIO_OFF},
+            {"buzzerLoud",20,GPIO_OFF},
+            {"buzzerLoud2",21,GPIO_OFF},
         };
 
     cBuzzer.init(buzzer_pins);
-    cBuzzer.switchBuzzer(1,true,notification::CBuzzer::EKF_BAD,10);
+    cBuzzer.switchBuzzer(1,true,notification::CBuzzer::EKF_BAD,2);
     
     //cBuzzer.update();
     bool O = true;

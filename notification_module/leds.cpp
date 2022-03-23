@@ -12,7 +12,7 @@
 #include "../hal_linux/rpi_gpio.hpp"
 #include "leds.hpp"
 
-#include "../status.hpp"
+
 
 
 
@@ -20,6 +20,7 @@
 using namespace notification;
 
 
+    
 bool CLEDs::init (const std::vector<PORT_STATUS>& led_pins)
 {
     if (led_pins.size() == 0) 
@@ -32,17 +33,6 @@ bool CLEDs::init (const std::vector<PORT_STATUS>& led_pins)
 
     m_port_pins = led_pins;
 
-    const int rpi_version = helpers::CUtil_Rpi::getInstance().get_rpi_model();
-    if (rpi_version == -1) 
-    {
-        std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Cannot initialize LED GPIO because it is not RPI-Board" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-        m_error = ENUM_Module_Error_Code::ERR_INIT_FAILED;
-
-        return false;
-    }
-
-    
     if (!hal_linux::CRPI_GPIO::getInstance().init())
     {
         std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Could not initialize LED GPIO pins." << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -56,12 +46,14 @@ bool CLEDs::init (const std::vector<PORT_STATUS>& led_pins)
 
     for (auto pin : m_port_pins)
     {
-        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Initalize LED at GPIO " << std::to_string(pin.gpio_pin) << std::endl; 
+        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Initalize LED at GPIO " << _INFO_CONSOLE_TEXT << std::to_string(pin.gpio_pin) << std::endl; 
         hal_linux::CRPI_GPIO::getInstance().pinMode(pin.gpio_pin, HAL_GPIO_OUTPUT);
         hal_linux::CRPI_GPIO::getInstance().write(pin.gpio_pin, GPIO_OFF);
         m_port_pins[pin.gpio_pin].status = GPIO_OFF;
     }
     
+    m_status.is_light_connected(true);
+
     return true;
 }
 
@@ -109,18 +101,17 @@ void CLEDs::update()
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: LEDS Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
-    STATUS &status = STATUS::getInstance();
-    if (status.m_exit_me) return ;
+    if (m_status.m_exit_me) return ;
     
     std::cout <<"2" << std::endl;
 
-    if ((status.is_online()) && (status.is_fcb_connected()))
+    if ((m_status.is_online()) && (m_status.is_fcb_module_connected()))
     {
         std::cout <<"3" << std::endl;
         hal_linux::CRPI_GPIO::getInstance().write(m_port_pins[0].gpio_pin, GPIO_ON);
         m_port_pins[0].status = LED_STATUS_ON;
     }
-    else if (!status.is_online())
+    else if (!m_status.is_online())
     {
         std::cout <<"4" << std::endl;
         hal_linux::CRPI_GPIO::getInstance().toggle(m_port_pins[0].gpio_pin);

@@ -13,6 +13,7 @@
 #include "../messages.hpp"
 #include "../configFile.hpp"
 #include "../uavos/uavos_modules_manager.hpp"
+#include "../status.hpp"
 
 #include "andruav_comm_server.hpp"
 #include "andruav_facade.hpp"
@@ -31,7 +32,7 @@ void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& t
 }
 
 
-void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_name) const 
+void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_party_id) const 
 {
     uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
@@ -94,7 +95,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         jMsg["q"] = unit_info.swarm_leader_I_am_following;    
     }
     
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_name, TYPE_AndruavMessage_ID, jMsg);
+    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
 }
 
 void uavos::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, const std::string& target_party_id) const 
@@ -242,4 +243,59 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "API_sendSystemMessage " << _NORMAL_CONSOLE_TEXT_ << message.dump() << std::endl;
     
     return ;
+}
+
+
+void uavos::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string& target_party_id) const 
+{
+    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+
+
+    uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
+    uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+   
+   uavos::STATUS& status = uavos::STATUS::getInstance();
+
+    Json jMsg = {  };
+ 
+    if (unit_info.is_tracking_mode)
+    {
+        jMsg["a"] = unit_info.is_tracking_mode;
+    }
+    if (unit_info.use_fcb)
+    {
+        jMsg["b"] = unit_info.use_fcb;
+    }
+    if (unit_info.is_flying)
+    {
+        jMsg["FL"] = unit_info.is_flying;   // is flying or sinking
+    }
+    if (unit_info.is_armed)
+    {
+        jMsg["AR"] = unit_info.is_armed;    // is armed
+    }
+    if (unit_info.is_shutdown)
+    {
+        jMsg["SD"] = unit_info.is_shutdown;    // is armed
+    }
+    if (unit_info.is_flashing)
+    {
+        jMsg["x"] = unit_info.is_flashing;    // is flashing
+    }
+    if (unit_info.is_whisling)
+    {
+        jMsg["y"] = unit_info.is_whisling;    // is whisling
+    }
+    if (unit_info.swarm_leader_formation != FORMATION_NO_SWARM) // NO Formation
+    {
+        jMsg["o"] = unit_info.swarm_leader_formation;    
+    }
+
+    if ((!unit_info.swarm_leader_I_am_following.empty()) && (!unit_info.swarm_leader_I_am_following.length()==0))
+    {
+        jMsg["q"] = unit_info.swarm_leader_I_am_following;    
+    }
+    
+    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Prepherials, jMsg);
 }

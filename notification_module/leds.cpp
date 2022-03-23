@@ -98,8 +98,6 @@ void CLEDs::switchLED(const uint8_t led_index, const bool onOff)
  */
 void CLEDs::update() 
 {
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: LEDS Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
     if (m_status.m_exit_me) return ;
     

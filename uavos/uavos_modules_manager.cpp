@@ -27,6 +27,8 @@
 
 using namespace uavos;
 
+static std::mutex g_i_mutex; 
+
 CUavosModulesManager::~CUavosModulesManager()
 {
 
@@ -438,6 +440,8 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
     * @brief insert module in @param m_modules_list
     * this is the main list of modules.
     */
+    const std::lock_guard<std::mutex> lock(g_i_mutex);
+        
     auto module_entry = m_modules_list.find(module_id);
     if (module_entry == m_modules_list.end()) 
     {
@@ -746,8 +750,7 @@ void CUavosModulesManager::forwardMessageToModule ( const char * message, const 
 */
 bool CUavosModulesManager::handleDeadModules ()
 {
-    static std::mutex g_i_mutex; 
-
+    
     const std::lock_guard<std::mutex> lock(g_i_mutex);
     
     bool dead_found = false;
@@ -800,7 +803,8 @@ void CUavosModulesManager::handleOnAndruavServerConnection (const int status)
     const Json &msg = createJSONID(false);
     std::string msg_dump = msg.dump();    
     
-
+    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    
     for (it = m_modules_list.begin(); it != m_modules_list.end(); it++)
     {
         MODULE_ITEM_TYPE * module_item = it->second.get();

@@ -147,13 +147,13 @@ void CBuzzer::update_pattern_to_play()
 void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
 {
     #ifdef DEBUG
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: update_playing_pattern index:" << std::to_string(buzzer_index) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: update_playing_pattern index:" << std::to_string(buzzer_index) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 
     if (m_buzzer_status[buzzer_index].tone == 0UL) {
         #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Null Pattern" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: Null Pattern" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
         return;
     }
@@ -162,7 +162,7 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
     const uint32_t delta = now -  m_buzzer_status[buzzer_index].pattern_start_time;
     
     #ifdef DEBUG
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: delta " << std::to_string(delta) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: delta " << std::to_string(delta) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
         
     if (m_buzzer_status[buzzer_index].counter  == 32) {

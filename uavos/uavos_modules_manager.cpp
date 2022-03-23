@@ -773,6 +773,14 @@ bool CUavosModulesManager::handleDeadModules ()
                 module_item->is_dead = true;
                 dead_found = true;
                 andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_EMERGENCY, std::string("Module " + module_item->module_id + " is not responding."));
+
+                if (module_item->module_class.find("fcb")==0)
+                {
+                    CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
+                    ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
+                    andruav_unit_info.use_fcb = false;
+                    STATUS::getInstance().is_fcb_module_connected (false); //TODO: fix when offline
+                }
             }
         }
         else

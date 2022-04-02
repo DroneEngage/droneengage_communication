@@ -111,9 +111,10 @@ void scheduler ()
 
         if (every_5_sec % 50 == 0)
         {
+            cUavosModulesManager.handleDeadModules(); //TODO: Why when online only ??
+                
             if (status.is_online())
             {
-                cUavosModulesManager.handleDeadModules(); //TODO: Why when online only ??
                 andruav_facade.API_sendID("");
             }
         }

@@ -517,7 +517,7 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
         CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
         ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
         andruav_unit_info.use_fcb = true;
-        STATUS::getInstance().is_fcb_module_connected (true); //TODO: fix when offline
+        m_status.is_fcb_module_connected (true); 
     } 
 
     updated |= updateUavosPermission(module_item->modules_features); //msg_cmd["d"]);
@@ -772,14 +772,24 @@ bool CUavosModulesManager::handleDeadModules ()
                 //TODO Event Module Warning
                 module_item->is_dead = true;
                 dead_found = true;
-                andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_EMERGENCY, std::string("Module " + module_item->module_id + " is not responding."));
+                if (m_status.is_online())
+                {
+                    andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_EMERGENCY, std::string("Module " + module_item->module_id + " is not responding."));
+                }
 
                 if (module_item->module_class.find("fcb")==0)
                 {
                     CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
                     ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
                     andruav_unit_info.use_fcb = false;
-                    STATUS::getInstance().is_fcb_module_connected (false); //TODO: fix when offline
+                    m_status.is_fcb_module_connected (false); //TODO: fix when offline
+                }
+                else if (module_item->module_class.find("camera")==0)
+                {
+                    CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
+                    ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
+                    andruav_unit_info.use_fcb = false;
+                    m_status.is_fcb_module_connected (false); //TODO: fix when offline
                 }
             }
         }
@@ -790,6 +800,7 @@ bool CUavosModulesManager::handleDeadModules ()
                 //This should not happen as is_dead = false is done when receiving any message from a module. 
                 //because you dont want running consequence operation on a dead module.
                 module_item->is_dead = false;
+                andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_NOTICE, std::string("Module " + module_item->module_id + " is back online."));
             }
             
         }

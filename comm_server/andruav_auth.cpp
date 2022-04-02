@@ -89,6 +89,9 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
  */
 bool uavos::andruav_servers::CAndruavAuthenticator::doValidateHardware(const std::string hardware_id, const int hardware_type)
 {
+
+    if (hardware_id == std::string("")) return false;
+
     uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
 
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
@@ -330,7 +333,7 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
 bool uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidateHardware (const std::string& response)
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line: " << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     

@@ -146,13 +146,13 @@ void CBuzzer::update_pattern_to_play()
  */
 void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
 {
-    #ifdef DEBUG
+    #ifdef DEBUG_EXTRA
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: update_playing_pattern index:" << std::to_string(buzzer_index) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 
     if (m_buzzer_status[buzzer_index].tone == 0UL) {
-        #ifdef DEBUG
+        #ifdef DEBUG_EXTRA
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: Null Pattern" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
         return;
@@ -161,7 +161,7 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
     const uint32_t now = get_time_usec() & 0xFFFFFFFF;
     const uint32_t delta = now -  m_buzzer_status[buzzer_index].pattern_start_time;
     
-    #ifdef DEBUG
+    #ifdef DEBUG_EXTRA
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: delta " << std::to_string(delta) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
         
@@ -183,7 +183,7 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
 
     m_buzzer_status[buzzer_index].counter ++;
     const uint32_t bit = m_buzzer_status[buzzer_index].counter; // delta / 100UL; // each bit is 100ms
-    #ifdef DEBUG
+    #ifdef DEBUG_EXTRA
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: bit " << std::to_string(bit) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
         
@@ -202,7 +202,7 @@ void CBuzzer::on(const uint8_t buzzer_index, const bool turn_on)
     //        return;
     // }
 
-    #ifdef DEBUG
+    #ifdef DEBUG_EXTRA
           std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: turn_on " << std::to_string(turn_on) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     

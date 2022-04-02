@@ -101,28 +101,22 @@ void CLEDs::update()
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
     if (m_status.m_exit_me) return ;
     
-    std::cout <<"2" << std::endl;
-
     if ((m_status.is_online()) && (m_status.is_fcb_module_connected()))
     {
-        std::cout <<"3" << std::endl;
         hal_linux::CRPI_GPIO::getInstance().write(m_port_pins[0].gpio_pin, GPIO_ON);
         m_port_pins[0].status = LED_STATUS_ON;
     }
     else if (!m_status.is_online())
     {
-        std::cout <<"4" << std::endl;
         hal_linux::CRPI_GPIO::getInstance().toggle(m_port_pins[0].gpio_pin);
         m_port_pins[0].status = LED_STATUS_FLASHING;
     }
     else if (m_counter % 3 == 0)
     {
-        std::cout <<"5" << std::endl;
         hal_linux::CRPI_GPIO::getInstance().toggle(m_port_pins[0].gpio_pin);
         m_port_pins[0].status = LED_STATUS_FLASHING;
     }
 
-    std::cout <<"6" << std::endl;
     m_counter++;
 }
 

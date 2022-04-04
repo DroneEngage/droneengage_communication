@@ -302,7 +302,7 @@ void CUavosModulesManager::updateCameraList(const std::string& module_id, const 
             camera_entry->global_index = camera_entry_id;
             camera_entry->logical_name = jcamera_entry["ln"].get<std::string>();
             camera_entry->is_recording = jcamera_entry["r"].get<bool>();
-            camera_entry->is_camera_avail = jcamera_entry["v"].get<int>();
+            camera_entry->is_camera_avail = jcamera_entry["v"].get<bool>();
             camera_entry->is_camera_streaming = jcamera_entry["active"].get<int>();
             camera_entry->camera_type = jcamera_entry["p"].get<int>();
             

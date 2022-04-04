@@ -84,7 +84,7 @@ void _usage(void)
 void scheduler ()
 {
 
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    //uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
     uavos::andruav_servers::CAndruavFacade& andruav_facade = uavos::andruav_servers::CAndruavFacade::getInstance();
     
     uint64_t hz_1 = 0;
@@ -208,7 +208,6 @@ void initGPIO()
 
     std::vector<notification::PORT_STATUS> led_pins;
 
-    uint8_t index = 0;
     for (auto const& pin : jsonConfig["led_pins"])
     {
             led_pins.push_back({pin["name"].get<std::string>(),static_cast<uint8_t>(pin["gpio"].get<int>()), LED_STATUS_OFF});

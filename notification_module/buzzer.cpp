@@ -158,8 +158,8 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
         return;
     }
 
-    const uint32_t now = get_time_usec() & 0xFFFFFFFF;
-    const uint32_t delta = now -  m_buzzer_status[buzzer_index].pattern_start_time;
+    //const uint32_t now = get_time_usec() & 0xFFFFFFFF;
+    //const uint32_t delta = now -  m_buzzer_status[buzzer_index].pattern_start_time;
     
     #ifdef DEBUG_EXTRA
     std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: delta " << std::to_string(delta) << _NORMAL_CONSOLE_TEXT_ << std::endl;

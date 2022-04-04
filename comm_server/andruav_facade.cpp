@@ -248,14 +248,12 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_
 
 void uavos::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string& target_party_id) const 
 {
-    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
-
+    
 
     uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
     uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
    
-   uavos::STATUS& status = uavos::STATUS::getInstance();
+    //uavos::STATUS& status = uavos::STATUS::getInstance();
 
     Json jMsg = {  };
  

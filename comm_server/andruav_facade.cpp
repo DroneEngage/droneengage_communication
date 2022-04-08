@@ -95,6 +95,14 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         jMsg["q"] = unit_info.swarm_leader_I_am_following;    
     }
     
+    if (unit_info.flying_last_start_time > 0)
+    {
+        jMsg["z"] = unit_info.flying_last_start_time;    // is whisling
+    }
+    if (unit_info.flying_total_duration > 0)
+    {
+        jMsg["a"] = unit_info.flying_total_duration;    // is whisling
+    }
     uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
 }
 

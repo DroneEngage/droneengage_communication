@@ -6,12 +6,12 @@ EXE=de_comm
 EXE_ARM=de_comm
 BIN=bin
 
-INCLUDE= -I ~/TDisk/Boost/boost_1_76_0/ 
+INCLUDE= -I ~/boost_1_76_0/ 
 INCLUDE_ARM =  -I /home/pi/boost_1_76_0/ -I /usr/include -I /usr/include/arm-linux-gnueabihf  
 INCLUDE_ARM_ZERO =  -I /home/pi/boost_1_76_0/  -I /usr/include/arm-linux-gnueabihf/  -I /usr/include 
 
 
-LIBS=  -pthread   -lcurl  -lssl -lcrypto /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_thread.a /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_system.a /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_chrono.a /home/mhefny/TDisk/Boost/boost_1_76_0/stage/lib/libboost_context.a
+LIBS=  -pthread   -lcurl  -lssl -lcrypto ~/boost_1_76_0/stage/lib/libboost_coroutine.a  ~/boost_1_76_0/stage/lib/libboost_thread.a ~/boost_1_76_0/stage/lib/libboost_filesystem.a  ~/boost_1_76_0/stage/lib/libboost_system.a ~/boost_1_76_0/stage/lib/libboost_chrono.a ~/boost_1_76_0/stage/lib/libboost_context.a
 LIBS_ARM = -pthread   -lcurl  -lssl -lcrypto   /home/pi/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/pi/boost_1_76_0/stage/lib/libboost_thread.a /home/pi/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/pi/boost_1_76_0/stage/lib/libboost_system.a /home/pi/boost_1_76_0/stage/lib/libboost_chrono.a /home/pi/boost_1_76_0/stage/lib/libboost_context.a
 LIBS_ARM_ZERO = -pthread   -lcurl  -lssl -lcrypto   /home/pi/boost_1_76_0/stage/lib/libboost_coroutine.a  /home/pi/boost_1_76_0/stage/lib/libboost_thread.a /home/pi/boost_1_76_0/stage/lib/libboost_filesystem.a  /home/pi/boost_1_76_0/stage/lib/libboost_system.a /home/pi/boost_1_76_0/stage/lib/libboost_chrono.a /home/pi/boost_1_76_0/stage/lib/libboost_context.a
 

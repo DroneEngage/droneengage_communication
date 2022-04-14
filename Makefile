@@ -39,23 +39,23 @@ OBJS = $(BUILD)/main.o \
 	   $(BUILD)/udpCommunicator.o \
 	   
 
-SRCS = ../main.cpp \
-	   ../configFile.cpp \
-	   ../helpers/helpers.cpp \
-	   ../helpers/util_rpi.cpp \
-	   ../helpers/getopt_cpp.cpp \
-	   ../comm_server/andruav_comm_session.cpp \
-	   ../comm_server/andruav_comm_server.cpp \
-	   ../comm_server/andruav_facade.cpp \
-	   ../comm_server/andruav_auth.cpp \
-	   ../comm_server/andruav_unit.cpp \
-	   ../uavos/uavos_modules_manager.cpp \
-	   ../hal/gpio.cpp \
-	   ../hal_linux/rpi_gpio.cpp \
-	   ../notification_module/notification.cpp \
-	   ../notification_module/leds.cpp \
-	   ../notification_module/buzzer.cpp \
-	   ../udpCommunicator.cpp 
+SRCS = ../src/main.cpp \
+	   ../src/configFile.cpp \
+	   ../src/helpers/helpers.cpp \
+	   ../src/helpers/util_rpi.cpp \
+	   ../src/helpers/getopt_cpp.cpp \
+	   ../src/comm_server/andruav_comm_session.cpp \
+	   ../src/comm_server/andruav_comm_server.cpp \
+	   ../src/comm_server/andruav_facade.cpp \
+	   ../src/comm_server/andruav_auth.cpp \
+	   ../src/comm_server/andruav_unit.cpp \
+	   ../src/uavos/uavos_modules_manager.cpp \
+	   ../src/hal/gpio.cpp \
+	   ../src/hal_linux/rpi_gpio.cpp \
+	   ../src/notification_module/notification.cpp \
+	   ../src/notification_module/leds.cpp \
+	   ../src/notification_module/buzzer.cpp \
+	   ../src/udpCommunicator.cpp 
 	   
 	   
 

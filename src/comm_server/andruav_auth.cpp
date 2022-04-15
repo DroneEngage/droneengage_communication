@@ -54,7 +54,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
                 + AUTH_EXTRA_PARAMETER + "uavos"
                 + AUTH_ACTOR_TYPE_PARAMETER + AUTH_ACTOR_DRONE;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " Connecting... " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _INFO_CONSOLE_TEXT << " Connecting... " << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #ifdef DEBUG
     std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
@@ -168,15 +168,21 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
 
     /* Now specify the POST data */ 
     curl_easy_setopt(easyhandle, CURLOPT_POSTFIELDS, param.c_str());
-        
-    #ifdef DEBUG
-        long verify = false;
-    #else
-        long verify = true;
-    #endif
 
-    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYPEER, verify);
-    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYHOST, verify);
+    bool ssl_verify = true;    
+#ifdef DEBUG
+    ssl_verify = false;
+#endif
+
+    const Json& jsonConfig = uavos::CConfigFile::getInstance().GetConfigJSON();
+    if (validateField(jsonConfig,"auth_verify_ssl", Json::value_t::boolean)==true)
+    {
+        ssl_verify = jsonConfig["auth_verify_ssl"].get<bool>();
+        std::cout << "auth_verify_ssl:" << std::to_string(ssl_verify) << std::endl;
+    }
+
+    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYPEER, (long)ssl_verify);
+    curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYHOST, (long)ssl_verify);
         
 
     curl_easy_setopt(easyhandle, CURLOPT_WRITEFUNCTION, _WriteCallback);
@@ -188,7 +194,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     /* Now run off and do what you've been told! */ 
     CURLcode res = curl_easy_perform(easyhandle); /* post away! */
 
-        
+    //curl_easy_reset(easyhandle);    
     /* always cleanup */ 
     curl_easy_cleanup(easyhandle);
     

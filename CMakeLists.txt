@@ -2,22 +2,22 @@ cmake_minimum_required(VERSION 3.1.0)
 
 if(NOT WIN32)
   string(ASCII 27 Esc)
-  set(ColourReset "${Esc}[m")
-  set(ColourBold  "${Esc}[1m")
-  set(Red         "${Esc}[31m")
-  set(Green       "${Esc}[32m")
-  set(Yellow      "${Esc}[33m")
-  set(Blue        "${Esc}[34m")
-  set(Magenta     "${Esc}[35m")
-  set(Cyan        "${Esc}[36m")
-  set(White       "${Esc}[37m")
-  set(BoldRed     "${Esc}[1;31m")
-  set(BoldGreen   "${Esc}[1;32m")
-  set(BoldYellow  "${Esc}[1;33m")
-  set(BoldBlue    "${Esc}[1;34m")
-  set(BoldMagenta "${Esc}[1;35m")
-  set(BoldCyan    "${Esc}[1;36m")
-  set(BoldWhite   "${Esc}[1;37m")
+  SET(ColourReset "${Esc}[m")
+  SET(ColourBold  "${Esc}[1m")
+  SET(Red         "${Esc}[31m")
+  SET(Green       "${Esc}[32m")
+  SET(Yellow      "${Esc}[33m")
+  SET(Blue        "${Esc}[34m")
+  SET(Magenta     "${Esc}[35m")
+  SET(Cyan        "${Esc}[36m")
+  SET(White       "${Esc}[37m")
+  SET(BoldRed     "${Esc}[1;31m")
+  SET(BoldGreen   "${Esc}[1;32m")
+  SET(BoldYellow  "${Esc}[1;33m")
+  SET(BoldBlue    "${Esc}[1;34m")
+  SET(BoldMagenta "${Esc}[1;35m")
+  SET(BoldCyan    "${Esc}[1;36m")
+  SET(BoldWhite   "${Esc}[1;37m")
 endif()
 
 
@@ -35,29 +35,38 @@ SET (CMAKE_C_COMPILER /usr/bin/gcc)
 SET (CMAKE_CXX_COMPILER /usr/bin/g++)
 
 #C++ Version
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(Threads REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 # Boost Library 
-set(Boost_USE_STATIC_LIBS   ON)
+set(Boost_NO_SYSTEM_PATHS ON)
+SET(Boost_USE_STATIC_LIBS   OFF)
+set(Boost_USE_MULTITHREADED ON)
 SET (BOOST_ROOT "/home/mhefny/boost_1_76_0")
 SET (Boost_INCLUDE_DIRS ${BOOST_ROOT}/boost)
-SET (Boost_LIBRARY_DIRS ${BOOST_ROOT}/stage/lib)
+SET (Boost_LIBRARY_DIRS ${BOOST_ROOT}/libs)
+
+if(Boost_USE_STATIC_LIBS)
+   message(STATUS "Linking against ${Yellow}boost static libraries${ColourReset}")
+else()
+   message(STATUS "Linking against ${Yellow}boost dynamic libraries${ColourReset}")
+endif()
 
 SET (BOOST_MIN_VERSION "1.76.0")
-set (Boost_NO_BOOST_CMAKE ON)
-FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED )
+#SET (Boost_NO_BOOST_CMAKE ON)
+SET (Boost_DIR ${BOOST_ROOT}/stage/lib/)
+FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED) 
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "Fatal error: Boost (version >= 1.76) required.")
 else()
   message(STATUS "Setting up BOOST")
-  message(STATUS " Includes - ${Boost_INCLUDE_DIRS}")
-  message(STATUS " Library  - ${Boost_LIBRARY_DIRS}")
+  message(STATUS "Includes - ${Yellow}${Boost_INCLUDE_DIRS}${ColourReset}")
+  message(STATUS "Library  - ${Yellow}${Boost_LIBRARIES}${ColourReset}")
   include_directories(${Boost_INCLUDE_DIRS})
-  link_directories(${Boost_LIBRARY_DIRS})
+  #link_directories(${Boost_LIBRARY_DIRS})
 endif (NOT Boost_FOUND)
 
 
@@ -84,6 +93,9 @@ add_compile_options(
   $<$<CONFIG:DEBUG>:-g3>
   $<$<CONFIG:DEBUG>:-Og>
   $<$<CONFIG:RELEASE>:-O3>
+  $<$<CONFIG:RELEASE>:-Werror=unused-variable>
+  $<$<CONFIG:RELEASE>:-Werror=unused-result>
+  $<$<CONFIG:RELEASE>:-Werror=parentheses>
 )
 
 # adding DEFINEs
@@ -93,7 +105,7 @@ add_compile_definitions(
 )
 
 
-set(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+SET(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 file(MAKE_DIRECTORY ${OUTPUT_DIRECTORY})
 SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIRECTORY})
 

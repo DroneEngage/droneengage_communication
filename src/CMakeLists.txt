@@ -19,4 +19,4 @@ set_target_properties( OUTPUT_BINARY
                     OUTPUT_NAME "de_comm"
                     SUFFIX ".so"
                 )
-target_link_libraries(OUTPUT_BINARY OpenSSL::SSL CURL::libcurl Threads::Threads )
+target_link_libraries(OUTPUT_BINARY  ${Boost_LIBRARIES} OpenSSL::Crypto OpenSSL::SSL CURL::libcurl Threads::Threads )

@@ -45,22 +45,13 @@ class CUDPCommunicator
         void SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address);
 
     protected:
-        // This static function only needed once
-        // it sends ID to communicator. 
-        // you need to create UDP with communicator first.
-        //// static void * InternalSenderIDThreadEntryFunc(void * func);
-        static void * InternalReceiverThreadEntryFunc(void * func);
-
         
         void startReceiver();
-        //void startSenderID();
-
         void InternalReceiverEntry();
         void InternelSenderIDEntry();
 
         struct sockaddr_in  *m_CommunicatorModuleAddress = NULL; 
         int m_SocketFD = -1; 
-        //std::thread m_threadSenderID;
         std::thread m_threadCreateUDPSocket;
         pthread_t m_thread;
 

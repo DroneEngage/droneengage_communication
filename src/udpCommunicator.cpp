@@ -100,15 +100,8 @@ void uavos::comm::CUDPCommunicator::start()
 
 void uavos::comm::CUDPCommunicator::startReceiver ()
 {
-    m_threadCreateUDPSocket = std::thread (this->InternalReceiverThreadEntryFunc, (void *) this);
-}
-
-
-// void uavos::comm::CUDPCommunicator::startSenderID ()
-// {
-//     //m_threadSenderID = std::thread (this->InternalSenderIDThreadEntryFunc, (void *) this);
-// }
-
+    m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
+};
 
 void uavos::comm::CUDPCommunicator::stop()
 {
@@ -127,14 +120,8 @@ void uavos::comm::CUDPCommunicator::stop()
 
     try
     {
-        //pthread_join(m_threadSenderID, NULL); 	// close the thread
-        //pthread_join(m_threadCreateUDPSocket, NULL); 	// close the thread
         m_threadCreateUDPSocket.join();
-        //m_threadSenderID.join();
-        //pthread_join(m_thread, NULL); 	// close the thread
-        //close(m_SocketFD); 					// close UDP socket
         delete m_CommunicatorModuleAddress;
-        //delete m_CommunicatorModuleAddress;
 
         #ifdef DEBUG
 	    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -197,11 +184,6 @@ void uavos::comm::CUDPCommunicator::SetMessageOnReceive ( ONRECEIVE_CALLBACK onR
     m_OnReceive = onReceive;
 }
 
-
-void * uavos::comm::CUDPCommunicator::InternalReceiverThreadEntryFunc(void * This) {
-	((CUDPCommunicator *)This)->InternalReceiverEntry(); 
-    return NULL;
-}
 
 
 /**

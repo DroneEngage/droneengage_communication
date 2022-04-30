@@ -186,14 +186,7 @@ void uavos::andruav_servers::CWSSession::on_read(
         // copy buffer including NULLS
         os << beast::make_printable(buffer_.data());   
         std::string output = os.str();
-        std::cout << "bytes_transferred:" << std::to_string(bytes_transferred ) << std::endl;
-        std::cout << "output:" << output.length() << std::endl;
-        std::cout << output << std::endl;
-        if ( output.length() != bytes_transferred)
-        {
-         std::cout << "DIFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
-        }
-
+        
 
         if (ws_.got_binary() == true)
         {

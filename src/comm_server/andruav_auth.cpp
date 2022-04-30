@@ -178,7 +178,15 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     if (validateField(jsonConfig,"auth_verify_ssl", Json::value_t::boolean)==true)
     {
         ssl_verify = jsonConfig["auth_verify_ssl"].get<bool>();
-        std::cout << "auth_verify_ssl:" << std::to_string(ssl_verify) << std::endl;
+        std::cout << _LOG_CONSOLE_TEXT_BOLD_ <<  "Verify SSL:";
+        if (ssl_verify==false)
+        {
+            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " verify on" << std::endl;
+        } 
+        else
+        {
+            std::cout << _INFO_CONSOLE_TEXT << " NO Validation .. WARNING" << std::endl;
+        }
     }
 
     curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYPEER, (long)ssl_verify);

@@ -51,7 +51,7 @@ find_package(OpenSSL REQUIRED)
 SET(Boost_USE_STATIC_LIBS   ON)
 SET(Boost_USE_STATIC_RUNTIME ON)
 set(Boost_USE_MULTITHREADED ON)
-SET (BOOST_ROOT "/home/mhefny/boost_1_76_0")
+SET (BOOST_ROOT $ENV{HOME}/boost_1_76_0)
 SET (Boost_INCLUDE_DIRS ${BOOST_ROOT}/boost)
 SET (Boost_LIBRARY_DIRS ${BOOST_ROOT}/stage/lib)
 
@@ -95,14 +95,14 @@ ENDIF()
 
 # adding CMAKE_CXX_FLAGS properly
 add_compile_options(
-  #-Wno-return-type 
-  #-Wno-address-of-packed-member
+  -Wno-return-type 
+  -Wno-address-of-packed-member
   $<$<CONFIG:DEBUG>:-g3>
   $<$<CONFIG:DEBUG>:-Og>
   $<$<CONFIG:RELEASE>:-O2>
- # $<$<CONFIG:RELEASE>:-Werror=unused-variable>
- # $<$<CONFIG:RELEASE>:-Werror=unused-result>
- # $<$<CONFIG:RELEASE>:-Werror=parentheses>
+  $<$<CONFIG:RELEASE>:-Werror=unused-variable>
+  $<$<CONFIG:RELEASE>:-Werror=unused-result>
+  $<$<CONFIG:RELEASE>:-Werror=parentheses>
 )
 
 # adding DEFINEs

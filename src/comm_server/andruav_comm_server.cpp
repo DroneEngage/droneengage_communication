@@ -297,7 +297,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                 Json message_cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
                 if (message_cmd["s"].get<std::string>().find("OK")==0)
                 {
-                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " Andruav Server Connected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Andruav Server Connected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
                     m_status = SOCKET_STATUS_REGISTERED;
                     //_cwssession.get()->writeText("OK");
                     uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID(std::string());
@@ -305,7 +305,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                 }
                 else
                 {
-                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << " Andruav Server Connected: Failed "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Andruav Server Connected: Failed "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
                     m_status = SOCKET_STATUS_ERROR;
                 }
                 uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);

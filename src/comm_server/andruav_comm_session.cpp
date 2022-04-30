@@ -15,7 +15,7 @@
 
 
 #include "../helpers/colors.hpp"
-
+#include <boost/asio.hpp>
 #include "andruav_comm_session.hpp"
 //------------------------------------------------------------------------------
 
@@ -182,38 +182,32 @@ void uavos::andruav_servers::CWSSession::on_read(
         }
             
 
-        // The make_printable() function helps print a ConstBufferSequence
-        #ifdef DEBUG_2
-            std::cout << "This is a Data:" << beast::make_printable(buffer_.data()) << std::endl;
-        #endif
-
-        char * result = new char[bytes_transferred+1];
-        int i=0;
-        for(auto const buffer : beast::buffers_range_ref(buffer_.data()))
+        std::ostringstream os;
+        // copy buffer including NULLS
+        os << beast::make_printable(buffer_.data());   
+        std::string output = os.str();
+        std::cout << "bytes_transferred:" << std::to_string(bytes_transferred ) << std::endl;
+        std::cout << "output:" << output.length() << std::endl;
+        std::cout << output << std::endl;
+        if ( output.length() != bytes_transferred)
         {
-            char *c = (char *)(
-                buffer.data());
-            for (i=0; i<bytes_transferred;++i)
-            {
-                result[i] = c[i];
-            }
-            result[i]=0;
-            break;
+         std::cout << "DIFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << std::endl;
         }
-        
+
+
         if (ws_.got_binary() == true)
         {
-            m_callback.onBinaryMessageRecieved(result, bytes_transferred);
+            m_callback.onBinaryMessageRecieved(output.c_str(), bytes_transferred);
+           
         }
         else
         {
-            std::string output = std::string(result);
             m_callback.onTextMessageRecieved(output); //beast::buffers_to_string(buffer_.data()));    
         }
 
-        delete result;
         
         buffer_.clear();
+       // delete result;
         ws_.async_read(
             buffer_,
             beast::bind_front_handler(

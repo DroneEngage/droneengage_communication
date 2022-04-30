@@ -37,36 +37,43 @@ SET (CMAKE_CXX_COMPILER /usr/bin/g++)
 #C++ Version
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
+
+
 find_package(Threads REQUIRED)
 find_package(CURL REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 # Boost Library 
-set(Boost_NO_SYSTEM_PATHS ON)
-SET(Boost_USE_STATIC_LIBS   OFF)
+
+#set(Boost_NO_SYSTEM_PATHS TRUE)
+#set(Boost_NO_BOOST_CMAKE TRUE)
+
+SET(Boost_USE_STATIC_LIBS   ON)
+SET(Boost_USE_STATIC_RUNTIME ON)
 set(Boost_USE_MULTITHREADED ON)
 SET (BOOST_ROOT "/home/mhefny/boost_1_76_0")
 SET (Boost_INCLUDE_DIRS ${BOOST_ROOT}/boost)
-SET (Boost_LIBRARY_DIRS ${BOOST_ROOT}/libs)
+SET (Boost_LIBRARY_DIRS ${BOOST_ROOT}/stage/lib)
+
+SET (BOOST_MIN_VERSION "1.76.0")
+SET (Boost_NO_BOOST_CMAKE ON)
+FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED) 
 
 if(Boost_USE_STATIC_LIBS)
    message(STATUS "Linking against ${Yellow}boost static libraries${ColourReset}")
 else()
    message(STATUS "Linking against ${Yellow}boost dynamic libraries${ColourReset}")
 endif()
-
-SET (BOOST_MIN_VERSION "1.76.0")
-#SET (Boost_NO_BOOST_CMAKE ON)
-SET (Boost_DIR ${BOOST_ROOT}/stage/lib/)
-FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED) 
+SET (Boost_FOUND ON)
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "Fatal error: Boost (version >= 1.76) required.")
+  exit(1)
 else()
   message(STATUS "Setting up BOOST")
   message(STATUS "Includes - ${Yellow}${Boost_INCLUDE_DIRS}${ColourReset}")
-  message(STATUS "Library  - ${Yellow}${Boost_LIBRARIES}${ColourReset}")
+  message(STATUS "Library  - ${Yellow}${Boost_LIBRARY_DIRS}${ColourReset}")
   include_directories(${Boost_INCLUDE_DIRS})
-  #link_directories(${Boost_LIBRARY_DIRS})
+  link_directories(${Boost_LIBRARY_DIRS})
 endif (NOT Boost_FOUND)
 
 
@@ -88,14 +95,14 @@ ENDIF()
 
 # adding CMAKE_CXX_FLAGS properly
 add_compile_options(
-  -Wno-return-type 
-  -Wno-address-of-packed-member
+  #-Wno-return-type 
+  #-Wno-address-of-packed-member
   $<$<CONFIG:DEBUG>:-g3>
   $<$<CONFIG:DEBUG>:-Og>
-  $<$<CONFIG:RELEASE>:-O3>
-  $<$<CONFIG:RELEASE>:-Werror=unused-variable>
-  $<$<CONFIG:RELEASE>:-Werror=unused-result>
-  $<$<CONFIG:RELEASE>:-Werror=parentheses>
+  $<$<CONFIG:RELEASE>:-O2>
+ # $<$<CONFIG:RELEASE>:-Werror=unused-variable>
+ # $<$<CONFIG:RELEASE>:-Werror=unused-result>
+ # $<$<CONFIG:RELEASE>:-Werror=parentheses>
 )
 
 # adding DEFINEs
@@ -103,6 +110,13 @@ add_compile_definitions(
     $<$<CONFIG:DEBUG>:DEBUG>
     $<$<CONFIG:RELEASE>:RELEASE>
 )
+
+# add_link_options(
+#   $<$<CONFIG:DEBUG>:>
+#   $<$<CONFIG:RELEASE>:>
+# )
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-export-dynamic")
 
 
 SET(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)

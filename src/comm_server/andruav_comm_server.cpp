@@ -180,7 +180,7 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << " Andruav Server Connected: Error "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Andruav Server Connected: Error "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
     if (m_exit== true)
     {
         m_status =  SOCKET_STATUS_DISCONNECTED;  

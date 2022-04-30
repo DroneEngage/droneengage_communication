@@ -67,7 +67,7 @@ all: release
 
 
 release: uavos.release
-	$(CXX)   -O2 -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
+	$(CXX)   -O3 -o $(BIN)/$(EXE).so  $(OBJS)   $(LIBS)  ;
 	@echo "building finished ..."; 
 	@echo "DONE."
 

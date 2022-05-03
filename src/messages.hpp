@@ -57,6 +57,12 @@
 #define CMD_COMM_SYSTEM                 "s" 
   
 
+// Reserved Target Values
+#define ANDRUAV_PROTOCOL_SENDER_ALL_GCS "_GCS_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS "_AGN_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL "_GD_"
+
+
 // Andruav Protocol Fields
 #define ANDRUAV_PROTOCOL_GROUP_ID       "gr"
 #define ANDRUAV_PROTOCOL_SENDER         "sd"

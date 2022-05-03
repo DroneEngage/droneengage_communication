@@ -3,13 +3,13 @@
 file(GLOB folder_src "./*.cpp")
 file(GLOB folder_helpers "./helpers/*.cpp")
 file(GLOB folder_common "./comm_server/*.cpp")
-file(GLOB hal "./hal/*.cpp")
-file(GLOB hal_linux "./hal_linux/*.cpp")
+file(GLOB folder_hal "./hal/*.cpp")
+file(GLOB folder_hal_linux "./hal_linux/*.cpp")
 file(GLOB notification_module "./notification_module/*.cpp")
-file(GLOB uavos "./uavos/*.cpp")
+file(GLOB folder_uavos "./uavos/*.cpp")
 
 set(files ${folder_src} ${folder_common} ${folder_helpers}
-${hal} ${hal_linux} ${notification_module} ${uavos} )
+${folder_hal} ${folder_hal_linux} ${notification_module} ${folder_uavos} )
 
 
 add_executable( OUTPUT_BINARY ${files})

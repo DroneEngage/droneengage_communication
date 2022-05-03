@@ -118,7 +118,7 @@ add_compile_definitions(
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-export-dynamic")
 
-
+# define output directory to generate binary
 SET(OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 file(MAKE_DIRECTORY ${OUTPUT_DIRECTORY})
 SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIRECTORY})

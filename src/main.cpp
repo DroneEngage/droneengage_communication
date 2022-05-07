@@ -84,7 +84,6 @@ void _usage(void)
 void scheduler ()
 {
 
-    //uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
     uavos::andruav_servers::CAndruavFacade& andruav_facade = uavos::andruav_servers::CAndruavFacade::getInstance();
     
     uint64_t hz_1 = 0;
@@ -112,7 +111,24 @@ void scheduler ()
         if (every_5_sec % 50 == 0)
         {
             cUavosModulesManager.handleDeadModules(); //TODO: Why when online only ??
-                
+
+            uint32_t cpu_status=0;
+            
+            if (helpers::CUtil_Rpi::getInstance().get_rpi_model() != -1)
+            {
+                // check status https://www.raspberrypi.com/documentation/computers/os.html#vcgencmd    
+                if (helpers::CUtil_Rpi::getInstance().get_throttled(cpu_status))
+                {
+                    std::cout  << "get_throttled:" << std::to_string(cpu_status) << std::endl;
+                }
+            }
+            else
+            {
+                #ifdef DEBUG
+                    std::cout  << "get_throttled:" << "NOT RPI" << std::endl;
+                #endif
+            }
+
             if (status.is_online())
             {
                 andruav_facade.API_sendID("");
@@ -143,8 +159,6 @@ void onReceive (const char * message, int len, struct sockaddr_in * ssock)
 void initScheduler()
 {
     m_scheduler = std::thread (scheduler);
-    //const int result = pthread_create( &m_scheduler, NULL, &scheduler, NULL );
-    //if ( result ) throw result;
 }
 
 

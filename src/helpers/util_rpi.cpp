@@ -193,3 +193,50 @@ int helpers::CUtil_Rpi::_check_rpi_version()
     return _rpi_version;
 }
 
+
+/**
+ * @brief  Returns the throttled state of the system. This is a bit pattern.
+ * @details The vcgencmd tool is used to output information from the VideoCore GPU on the Raspberry 
+ * Returns the throttled state of the system. This is a bit pattern - a bit being set indicates the following meanings:
+ * @see  https://www.raspberrypi.com/documentation/computers/os.html#vcgencmd
+ * @return int32_t 
+ */
+bool  helpers::CUtil_Rpi::get_throttled(uint32_t &cpu_serial) const
+{
+    #define PATH_MAX 2000
+    char path[PATH_MAX];
+    FILE * fp = popen("vcgencmd get_throttled", "r");
+    if (fp == NULL)
+    { 
+        return -1;
+    }
+
+
+    while (fgets(path, PATH_MAX, fp) != NULL)
+        printf("%s", path);
+
+    std::string res= std::string(path);
+
+    const int idx =  res.find("=")+1;
+
+    std::string v = res.substr(idx);
+
+    cpu_serial = std::stoi(v, nullptr, 16);
+    #ifdef DEBUG
+        std::cout << "found at " << std::to_string(idx) << "  " << v << "   as number:" << std::stoi(v, nullptr, 16) << std::endl;
+    #endif
+
+
+    const int status = pclose(fp);
+    if (status == -1) {
+        return false;
+
+    } else {
+        /* Use macros described under wait() to inspect `status' in order
+        to determine success/failure of command executed by popen() */
+        return true;
+
+    }
+
+    #undef PATH_MAX 
+}

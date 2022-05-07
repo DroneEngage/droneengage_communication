@@ -35,6 +35,8 @@ namespace helpers
             int get_rpi_model ()  const;
             bool get_cpu_serial (std::string &cpu_serial)  const;
             
+            bool get_throttled (uint32_t &cpu_serial) const ;
+
         protected:
             // Called in the constructor once
             int _check_rpi_version();

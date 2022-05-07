@@ -1,4 +1,8 @@
 {
+    /*
+        This is a JSON file with ability to add c-like comments.
+    */
+    
     // A name and GUID for this module
     "module_id"                 : "MT_1",
     "module_key"                : "E289FEE7-F4AD-44EF-A257-C9A361316BE7",
@@ -20,10 +24,18 @@
     "groupID"                   :"1",
     "unitDescription"           :"de_unit 1",
     
-    "led_pins"                  :[
+    // "led_pins_enabled" is optional and default value is true                           
+    "led_pins_enabled" : false,
+    // "led_pins" optional field
+    "led_pins"                  :[ 
                                     {"name":"status", "gpio":26},
                                     {"name":"LED1", "gpio":19}
+
                                 ],  // LIST GPIO
+    
+    // "buzzer_pins_enabled" is optional and default value is true                           
+    "buzzer_pins_enabled" : false, 
+    // "buzzer_pins" optional field
     "buzzer_pins"               :[
                                     {"name":"status", "gpio":13},
                                     {"name":"LoudBuzzer", "gpio":6}

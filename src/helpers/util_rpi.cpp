@@ -212,9 +212,12 @@ bool  helpers::CUtil_Rpi::get_throttled(uint32_t &cpu_serial) const
     }
 
 
-    while (fgets(path, PATH_MAX, fp) != NULL);
-        //printf("%s", path);
-
+    while (fgets(path, PATH_MAX, fp) != NULL)
+    {
+    #ifdef DEBUG
+        printf("%s", path);
+    #endif
+    }
     std::string res= std::string(path);
 
     const int idx =  res.find("=")+1;

@@ -109,7 +109,7 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
     
 
         std::string serial;
-        if (helpers::CUtil_Rpi::getInstance().get_cpu_serial(serial)!=-1)
+        if (helpers::CUtil_Rpi::getInstance().get_cpu_serial(serial)!= false)
         {
             std::cout << "Unique Key :" << serial << std::endl;
         }

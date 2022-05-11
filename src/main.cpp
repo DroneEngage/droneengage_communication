@@ -83,24 +83,26 @@ void _usage(void)
 
 void scheduler ()
 {
+    const int every_sec_1  =  10;
+    const int every_sec_5  =  50;
+    const int every_sec_10 = 100;
+    const int every_sec_15 = 150;
 
     uavos::andruav_servers::CAndruavFacade& andruav_facade = uavos::andruav_servers::CAndruavFacade::getInstance();
     
-    uint64_t hz_1 = 0;
-    uint64_t every_5_sec = 0;
+    uint64_t hz_10 = 0;
     uavos::STATUS &status = uavos::STATUS::getInstance();
 
     while (!exit_scheduler)
     {
-        hz_1++;
-        every_5_sec ++;
+        hz_10++;
         
         status.is_online(uavos::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED);
 
         cLeds.update();
         cBuzzer.update();
         
-        if (hz_1 % 10 == 0)
+        if (hz_10 % every_sec_1 == 0)
         {
             // if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
             // {
@@ -108,18 +110,24 @@ void scheduler ()
             // }
         }
 
-        if (every_5_sec % 50 == 0)
+        if (hz_10 % every_sec_5 == 0)
         {
             cUavosModulesManager.handleDeadModules(); //TODO: Why when online only ??
 
-            uint32_t cpu_status=0;
-            
+             
             if (helpers::CUtil_Rpi::getInstance().get_rpi_model() != -1)
             {
+                uint32_t cpu_status=0;
                 // check status https://www.raspberrypi.com/documentation/computers/os.html#vcgencmd    
                 if (helpers::CUtil_Rpi::getInstance().get_throttled(cpu_status))
                 {
                     std::cout  << "get_throttled:" << std::to_string(cpu_status) << std::endl;
+                }
+
+                uint32_t cpu_temprature=0;
+                if (helpers::CUtil_Rpi::getInstance().get_cpu_temprature(cpu_temprature))
+                {
+                    std::cout  << "get_cpu_temprature:" << std::to_string(cpu_temprature) << std::endl;
                 }
             }
             else
@@ -128,13 +136,21 @@ void scheduler ()
                     std::cout  << "get_throttled:" << "NOT RPI" << std::endl;
                 #endif
             }
+            
+        }
 
+        if (hz_10 % every_sec_10 == 0)
+        {
             if (status.is_online())
             {
                 andruav_facade.API_sendID("");
             }
         }
 
+        if (hz_10 % every_sec_15 == 0)
+        {
+        }
+        
         usleep(100000); // 10Hz
     }
 

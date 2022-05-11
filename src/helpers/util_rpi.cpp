@@ -193,7 +193,25 @@ int helpers::CUtil_Rpi::_check_rpi_version()
     return _rpi_version;
 }
 
+bool helpers::CUtil_Rpi::get_cpu_temprature(uint32_t &cpu_temprature) const
+{ 
+    bool found = false;
+    FILE *f = fopen("/proc/cpuinfo", "r");
+	if (!f) {
+		return found;
+	}
+	
+	char line[10]; 
+    if (fgets(line, 10, f))
+    { 
+        cpu_temprature = std::stoi(line);
+        found = true;
+    }
 
+    fclose(f);
+
+    return found;
+}
 /**
  * @brief  Returns the throttled state of the system. This is a bit pattern.
  * @details The vcgencmd tool is used to output information from the VideoCore GPU on the Raspberry 

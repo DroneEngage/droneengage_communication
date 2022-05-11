@@ -493,10 +493,6 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int
     {
         Json json_msg  = this->generateJSONSystemMessage (command_type, msg);
         _cwssession.get()->writeText(json_msg.dump());
-
-        #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << json_msg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        #endif
     } 
 }
             
@@ -516,10 +512,6 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
     static std::mutex g_i_mutex; 
 
     const std::lock_guard<std::mutex> lock(g_i_mutex);
-    
-    #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
     
     std::string message_routing;
     if (target_name.empty() == false)

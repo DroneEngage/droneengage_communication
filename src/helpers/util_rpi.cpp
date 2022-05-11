@@ -196,7 +196,7 @@ int helpers::CUtil_Rpi::_check_rpi_version()
 bool helpers::CUtil_Rpi::get_cpu_temprature(uint32_t &cpu_temprature) const
 { 
     bool found = false;
-    FILE *f = fopen("/proc/cpuinfo", "r");
+    FILE *f = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
 	if (!f) {
 		return found;
 	}

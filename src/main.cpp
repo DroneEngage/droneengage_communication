@@ -113,21 +113,20 @@ void scheduler ()
         if (hz_10 % every_sec_5 == 0)
         {
             cUavosModulesManager.handleDeadModules(); //TODO: Why when online only ??
-
-             
+            
             if (helpers::CUtil_Rpi::getInstance().get_rpi_model() != -1)
             {
                 uint32_t cpu_status=0;
                 // check status https://www.raspberrypi.com/documentation/computers/os.html#vcgencmd    
                 if (helpers::CUtil_Rpi::getInstance().get_throttled(cpu_status))
                 {
-                    std::cout  << "get_throttled:" << std::to_string(cpu_status) << std::endl;
+                    std::cout  << "get_throttled: " << std::to_string(cpu_status) << std::endl;
                 }
 
                 uint32_t cpu_temprature=0;
                 if (helpers::CUtil_Rpi::getInstance().get_cpu_temprature(cpu_temprature))
                 {
-                    std::cout  << "get_cpu_temprature:" << std::to_string(cpu_temprature) << std::endl;
+                    std::cout  << "get_cpu_temprature: " << std::to_string(cpu_temprature) << std::endl;
                 }
             }
             else

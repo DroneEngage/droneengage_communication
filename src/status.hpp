@@ -80,6 +80,38 @@ class STATUS {
                 m_buzzer = buzzer;
             }
 
+
+            inline void cpu_temp (const uint32_t cpu_temprature)
+            {
+                m_cpu_temprature = cpu_temprature;
+            }
+
+            uint32_t cpu_temp () const 
+            {
+                return m_cpu_temprature;
+            }
+
+            
+            inline void cpu_status (const uint32_t cpu_status)
+            {
+                m_cpu_status = cpu_status;
+            }
+
+            uint32_t cpu_status () const 
+            {
+                return m_cpu_status;
+            }
+
+            bool cpu_undervoltage_detected ()
+            {
+                return (m_cpu_status & 0x01) != 0;
+            }
+
+            bool cpu_undervoltage_occured ()
+            {
+                return (m_cpu_status & 0x10000) != 0;
+            }
+
             // std::bool is_online(const std::bool online)
             // {
             //     ;
@@ -93,6 +125,21 @@ class STATUS {
             bool m_buzzer = false;
             bool m_light = false;
 
+            uint32_t m_cpu_temprature=-1; // unavailable
+
+            /**
+             * @brief 
+             * Bit	    Hex value	Meaning
+             * 0        0x1         Under-voltage detected
+             * 1        0x2         Arm frequency capped
+             * 2        0x4         Currently throttled
+             * 3        0x8         Soft temperature limit active
+             * 16       0x10000     Under-voltage has occurred
+             * 17       0x20000     Arm frequency capping has occurred
+             * 18       0x40000     Throttling has occurred
+             * 19       0x80000     Soft temperature limit has occurred
+             */
+            uint32_t m_cpu_status;
            
             
 };

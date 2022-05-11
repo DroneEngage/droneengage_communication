@@ -216,7 +216,8 @@ bool helpers::CUtil_Rpi::get_cpu_temprature(uint32_t &cpu_temprature) const
  * @brief  Returns the throttled state of the system. This is a bit pattern.
  * @details The vcgencmd tool is used to output information from the VideoCore GPU on the Raspberry 
  * Returns the throttled state of the system. This is a bit pattern - a bit being set indicates the following meanings:
- * @see  https://www.raspberrypi.com/documentation/computers/os.html#vcgencmd
+ * @see  https://www.raspberrypi.com/documentation/computers/os.html#get_throttled
+ * 
  * @return int32_t 
  */
 bool  helpers::CUtil_Rpi::get_throttled(uint32_t &cpu_serial) const

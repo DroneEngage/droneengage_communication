@@ -9,7 +9,7 @@
 #include "../helpers/helpers.hpp"
 #include "../helpers/util_rpi.hpp"
 
-
+#include "../version.h"
 #include "../messages.hpp"
 #include "../configFile.hpp"
 #include "../uavos/uavos_modules_manager.hpp"
@@ -32,6 +32,11 @@ void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& t
 }
 
 
+/**
+ * @brief send @see TYPE_AndruavMessage_ID identification message.
+ * 
+ * @param target_party_id 
+ */
 void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_party_id) const 
 {
     uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
@@ -55,6 +60,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         {"UD", jsonConfig["unitID"]},                       // unit Name
         {"DS", jsonConfig["unitDescription"]},              // unit Description
         {"p",  unit_info.permission},                       // permissions
+        {"dv", version_string},                             // de version
     };
  
     if (unit_info.is_tracking_mode)

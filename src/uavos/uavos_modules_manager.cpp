@@ -112,14 +112,12 @@ bool CUavosModulesManager::updateUavosPermission (const Json& module_permissions
         {
             if (andruav_unit_info.permission[4]=='T') break;
             andruav_unit_info.permission[4] = 'T';
-            m_status.is_fcb_module_connected (true);
             updated = true;
         }
         else if (permission_item.compare("R") ==0)
         {
             if (andruav_unit_info.permission[6]=='R') break;
             andruav_unit_info.permission[6] = 'R';
-            m_status.is_fcb_module_connected (true);
             updated = true;
         }
         else if (permission_item.compare("V") ==0)
@@ -127,14 +125,12 @@ bool CUavosModulesManager::updateUavosPermission (const Json& module_permissions
             if (andruav_unit_info.permission[8]=='V') break;
             andruav_unit_info.permission[8] = 'V';
             updated = true;
-            m_status.is_camera_module_connected (true);
         }
         else if (permission_item.compare("C") ==0)
         {
             if (andruav_unit_info.permission[10]=='C') break;
             andruav_unit_info.permission[10] = 'C';
             updated = true;
-            m_status.is_camera_module_connected (true);
         }
         
     }
@@ -511,6 +507,7 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
     {
         // update camera list
         updateCameraList(module_id, msg_cmd);
+        m_status.is_camera_module_connected (true);
     }
     else if (module_class.find("fcb")==0)
     {
@@ -789,7 +786,7 @@ bool CUavosModulesManager::handleDeadModules ()
                     CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
                     ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
                     andruav_unit_info.use_fcb = false;
-                    m_status.is_fcb_module_connected (false); //TODO: fix when offline
+                    m_status.is_camera_module_connected (false); //TODO: fix when offline
                 }
             }
         }
@@ -800,7 +797,10 @@ bool CUavosModulesManager::handleDeadModules ()
                 //This should not happen as is_dead = false is done when receiving any message from a module. 
                 //because you dont want running consequence operation on a dead module.
                 module_item->is_dead = false;
-                andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_NOTICE, std::string("Module " + module_item->module_id + " is back online."));
+                if (m_status.is_online())
+                {
+                    andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_NOTICE, std::string("Module " + module_item->module_id + " is back online."));
+                }
             }
             
         }

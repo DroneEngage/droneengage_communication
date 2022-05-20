@@ -70,6 +70,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
     if (unit_info.use_fcb)
     {
         jMsg["FI"] = unit_info.use_fcb;
+        jMsg["AP"] = unit_info.autopilot;
     }
     if (unit_info.is_flying)
     {

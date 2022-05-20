@@ -54,6 +54,7 @@ typedef struct {
   bool is_gcs_blocked;
   bool is_armed;
   bool is_flying;
+  uint8_t autopilot; // valid if use_fcb = true
 
   int manual_TX_blocked_mode;
   bool is_tracking_mode;

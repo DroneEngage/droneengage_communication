@@ -392,6 +392,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             if (command.contains("GM") == true) unit_info.gps_mode = command["GM"].get<int>();
             if (command.contains("AR") == true) unit_info.is_armed = command["AR"].get<bool>();
             if (command.contains("FL") == true) unit_info.is_flying = command["FL"].get<bool>();
+            if (command.contains("AP") == true) unit_info.autopilot = command["AP"].get<int>();
             if (command.contains("FM") == true) unit_info.flying_mode = command["FM"].get<int>();
             if (command.contains("B") == true) unit_info.is_gcs_blocked = command["B"].get<bool>();
             if (command.contains("x") == true) unit_info.is_flashing = command["x"].get<bool>();

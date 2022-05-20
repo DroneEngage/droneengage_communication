@@ -602,6 +602,7 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
             unit_info.flying_mode                   = ms["FM"].get<int>();
             unit_info.gps_mode                      = ms["GM"].get<int>();
             unit_info.use_fcb                       = ms["FI"].get<bool>();
+            unit_info.autopilot                     = ms["AP"].get<int>();
             unit_info.is_armed                      = ms["AR"].get<bool>();
             unit_info.is_flying                     = ms["FL"].get<bool>();
             unit_info.telemetry_protocol            = ms["TP"].get<int>();

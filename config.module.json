@@ -13,7 +13,7 @@
 
     
     // Drone-Engage Communication Server Connection
-    "auth_ip"                   : "cloud.ardupilot.org", //"andruav.com", //
+    "auth_ip"                   : "cloud.ardupilot.org",
     "auth_port"                 : 19408,
     "auth_verify_ssl"           : false,
 

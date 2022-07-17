@@ -179,7 +179,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     {
         ssl_verify = jsonConfig["auth_verify_ssl"].get<bool>();
         std::cout << _LOG_CONSOLE_TEXT_BOLD_ <<  "Verify SSL:";
-        if (ssl_verify==false)
+        if (ssl_verify)
         {
             std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " verify on" << std::endl;
         } 
@@ -189,6 +189,12 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
         }
     }
 
+    if (validateField(jsonConfig,"root_certificate_path", Json::value_t::string)==true)
+    {
+        std::cout << _LOG_CONSOLE_TEXT_BOLD_ <<  "root certificate: ";
+        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << jsonConfig["root_certificate_path"].get<std::string>() << std::endl;
+        curl_easy_setopt(easyhandle, CURLOPT_CAINFO, jsonConfig["root_certificate_path"].get<std::string>().c_str());
+    }
     curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYPEER, (long)ssl_verify);
     curl_easy_setopt(easyhandle, CURLOPT_SSL_VERIFYHOST, (long)ssl_verify);
         

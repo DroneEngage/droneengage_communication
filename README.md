@@ -1,3 +1,5 @@
+[![Ardupilot Cloud EcoSystem](https://cloud.ardupilot.org/_static/ardupilot_logo.png "Ardupilot Cloud EcoSystem")](https://cloud.ardupilot.org "Ardupilot Cloud EcoSystem") **Drone Engage** is part of Ardupilot Cloud Eco System
+
 # What is Drone-Engage ?
 
 Drone-Engage (D.E.) is a distibuted system that allows monitoring & controlling drones via Internet. Drone-Engage objective is to provide a Linux-based alternative for [Andruav](http://https://play.google.com/store/apps/details?id=arudpilot.andruav&hl=en&gl=US "Andruav") on Android mobiles.
@@ -9,5 +11,16 @@ This repository is for **Drone-Engage Communication Module**. This module runs o
 For more Information Please Goto [Cloud.Ardupilot.org](https://cloud.ardupilot.org/ "Cloud.Ardupilot.org")
 
 
-[![Ardupilot Cloud EcoSystem](https://cloud.ardupilot.org/_static/ardupilot_logo.png "Ardupilot Cloud EcoSystem")](https://cloud.ardupilot.org "Ardupilot Cloud EcoSystem") **Drone Engage** is part of Ardupilot Cloud Eco System
+
+
+# Build the Code
+**Prerequisits**
+`sudo apt-get install libcurl4-openssl-dev`
+`sudo apt install libssl-dev`
+
+**Building**
+mkdir build 
+cd build
+make
+
 

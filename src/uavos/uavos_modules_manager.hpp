@@ -112,8 +112,7 @@ namespace uavos
             Json createJSONID (const bool& reSend);
             
             void processModuleRemoteExecute (const Json ms);
-            void processIncommingServerMessage (const std::string& sender_party_id, const int& command_type, const char * message, const std::size_t datalength);
-
+            void processIncommingServerMessage (const std::string& sender_party_id, const int& message_type, const char * message, const std::size_t datalength, const std::string& sender_module_key);
             void forwardMessageToModule (const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item);
             
             /**

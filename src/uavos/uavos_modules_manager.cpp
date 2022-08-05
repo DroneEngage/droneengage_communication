@@ -28,6 +28,7 @@
 using namespace uavos;
 
 static std::mutex g_i_mutex; 
+static std::mutex g_i_mutex_process; 
 
 CUavosModulesManager::~CUavosModulesManager()
 {
@@ -617,7 +618,6 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
             andruav_servers::CAndruavFacade::getInstance().API_sendID(std::string());
         }
         break;
-
         default:
         {
             std::string target_id = std::string();
@@ -625,6 +625,12 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
             if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_COMM_INDIVIDUAL) != std::string::npos)
             {
                 target_id =jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>();
+            }
+
+            else if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_TYPE_INTERMODULE) != std::string::npos)
+            {
+                std::cout << "TYPE_AndruavMessage_Ctrl_Cameras:" << std::string(full_mesage) << std::endl;
+                processIncommingServerMessage (std::string(), mt, full_mesage, full_message_length, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
             }
 
             if (is_binary)
@@ -674,14 +680,16 @@ void CUavosModulesManager::processModuleRemoteExecute (const Json ms)
  * @param sender_party_id 
  * @param command_type 
  * @param jsonMessage 
+ * @param sender_module_key when message is forwarded from another module then it is necessary not to send message back to the sender module. e.g. messages such as TYPE_AndruavMessage_RemoteExecute
  */
-void CUavosModulesManager::processIncommingServerMessage (const std::string& sender_party_id, const int& command_type, const char * message, const std::size_t datalength)
+void CUavosModulesManager::processIncommingServerMessage (const std::string& sender_party_id, const int& message_type, const char * message, const std::size_t datalength, const std::string& sender_module_key)
 {
+    const std::lock_guard<std::mutex> lock(g_i_mutex_process);
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: processIncommingServerMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    std::vector<std::string> &v = m_module_messages[command_type];
+    std::vector<std::string> &v = m_module_messages[message_type];
     for(std::vector<std::string>::iterator it = v.begin(); it != v.end(); ++it) 
     {
         #ifdef DEBUG
@@ -692,7 +700,7 @@ void CUavosModulesManager::processIncommingServerMessage (const std::string& sen
         if (uavos_module == m_modules_list.end()) 
         {
             // no module is registered for this message.
-            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Module " << *it  << " for message " << command_type << " is not available" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Module " << *it  << " for message " << message_type << " is not available" << _NORMAL_CONSOLE_TEXT_ << std::endl;
             
             continue;
         }
@@ -704,7 +712,7 @@ void CUavosModulesManager::processIncommingServerMessage (const std::string& sen
             {
                 andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
                 break;
-            } else if (module_item->is_dead == false)
+            } else if ((module_item->is_dead == false) && ((sender_module_key.empty()) || (module_item->module_key.find(sender_module_key)==std::string::npos)))
             {
                 // clear to send
                 forwardMessageToModule (message, datalength, module_item);
@@ -717,7 +725,7 @@ void CUavosModulesManager::processIncommingServerMessage (const std::string& sen
 
 
 /**
- * @brief forward a message from Andruav Server to a module.
+ * @brief forward a message from Andruav Serveror inter-module to a module.
  * Normally this module is subscribed in this message id.
  * 
  * @param jsonMessage 

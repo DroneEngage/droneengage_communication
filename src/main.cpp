@@ -170,8 +170,6 @@ void onReceive (const char * message, int len, struct sockaddr_in * ssock)
 
     cUavosModulesManager.parseIntermoduleMessage(message, len, ssock);
 
-        // char *connected_ip = inet_ntoa(ssock->sin_addr);
-        // int port = ntohs(ssock->sin_port); 
 }
 
 

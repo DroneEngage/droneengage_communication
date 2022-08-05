@@ -92,7 +92,6 @@ void uavos::comm::CUDPCommunicator::start()
         throw "Starrted called twice";
 
     startReceiver ();
-    //startSenderID();
 
     m_starrted = true;
 }

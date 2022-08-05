@@ -252,8 +252,7 @@ void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const 
             break;
         }
 
-        uavos::CUavosModulesManager& module_manager = uavos::CUavosModulesManager::getInstance();
-        module_manager.processIncommingServerMessage(sender, command_type,  message, datalength);
+        uavos::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  message, datalength, std::string());
     }
     
 }
@@ -348,7 +347,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
             break;
         }
 
-        uavos::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  jsonMessage.c_str(), jsonMessage.length());
+        uavos::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  jsonMessage.c_str(), jsonMessage.length(), std::string());
     }
 }
 

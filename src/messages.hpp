@@ -1,6 +1,13 @@
 
 
 // InterModules command
+/**
+ * @brief CMD_TYPE_INTERMODULE is used when you want to send a message from a  module to another.
+ * This is mainly used to emulate a message comes from an external gcs to a module but is created by another module.
+ * i.e. FCB module can emulate take_image even comes from gcs to camera module.
+ * Even if you do not use CMD_TYPE_INTERMODULE and uses a command id that is for inter-module commands such as id > 9500 
+ * then it will be handled by communicator module such as TYPE_AndruavModule_RemoteExecute.
+ */
 #define CMD_TYPE_INTERMODULE "uv"
 #define CMD_TYPE_SYSTEM_MSG  "s"
 
@@ -66,7 +73,6 @@
 // Andruav Protocol Fields
 #define ANDRUAV_PROTOCOL_GROUP_ID       "gr"
 #define ANDRUAV_PROTOCOL_SENDER         "sd"
-#define ANDRUAV_PROTOCOL_COMM_TYPE      "cm"
 #define ANDRUAV_PROTOCOL_TARGET_ID      "tg"
 #define ANDRUAV_PROTOCOL_MESSAGE_TYPE   "mt"
 #define ANDRUAV_PROTOCOL_MESSAGE_CMD    "ms"
@@ -86,7 +92,7 @@
 // Inter Module Commands
 #define TYPE_AndruavModule_ID                   9100
 #define TYPE_AndruavModule_RemoteExecute        9101
-
+#define TYPE_AndruavModule_Location_Info        9102
 
 
 // Andruav Messages

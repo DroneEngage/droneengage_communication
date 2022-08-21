@@ -40,6 +40,21 @@ namespace uavos
  * @brief Hold information for each Andruav Unit
  * 
  */
+
+
+typedef struct {
+
+    int32_t latitude = 0;
+    int32_t longitude = 0;
+    int32_t altitude = std::numeric_limits<int32_t>::min();  
+    int32_t altitude_relative = std::numeric_limits<int32_t>::min(); 
+    float   air_speed = 0.0f;
+    float   ground_speed = 0.0f;
+    uint64_t last_access_time = 0;
+
+    bool is_new;   
+} ANDRUAV_UNIT_LOCATION;
+
 typedef struct {
   
   bool is_me;
@@ -76,8 +91,7 @@ typedef struct {
   std::string group_name;
   std::string description;
   uint64_t last_access_time;
-        
-
+  
   bool is_new;      
 } ANDRUAV_UNIT_INFO;
 
@@ -109,6 +123,8 @@ class CAndruavUnit
             m_unit_info.flying_last_start_time  = 0;
             m_unit_info.swarm_leader_I_am_following = std::string("");
             m_unit_info.is_new = true;
+
+
         }
 
 
@@ -130,9 +146,14 @@ class CAndruavUnit
             return m_unit_info;
         }
 
-    protected:
+        ANDRUAV_UNIT_LOCATION& getUnitLocationInfo()
+        {
+            return m_unit_location_info;
+        }
 
+    protected:
         ANDRUAV_UNIT_INFO m_unit_info;
+        ANDRUAV_UNIT_LOCATION m_unit_location_info;
 };
 
 

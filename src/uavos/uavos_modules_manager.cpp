@@ -589,8 +589,20 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
         break;
 
         case TYPE_AndruavModule_RemoteExecute:
-        {
+        {   // this is an inter-module message.
             processModuleRemoteExecute(ms);
+        }
+        break;
+
+        case TYPE_AndruavModule_Location_Info:
+        {
+            CAndruavUnitMe& m_andruavMe = CAndruavUnitMe::getInstance();
+            ANDRUAV_UNIT_LOCATION&  location_info = m_andruavMe.getUnitLocationInfo();
+
+            location_info.latitude                      = ms["la"].get<int>();
+            location_info.longitude                     = ms["ln"].get<int>();
+            location_info.altitude                      = ms["a"].get<int>();
+            location_info.altitude_relative             = ms["r"].get<int>();
         }
         break;
         
@@ -618,17 +630,18 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
             andruav_servers::CAndruavFacade::getInstance().API_sendID(std::string());
         }
         break;
+
         default:
         {
             std::string target_id = std::string();
 
             if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_COMM_INDIVIDUAL) != std::string::npos)
-            {
+            {   //CMD_COMM_INDIVIDUAL exists then a single target is mentioned.
                 target_id =jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>();
             }
 
             else if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_TYPE_INTERMODULE) != std::string::npos)
-            {
+            {   //CMD_TYPE_INTERMODULE exists then this message should be processed by other modules. 
                 std::cout << "TYPE_AndruavMessage_Ctrl_Cameras:" << std::string(full_mesage) << std::endl;
                 processIncommingServerMessage (std::string(), mt, full_mesage, full_message_length, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
             }

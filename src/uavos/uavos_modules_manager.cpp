@@ -58,7 +58,7 @@ Json CUavosModulesManager::createJSONID (const bool& reSend)
         const Json& jsonConfig = cConfigFile.GetConfigJSON();
         Json jsonID;        
         
-        jsonID[INTERMODULE_COMMAND_TYPE] =  CMD_TYPE_INTERMODULE;
+        jsonID[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
         jsonID[ANDRUAV_PROTOCOL_MESSAGE_TYPE] =  TYPE_AndruavModule_ID;
         Json ms;
         
@@ -562,7 +562,7 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
         std::cout<< jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE] << std::endl;
     #endif
 
-    if ((!validateField(jsonMessage, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
+    if ((!validateField(jsonMessage, INTERMODULE_ROUTING_TYPE, Json::value_t::string))
         || (!validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
         )
     {
@@ -631,19 +631,28 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
         }
         break;
 
+        case TYPE_AndruavMessage_IMG:
+        {
+
+        }
+        break;
+
         default:
         {
             std::string target_id = std::string();
 
-            if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_COMM_INDIVIDUAL) != std::string::npos)
-            {   //CMD_COMM_INDIVIDUAL exists then a single target is mentioned.
+            if (jsonMessage.contains(INTERMODULE_ROUTING_TYPE) 
+                && (jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>().find(CMD_COMM_GROUP) == std::string::npos)
+                && jsonMessage.contains(ANDRUAV_PROTOCOL_TARGET_ID)
+            )
+            {   //CMD_COMM_GROUP  does not exist and a single target id is mentioned.
                 target_id =jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>();
             }
 
-            else if (jsonMessage.contains(INTERMODULE_COMMAND_TYPE) && jsonMessage[INTERMODULE_COMMAND_TYPE].get<std::string>().find(CMD_TYPE_INTERMODULE) != std::string::npos)
+            else if (jsonMessage.contains(INTERMODULE_ROUTING_TYPE) && jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>().find(CMD_TYPE_INTERMODULE) != std::string::npos)
             {   //CMD_TYPE_INTERMODULE exists then this message should be processed by other modules. 
                 std::cout << "TYPE_AndruavMessage_Ctrl_Cameras:" << std::string(full_mesage) << std::endl;
-                processIncommingServerMessage (std::string(), mt, full_mesage, full_message_length, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
+                processIncommingServerMessage (target_id, mt, full_mesage, full_message_length, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
             }
 
             if (is_binary)

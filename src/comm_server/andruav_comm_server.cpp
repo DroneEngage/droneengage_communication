@@ -209,7 +209,7 @@ void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const 
 
     Json jMsg;
     jMsg = Json::parse(message);
-    if (!validateField(jMsg, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
+    if (!validateField(jMsg, INTERMODULE_ROUTING_TYPE, Json::value_t::string))
     {
         // bad message format
         return ;
@@ -222,7 +222,7 @@ void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const 
     }
 
 
-    if (jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().compare(CMD_TYPE_SYSTEM_MSG)==0)
+    if (jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_SYSTEM_MSG)==0)
     {   // System Message
         
     }
@@ -271,7 +271,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
 
     Json jMsg;
     jMsg = Json::parse(jsonMessage);
-    if (!validateField(jMsg, INTERMODULE_COMMAND_TYPE, Json::value_t::string))
+    if (!validateField(jMsg, INTERMODULE_ROUTING_TYPE, Json::value_t::string))
     {
         // bad message format
         return ;
@@ -284,7 +284,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
     }
 
 
-    if (jMsg[INTERMODULE_COMMAND_TYPE].get<std::string>().compare(CMD_TYPE_SYSTEM_MSG)==0)
+    if (jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_SYSTEM_MSG)==0)
     {
         const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
         switch (command_type)
@@ -607,7 +607,7 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std:
     #endif
 
     Json jMsg;
-    jMsg[INTERMODULE_COMMAND_TYPE] = message_routing;
+    jMsg[INTERMODULE_ROUTING_TYPE] = message_routing;
     jMsg[ANDRUAV_PROTOCOL_SENDER] = sender_name;
     if (!target_party_id.empty())
     {
@@ -616,7 +616,7 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std:
     else
     {
         // Inconsistent packet.... but dont enforce global packet for security reasons.
-        //jMsg[INTERMODULE_COMMAND_TYPE] = CMD_COMM_GROUP; // enforce group if party id is null.
+        //jMsg[INTERMODULE_ROUTING_TYPE] = CMD_COMM_GROUP; // enforce group if party id is null.
     }
     jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] = messageType;
     jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = message;
@@ -634,7 +634,7 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (cons
     #endif
 
     Json jMsg;
-    jMsg[INTERMODULE_COMMAND_TYPE]      = CMD_COMM_SYSTEM;
+    jMsg[INTERMODULE_ROUTING_TYPE]      = CMD_COMM_SYSTEM;
     jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] = messageType;
     jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD]  = message;
     

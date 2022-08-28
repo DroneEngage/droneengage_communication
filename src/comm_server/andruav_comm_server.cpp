@@ -547,7 +547,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
  * @param bmsg 
  * @param bmsg_length
  */
-void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const int bmsg_length)
+void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const int bmsg_length, const Json& message_cmd)
 {
     static std::mutex g_i_mutex; 
 
@@ -569,7 +569,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
 
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
-        Json json  = this->generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, Json());
+        Json json  = this->generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, message_cmd);
         std::string json_msg = json.dump();
         char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
         std::unique_ptr<char []> msg = std::unique_ptr<char []> (msg_ptr);

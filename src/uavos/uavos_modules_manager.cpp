@@ -539,16 +539,16 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
  * @brief 
  * Process messages recieved from module and may forward to Andruav ommunication server.
  * @details 
- * @param full_mesage 
+ * @param full_message 
  * @param full_message_length 
  * @param ssock sender module ip & port
  */
-void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_in* ssock)
+void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, const std::size_t full_message_length, const struct sockaddr_in* ssock)
 {
     Json jsonMessage;
     try
     {
-        jsonMessage = Json::parse(full_mesage);
+        jsonMessage = Json::parse(full_message);
     }
     catch (...)
     {
@@ -556,7 +556,7 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
         return ;
     }
 
-    const bool is_binary =  !(full_mesage[full_message_length-1]==125 || (full_mesage[full_message_length-2]==125));
+    const bool is_binary =  !(full_message[full_message_length-1]==125 || (full_message[full_message_length-2]==125));
     
     #ifdef DEBUG
         std::cout<< jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE] << std::endl;
@@ -569,8 +569,19 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
         // bad message format
         return ;
     }
-    
+  
+    std::string target_id = std::string();
+
+    if ((jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>().find(CMD_COMM_GROUP) == std::string::npos)
+        && jsonMessage.contains(ANDRUAV_PROTOCOL_TARGET_ID)
+        )
+    {   //CMD_COMM_GROUP  does not exist and a single target id is mentioned.
+        target_id =jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>();
+    }
+
     // Intermodule Message
+    const bool intermodule_msg = (jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>().find(CMD_TYPE_INTERMODULE) != std::string::npos);
+
     const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
                 
@@ -582,7 +593,7 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
             
             if (updated == true)
             {
-                andruav_servers::CAndruavFacade::getInstance().API_sendID(std::string());
+                andruav_servers::CAndruavFacade::getInstance().API_sendID(target_id);
             }
             
         }
@@ -596,6 +607,11 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
 
         case TYPE_AndruavModule_Location_Info:
         {
+            /*
+              This is an inter-module message to make communicator-module aware of vehicle location.
+              This message can be sent from any module who owns any information about location and motion.
+            */
+            
             CAndruavUnitMe& m_andruavMe = CAndruavUnitMe::getInstance();
             ANDRUAV_UNIT_LOCATION&  location_info = m_andruavMe.getUnitLocationInfo();
 
@@ -603,11 +619,21 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
             location_info.longitude                     = ms["ln"].get<int>();
             location_info.altitude                      = ms["a"].get<int>();
             location_info.altitude_relative             = ms["r"].get<int>();
+            location_info.h_acc                         = ms["ha"].get<int>();
+            location_info.yaw                           = ms["y"].get<int>();
+            location_info.last_access_time              = get_time_usec();
+            location_info.is_new                        = true;
+            location_info.is_valid                      = true;
         }
         break;
         
         case TYPE_AndruavMessage_ID:
         {
+            /*
+                This message is always internal message sent to communicator-module CM.
+                CM updates fields of the original TYPE_AndruavMessage_ID and 
+                forwards a complete copy to Andruav-Server.
+            */
             CAndruavUnitMe& m_andruavMe = CAndruavUnitMe::getInstance();
             ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
             
@@ -632,36 +658,75 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_mesage, co
         break;
 
         case TYPE_AndruavMessage_IMG:
-        {
+        { 
+            if (!intermodule_msg)
+            {
+                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
+                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
+                andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, &binary_message[1], binary_length, Json());   
 
+                break;
+            }
+            
+            CAndruavUnitMe& m_andruavMe = CAndruavUnitMe::getInstance();
+            ANDRUAV_UNIT_LOCATION&  location_info = m_andruavMe.getUnitLocationInfo();
+
+            if (location_info.is_valid)
+            {
+                // Generate message part ANDRUAV_PROTOCOL_MESSAGE_CMD
+                Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+                ms["prv"] = std::string ("gps");
+                ms["lat"] = location_info.latitude;
+                ms["lng"] = location_info.longitude;
+                ms["alt"] = location_info.altitude;
+                ms["tim"] = get_time_usec();
+                
+                // binary_message is the image if exists.
+                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
+                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
+                
+                // prepare an array for the whole message [text part length + delimiter 0 + binary length]
+                // const int string_length = json_msg.length();
+                // int length = string_length + 1 + binary_length;
+                // char * msg_ptr = new char[length];
+                // std::unique_ptr<char[]> binary_message_new = std::unique_ptr<char []> (msg_ptr);
+                // // copy json part
+                // memcpy(msg_ptr,json_msg.c_str(),string_length);
+                // // add zero '0' delimeter
+                // msg_ptr[json_msg.length()] = 0;
+                // // copy binary message
+                // if (binary_length != 0)
+                // {
+                //     // empty binary contents of a binary can exist if binary contents is optional
+                //     // or will be filled by communicator module.
+                //     memcpy(&binary_message_new[json_msg.length()+1], binary_message, binary_length, ms);
+                // }
+
+                
+                andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, binary_message, binary_length, ms); 
+
+                // binary_message_new.release();
+            }
         }
         break;
 
         default:
         {
-            std::string target_id = std::string();
-
-            if (jsonMessage.contains(INTERMODULE_ROUTING_TYPE) 
-                && (jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>().find(CMD_COMM_GROUP) == std::string::npos)
-                && jsonMessage.contains(ANDRUAV_PROTOCOL_TARGET_ID)
-            )
-            {   //CMD_COMM_GROUP  does not exist and a single target id is mentioned.
-                target_id =jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>();
-            }
-
-            else if (jsonMessage.contains(INTERMODULE_ROUTING_TYPE) && jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>().find(CMD_TYPE_INTERMODULE) != std::string::npos)
+            
+            if (intermodule_msg)
             {   //CMD_TYPE_INTERMODULE exists then this message should be processed by other modules. 
-                std::cout << "TYPE_AndruavMessage_Ctrl_Cameras:" << std::string(full_mesage) << std::endl;
-                processIncommingServerMessage (target_id, mt, full_mesage, full_message_length, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
+                std::cout << "TYPE_AndruavMessage_Ctrl_Cameras:" << std::string(full_message) << std::endl;
+                processIncommingServerMessage (target_id, mt, full_message, full_message_length, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
+                return ;
             }
 
             if (is_binary)
             {    
                 // search for char '0' and then binary message is the next byte after it.
-                const char * binary_message = (char *)(memchr (full_mesage, 0x0, full_message_length));
-                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_mesage +1));
+                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
+                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
     
-                andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, &binary_message[1], binary_length);            
+                andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, &binary_message[1], binary_length, Json());            
             }
             else
             {

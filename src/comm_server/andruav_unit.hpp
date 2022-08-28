@@ -51,8 +51,13 @@ typedef struct {
     float   air_speed = 0.0f;
     float   ground_speed = 0.0f;
     uint64_t last_access_time = 0;
+    uint32_t h_acc; /*< [mm] Position uncertainty.*/
+    uint32_t v_acc; /*< [mm] Altitude uncertainty.*/
+    uint32_t vel_acc; /*< [mm] Speed uncertainty.*/
+    uint16_t yaw; /*< [cdeg] Yaw in earth frame from north. Use 0 if this GPS does not provide yaw. Use 65535 if this GPS is configured to provide yaw and is currently unable to provide it. Use 36000 for north.*/
 
-    bool is_new;   
+    bool is_valid = false;
+    bool is_new = false;   
 } ANDRUAV_UNIT_LOCATION;
 
 typedef struct {

@@ -99,7 +99,8 @@
 #define TYPE_AndruavMessage_GPS                     1002
 #define TYPE_AndruavMessage_POWER                   1003
 #define TYPE_AndruavMessage_ID 	                    1004
-#define TYPE_AndruavMessage_RemoteExecute 		    1005     
+#define TYPE_AndruavMessage_RemoteExecute 		    1005
+#define TYPE_AndruavMessage_IMG                     1006
 #define TYPE_AndruavMessage_Error                   1008    
 #define TYPE_AndruavMessage_FlightControl           1010
 #define TYPE_AndruavMessage_CameraList 			    1012  //RX: {"tg":"GCS1","sd":"zxcv","ty":"c","gr":"1","cm":"i","mt":1012,"ms":"{\"E\":2,\"P\":0,\"I\":\"zxcv\"}"}

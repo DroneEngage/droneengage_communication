@@ -13,14 +13,14 @@
 
     
     // Drone-Engage Communication Server Connection
-    "auth_ip"                   : "rcmobilestuff.com",
+    "auth_ip"                   : "cloud.ardupilot.org",
     "auth_port"                 : 19408,
     "auth_verify_ssl"           : true,
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
     "root_certificate_path"     : "./root.crt",
 
-    "userName"                  :"team@ardupilot.org", 
-    "accessCode"                :"1234",
+    "userName"                  :"single@airgap.droneengae.com", 
+    "accessCode"                :"test",
     "partyID"                   :"UL2",
     "unitID"                    :"drone_cairo",
     "groupID"                   :"1",

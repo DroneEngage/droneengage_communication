@@ -22,6 +22,25 @@
                     "ignoreFailures": true
                 }
             ]
+        },
+        {
+            "name": "home",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/de_comm.so",
+            "args": ["--config",  "config.home.module.json"],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing -gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }

@@ -79,7 +79,7 @@ namespace andruav_servers
 
         public:
 
-            void API_sendSystemMessage(const int command_type, const std::string& msg) const;
+            void API_sendSystemMessage(const int command_type, const Json& msg) const;
             void API_sendCMD (const std::string& target_party_id, const int command_type, const Json& msg);
             void API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const int bmsg_length, const Json& message_cmd);
 
@@ -103,7 +103,7 @@ namespace andruav_servers
             void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json& jsonMessage);
             
             Json generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json& message) const;
-            Json generateJSONSystemMessage (const int messageType, const std::string& message) const;
+            Json generateJSONSystemMessage (const int messageType, const Json& message) const;
             
         private:
             std::shared_ptr<uavos::andruav_servers::CWSSession> _cwssession;  

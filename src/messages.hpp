@@ -65,9 +65,10 @@
   
 
 // Reserved Target Values
-#define ANDRUAV_PROTOCOL_SENDER_ALL_GCS "_GCS_"
-#define ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS "_AGN_"
-#define ANDRUAV_PROTOCOL_SENDER_ALL "_GD_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL_GCS         "_GCS_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS      "_AGN_"
+#define ANDRUAV_PROTOCOL_SENDER_ALL             "_GD_"
+#define SPECIAL_NAME_SYS_NAME                   "_SYS_"
 
 
 // Andruav Protocol Fields
@@ -88,6 +89,7 @@
 #define TYPE_AndruavSystem_Ping                 9005
 #define TYPE_AndruavSystem_LogoutCommServer     9006
 #define TYPE_AndruavSystem_ConnectedCommServer  9007
+#define TYPE_AndruavSystem_UdpProxy             9008
 
 // Inter Module Commands
 #define TYPE_AndruavModule_ID                   9100
@@ -136,6 +138,7 @@
 #define TYPE_AndruavMessage_MAKE_SWARM              1056
 #define TYPE_AndruavMessage_UpdateSwarm             1058
 #define TYPE_AndruavMessage_Prepherials             1070
+#define TYPE_AndruavMessage_UDPProxy_Info           1071
 #define TYPE_AndruavMessage_LightTelemetry          2022
 
 // New Binary Messages 
@@ -237,7 +240,6 @@
 
 
 #define SPECIAL_NAME_ANY                "_any_"
-#define SPECIAL_NAME_SYS_NAME           "_sys_"
 #define SPECIAL_NAME_ALL_RECEIVERS      "_generic_"
 #define SPECIAL_NAME_VEHICLE_RECEIVERS  "_drone_"
 #define SPECIAL_NAME_GCS_RECEIVERS      "_gcs_"

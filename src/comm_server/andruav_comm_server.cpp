@@ -487,7 +487,7 @@ void uavos::andruav_servers::CAndruavCommServer::uninit()
 
 
 
-void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int command_type, const std::string& msg) const 
+void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int command_type, const Json& msg) const 
 {
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
@@ -529,7 +529,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
         _cwssession.get()->writeText(json_msg.dump());
 
         // #ifdef DEBUG
-        // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << jmsg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << json_msg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
         // #endif
     } 
 }
@@ -626,7 +626,7 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std:
 }
 
 
-Json uavos::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (const int messageType, const std::string& message) const
+Json uavos::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (const int messageType, const Json& message) const
 {
 
     #ifdef DEBUG

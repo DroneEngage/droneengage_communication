@@ -126,6 +126,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIRECTORY})
 add_subdirectory(src)
 
 configure_file(config.module.json ${OUTPUT_DIRECTORY}/config.module.json COPYONLY)
+configure_file(root.crt ${OUTPUT_DIRECTORY}/root.crt COPYONLY)
 
 
 message ("${Yellow}=========================================================================${ColourReset}")

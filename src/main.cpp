@@ -121,7 +121,7 @@ void scheduler ()
                 if (helpers::CUtil_Rpi::getInstance().get_throttled(cpu_status))
                 {
                     #ifdef DEBUG
-                        std::cout  << "get_throttled: " << std::to_string(cpu_status) << std::endl;
+                        std::cout  << "get_cpu_throttled: " << std::to_string(cpu_status) << std::endl;
                     #endif
                 }
 

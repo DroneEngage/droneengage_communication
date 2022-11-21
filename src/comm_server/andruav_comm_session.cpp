@@ -218,11 +218,20 @@ void uavos::andruav_servers::CWSSession::writeText (const std::string message)
          std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
+    try
+    {
+        const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
+        ws_.binary(false);
+        ws_.write(net::buffer(std::string(message)));
+    }
+    catch (const std::exception& ex)
+    {
+        std::cout << "WebSocket Disconnected with Andruav Server on writeBinary" <<   std::endl;
+        m_callback.onSocketError();
+        return ;
+    }
     
-    ws_.binary(false);
-    ws_.write(net::buffer(std::string(message)));
-    
+    return ;
 }
 
 
@@ -232,14 +241,20 @@ void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const i
     #ifdef DEBUG_2
          std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "write Binary" << std::endl;
     #endif
- 
-    const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
-    ws_.binary(true);
-    ws_.write(net::buffer(bmsg, length));
- 
-    //TODO: BUG exception happens hear and disconnect socket. You need to reconnect socket again. Otherwise it fakes a valid connection but telemetry dies.
-    
-    
+    try
+    {
+        const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
+        ws_.binary(true);
+        ws_.write(net::buffer(bmsg, length));
+    }
+    catch (const std::exception& ex)
+    {
+        std::cout << "WebSocket Disconnected with Andruav Server on writeBinary" <<   std::endl;
+        m_callback.onSocketError();
+        return ;
+    }
+
+    return ;
 }
 
 

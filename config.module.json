@@ -19,8 +19,8 @@
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
     "root_certificate_path"     : "./root.crt",
 
-    "userName"                  :"single@airgap.droneengae.com", 
-    "accessCode"                :"test",
+    "userName"                  :"team@ardupilot.org", 
+    "accessCode"                :"1234",
     "partyID"                   :"UL2",
     "unitID"                    :"drone_cairo",
     "groupID"                   :"1",

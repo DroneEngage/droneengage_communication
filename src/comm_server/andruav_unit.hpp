@@ -5,6 +5,10 @@
 #include <string>
 #include <map>
 
+
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
+
 #include "../helpers/helpers.hpp"
 #include "../helpers/json.hpp"
 using Json = nlohmann::json;
@@ -143,6 +147,8 @@ class CAndruavUnit
             m_unit_info.is_me = false;
             m_unit_info.party_id = party_id;
             m_unit_info.last_access_time = get_time_usec();
+            
+            PLOG(plog::info) << "PartyEntry Created:" << party_id;
         }
 
 

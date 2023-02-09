@@ -44,6 +44,7 @@ typedef struct
     Json modules_features = Json::array();
     std::string module_key;
     std::string hardware_serial;
+    std::string version;
     int hardware_type;
     uint64_t module_last_access_time = 0;
     bool is_dead = false;
@@ -126,6 +127,8 @@ namespace uavos
 
             void handleOnAndruavServerConnection (const int status);
             
+            Json getModuleListAsJSON();
+
         private:
 
             bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);

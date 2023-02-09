@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
 
 
 #include "../helpers/colors.hpp"
@@ -61,6 +63,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         {"DS", jsonConfig["unitDescription"]},              // unit Description
         {"p",  unit_info.permission},                       // permissions
         {"dv", version_string},                             // de version
+        {"m1", uavos::CUavosModulesManager::getInstance().getModuleListAsJSON()}
     };
  
     if (unit_info.is_tracking_mode)
@@ -156,11 +159,16 @@ void uavos::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::st
 
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
     
+    PLOG(plog::info) << "API_sendErrorMessage: error_number:" << std::to_string(error_number) << " info_type:" << std::to_string(info_type) << " notification_type:" << std::to_string(notification_type) << " description:" << description; 
+        
     return ;
 }
 
 void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScope(const ENUM_TASK_SCOPE scope, const int task_type) const
 {
+    
+    PLOG(plog::info) << "LoadTasksByScope called"; 
+    
     switch (scope)
     {
         case SCOPE_GLOBAL:
@@ -182,6 +190,8 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScope(const ENUM_TAS
 
 void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGlobal(const int task_type) const
 {
+    PLOG(plog::info) << "API_loadTasksByScopeGlobal called"; 
+    
     API_loadTask(0,
         SPECIAL_NAME_ANY,
         SPECIAL_NAME_ANY,
@@ -197,6 +207,8 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGlobal(const in
 void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeAccount(const int task_type) const
 {
     
+    PLOG(plog::info) << "API_loadTasksByScopeAccount called"; 
+    
     API_loadTask(0,
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
         SPECIAL_NAME_ANY,
@@ -211,6 +223,8 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeAccount(const i
 
 void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGroup(const int task_type) const
 {
+    PLOG(plog::info) << "API_loadTasksByScopeGroup called"; 
+    
     API_loadTask(0,
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
         SPECIAL_NAME_ANY,
@@ -225,6 +239,8 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGroup(const int
 
 void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopePartyID(const int task_type) const
 {
+    PLOG(plog::info) << "API_loadTasksByScopePartyID called"; 
+    
     API_loadTask(0,
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
         uavos::CAndruavUnitMe::getInstance().getUnitInfo().party_id,
@@ -240,6 +256,8 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopePartyID(const i
 void uavos::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_SID, const std::string& account_id, const std::string& party_sid, const std::string& group_name, const std::string& sender, const std::string& receiver, const int msg_type, bool is_permanent ) const
 {
 
+    PLOG(plog::info) << "API_loadTask called"; 
+    
     Json message =
         {
             {"lts", larger_than_SID},

@@ -1,5 +1,4 @@
 
-
 file(GLOB folder_src "./*.cpp")
 file(GLOB folder_helpers "./helpers/*.cpp")
 file(GLOB folder_common "./comm_server/*.cpp")
@@ -21,8 +20,7 @@ set_target_properties( OUTPUT_BINARY
                 )
 
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-
-#target_link_libraries(OUTPUT_BINARY  ${Boost_LIBRARIES} OpenSSL::Crypto OpenSSL::SSL CURL::libcurl Threads::Threads )
+include_directories(./3rdparty)
  target_link_libraries(OUTPUT_BINARY   OpenSSL::Crypto OpenSSL::SSL CURL::libcurl Threads::Threads )
  target_link_libraries(OUTPUT_BINARY ${Boost_LIBRARY_DIRS}/libboost_coroutine.a)
  target_link_libraries(OUTPUT_BINARY ${Boost_LIBRARY_DIRS}/libboost_thread.a)

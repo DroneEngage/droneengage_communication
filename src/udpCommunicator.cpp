@@ -11,6 +11,8 @@ using Json = nlohmann::json;
 
 #include "udpCommunicator.hpp"
 
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
 
 #define MAXLINE 8192 
 char buffer[MAXLINE]; 
@@ -52,7 +54,7 @@ uavos::comm::CUDPCommunicator::~CUDPCommunicator ()
  */
 void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort)
 {
-
+    
     // pthread initialization
 	m_thread = pthread_self(); // get pthread ID
 	pthread_setschedprio(m_thread, SCHED_FIFO); // setting priority
@@ -61,6 +63,7 @@ void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort)
     // Creating socket file descriptor 
     if ( (m_SocketFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
         perror("socket creation failed"); 
+        PLOG(plog::error) << "socket creation failed" ; 
         exit(EXIT_FAILURE); 
     }
 
@@ -77,6 +80,7 @@ void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort)
     if (bind(m_SocketFD, (const struct sockaddr *)m_CommunicatorModuleAddress, sizeof(struct sockaddr_in)) < 0 ) 
     { 
         std::cout << "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        PLOG(plog::error) << "UDP Listener BAD BIND: " << host << ":" << listenningPort ; 
         exit(-1) ;
     } 
 }
@@ -129,6 +133,7 @@ void uavos::comm::CUDPCommunicator::stop()
     catch(...)
     {
         //std::cerr << e.what() << '\n';
+        PLOG(plog::error) << "CUDPCommunicator::stop() exception" ; 
     }
 
     #ifdef DEBUG
@@ -203,5 +208,6 @@ void uavos::comm::CUDPCommunicator::SendMsg(const char * message, const std::siz
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
+        PLOG(plog::error) << e.what(); 
     }
 }

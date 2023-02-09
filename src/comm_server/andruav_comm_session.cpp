@@ -17,6 +17,11 @@
 #include "../helpers/colors.hpp"
 #include <boost/asio.hpp>
 #include "andruav_comm_session.hpp"
+
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
+
+
 //------------------------------------------------------------------------------
 
 static std::mutex g_i_mutex_writeText, g_i_mutex_on_read; 
@@ -226,7 +231,8 @@ void uavos::andruav_servers::CWSSession::writeText (const std::string message)
     }
     catch (const std::exception& ex)
     {
-        std::cout << "WebSocket Disconnected with Andruav Server on writeBinary" <<   std::endl;
+        std::cout << "WebSocket Disconnected with Andruav Server on writeText" <<   std::endl;
+        PLOG(plog::error) << "WebSocket Disconnected with Andruav Server on writeText."; 
         m_callback.onSocketError();
         return ;
     }
@@ -250,6 +256,7 @@ void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const i
     catch (const std::exception& ex)
     {
         std::cout << "WebSocket Disconnected with Andruav Server on writeBinary" <<   std::endl;
+        PLOG(plog::error) << "WebSocket Disconnected with Andruav Server on writeBinary."; 
         m_callback.onSocketError();
         return ;
     }
@@ -260,6 +267,9 @@ void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const i
 
 void uavos::andruav_servers::CWSSession::close ()
 {
+    PLOG(plog::info) << "Close websocket with Communication Server inprogress."; 
     ws_.close(websocket::close_code::normal);
+    PLOG(plog::info) << "Close websocket with Communication Server done."; 
+        
 }
         

@@ -21,6 +21,7 @@
 #define JSON_INTERMODULE_SOCKET_STATUS          "g"
 #define JSON_INTERMODULE_HARDWARE_ID            "s"
 #define JSON_INTERMODULE_HARDWARE_TYPE          "t"
+#define JSON_INTERMODULE_VERSION                "v"
 #define JSON_INTERMODULE_TIMESTAMP_INSTANCE     "u"
 #define JSON_INTERMODULE_RESEND                 "z"
 

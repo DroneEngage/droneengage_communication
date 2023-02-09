@@ -26,6 +26,12 @@
     "groupID"                   :"1",
     "unitDescription"           :"de_unit 1",
     
+    // Logger Section
+    "logger_enabled"            : true,
+    "logger_file_prfix"         : "./de_comm.log",
+    "logger_debug"              : false,
+
+
     // "led_pins_enabled" is optional and default value is true                           
     "led_pins_enabled" : false,
     // "led_pins" optional field

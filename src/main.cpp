@@ -38,6 +38,9 @@
 #include "./notification_module/leds.hpp"
 #include "./notification_module/buzzer.hpp"
 
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
+
 using namespace boost;
 using namespace std;
 
@@ -178,6 +181,38 @@ void initScheduler()
     m_scheduler = std::thread (scheduler);
 }
 
+void initLogger()
+{
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    
+    if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
+    {
+        std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        return ;
+    }
+
+    std::string log_filename = "log";
+    bool debug_log = false; 
+    if (jsonConfig.contains("logger_file_prfix"))
+    {
+        log_filename = jsonConfig["logger_file_prfix"].get<std::string>();
+    }
+    if (jsonConfig.contains("logger_debug"))
+    {
+        debug_log = jsonConfig["logger_debug"].get<bool>();
+    }
+
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _NORMAL_CONSOLE_TEXT_ << " detailed:" << debug_log <<  std::endl;
+        
+
+    plog::init(plog::debug, log_filename.c_str()); 
+
+    PLOG(plog::info) << "Drone-Engage Communicator Server version " << version_string; 
+    
+}
 
 void defineMe()
 {
@@ -321,6 +356,8 @@ void init (int argc, char *argv[])
     
     cConfigFile.InitConfigFile (configName.c_str());
     
+    initLogger();
+
     defineMe();
     
     initGPIO();

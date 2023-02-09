@@ -10,6 +10,9 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
 
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
+
 #include "../helpers/colors.hpp"
 #include "../helpers/helpers.hpp"
 
@@ -86,6 +89,8 @@ Json CUavosModulesManager::createJSONID (const bool& reSend)
         //https://stackoverflow.com/questions/315948/c-catching-all-exceptions/24142104
         std::exception_ptr p = std::current_exception();
         std::clog <<(p ? p.__cxa_exception_type()->name() : "null") << std::endl;
+        
+        PLOG(plog::error)<<(p ? p.__cxa_exception_type()->name() : "null") ; 
         
         return Json();
     }
@@ -394,17 +399,23 @@ void CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * module_item)
         if (auth.doValidateHardware(module_item->hardware_serial, module_item->hardware_type))
         {
             std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Module License OK: " << _SUCCESS_CONSOLE_TEXT_ << module_item->module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            PLOG(plog::info)<< "Module License OK: " << module_item->module_id ;
+
             module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_OK;
         }
         else
         {
             std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Module License Invalid: " << _ERROR_CONSOLE_TEXT_ << module_item->module_id<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+            PLOG(plog::error)<< "Module License Invalid: " << module_item->module_id ;
+
             module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_BAD;
             andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
         }
     }
     else
     {
+        PLOG(plog::warning)<< "Module License " << module_item->module_id << " could not been verified";
+        
         module_item->licence_status = ENUM_LICENCE::LICENSE_NOT_VERIFIED;
     }
 }
@@ -464,13 +475,24 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
         {
             module_item->licence_status = ENUM_LICENCE::LICENSE_NO_DATA;
         }
+
+        if (msg_cmd.contains(JSON_INTERMODULE_VERSION))
+        {
+            module_item->version = msg_cmd[JSON_INTERMODULE_VERSION].get<std::string>();;
+        }
+        else
+        {
+            module_item->version = std::string("na");
+        }
+
         struct sockaddr_in * module_address = new (struct sockaddr_in)();  
         memcpy(module_address, ssock, sizeof(struct sockaddr_in)); 
                 
         module_item->m_module_address = std::unique_ptr<struct sockaddr_in>(module_address);
                 
         m_modules_list.insert(std::make_pair(module_item->module_id, std::unique_ptr<MODULE_ITEM_TYPE>(module_item)));
-
+        
+        PLOG(plog::info)<<"Module Adding: " << module_item->module_id ; 
         
     }
     else
@@ -487,6 +509,7 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
             module_item->time_stamp = msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>();
             andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " has been restarted."));
         
+            PLOG(plog::warning)<<"Module has been restarted: " << module_item->module_id ;
         }
         
         if (module_item->licence_status == ENUM_LICENCE::LICENSE_NOT_VERIFIED)
@@ -935,4 +958,30 @@ void CUavosModulesManager::handleOnAndruavServerConnection (const int status)
 
         forwardMessageToModule(msg_dump.c_str(), msg_dump.length(),module_item);
     }
+}
+
+
+Json CUavosModulesManager::getModuleListAsJSON ()
+{
+    Json modules = Json::array();
+    
+    MODULE_ITEM_LIST::iterator it;
+    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    
+    for (it = m_modules_list.begin(); it != m_modules_list.end(); it++)
+    {
+        MODULE_ITEM_TYPE * module_item = it->second.get();
+
+        Json json_module_entry =
+        {
+            // check uavos_camera_plugin
+            {"v", module_item->version},
+            {"i", module_item->module_id},
+            {"c", module_item->module_class},
+            {"t", module_item->time_stamp},
+        };
+        modules.push_back(json_module_entry);
+    }
+
+    return modules;
 }

@@ -6,3 +6,4 @@ build/
 config.null.json
 doxygen_doc/
 
+*.log

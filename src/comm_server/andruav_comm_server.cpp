@@ -7,6 +7,8 @@
 
 #define BOOST_BEAST_ALLOW_DEPRECATED
 
+#include <plog/Log.h> 
+#include "plog/Initializers/RollingFileInitializer.h"
 
 
 #include "../helpers/colors.hpp"
@@ -122,6 +124,7 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
     catch(std::exception const& e)
     {
         std::cerr << "Error: " << e.what() << std::endl;
+        PLOG(plog::error) << e.what(); 
         return ;
     }
 }
@@ -169,6 +172,7 @@ void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std:
     catch(std::exception const& e)
     {
         std::cerr << "Error: " << e.what() << std::endl;
+        PLOG(plog::error) << e.what(); 
         return ;
     }
 }
@@ -297,6 +301,8 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                 if (message_cmd["s"].get<std::string>().find("OK")==0)
                 {
                     std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Andruav Server Connected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    PLOG(plog::info) << "Andruav Server Connected: Success ";
+                    
                     m_status = SOCKET_STATUS_REGISTERED;
                     //_cwssession.get()->writeText("OK");
                     uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID(std::string());
@@ -305,6 +311,8 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                 else
                 {
                     std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Andruav Server Connected: Failed "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    PLOG(plog::error) << "Andruav Server Connected: Failed "; 
+
                     m_status = SOCKET_STATUS_ERROR;
                 }
                 uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
@@ -471,6 +479,8 @@ void uavos::andruav_servers::CAndruavCommServer::uninit()
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
+    PLOG(plog::info) << "uninit initiated."; 
+        
     m_exit = true;
     
     _cwssession.get()->close();
@@ -478,7 +488,8 @@ void uavos::andruav_servers::CAndruavCommServer::uninit()
     // wait for exit
 	pthread_join(m_watch_dog ,NULL);
 	
-
+    PLOG(plog::info) << "uninit finished."; 
+    
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit OUT " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif

@@ -28,7 +28,6 @@
     
     // Logger Section
     "logger_enabled"            : true,
-    "logger_file_prfix"         : "./de_comm.log",
     "logger_debug"              : false,
 
 

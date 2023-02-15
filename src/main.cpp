@@ -194,10 +194,6 @@ void initLogger()
 
     std::string log_filename = "log";
     bool debug_log = false; 
-    if (jsonConfig.contains("logger_file_prfix"))
-    {
-        log_filename = jsonConfig["logger_file_prfix"].get<std::string>();
-    }
     if (jsonConfig.contains("logger_debug"))
     {
         debug_log = jsonConfig["logger_debug"].get<bool>();
@@ -205,13 +201,20 @@ void initLogger()
 
     std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _NORMAL_CONSOLE_TEXT_ << " detailed:" << debug_log <<  std::endl;
         
 
-    plog::init(plog::debug, log_filename.c_str()); 
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+    std::ostringstream log_filename_final;
+    log_filename_final <<  "./logs/log_" << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S") << ".log";
+    mkdir("./logs/",0777);
+
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " detailed:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  std::endl;
+    auto log_level = debug_log==true?plog::debug:plog::info;
+
+    plog::init(log_level, log_filename_final.str().c_str()); 
 
     PLOG(plog::info) << "Drone-Engage Communicator Server version " << version_string; 
-    
 }
 
 void defineMe()

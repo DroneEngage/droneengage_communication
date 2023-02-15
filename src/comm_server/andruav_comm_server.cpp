@@ -81,9 +81,15 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
     try
     {
 
-        if ((m_status == SOCKET_STATUS_REGISTERED) || (m_status == SOCKET_STATUS_CONNECTING))
+        if (m_status == SOCKET_STATUS_CONNECTING)
         {
-            
+            PLOG(plog::info) << "Communicator Server Connection Status: SOCKET_STATUS_CONNECTING";
+            return ;
+        }
+
+        if (m_status == SOCKET_STATUS_REGISTERED)
+        {
+            PLOG(plog::info) << "Communicator Server Connection Status: SOCKET_STATUS_REGISTERED";
             return ;
         }
 
@@ -105,6 +111,7 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
         if (!andruav_auth.doAuthentication() || !andruav_auth.isAuthenticationOK())   
         {
             m_status = SOCKET_STATUS_ERROR;
+            PLOG(plog::error) << "Communicator Server Connection Status: SOCKET_STATUS_ERROR"; 
             uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
             return ;
         }
@@ -124,7 +131,7 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
     catch(std::exception const& e)
     {
         std::cerr << "Error: " << e.what() << std::endl;
-        PLOG(plog::error) << e.what(); 
+        PLOG(plog::error) << "Communicator Server Connection Status: " << e.what(); 
         return ;
     }
 }
@@ -172,7 +179,7 @@ void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std:
     catch(std::exception const& e)
     {
         std::cerr << "Error: " << e.what() << std::endl;
-        PLOG(plog::error) << e.what(); 
+        PLOG(plog::error) << "Connecting to Communication Server IP (" << m_host << ") Port(" << m_port << ") PartyID (" << m_party_id << ") failed with error:" << e.what(); 
         return ;
     }
 }
@@ -188,12 +195,12 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
     if (m_exit== true)
     {
         m_status =  SOCKET_STATUS_DISCONNECTED;  
+        PLOG(plog::warning) << "Communicator Server Connection Status: SOCKET_STATUS_DISCONNECTED with m_exit is TRUE"; 
     }
     else
     {
         m_status = SOCKET_STATUS_ERROR;
-
-        // TODO Send Internal Message to Modules telling them we are no longer connected.
+        PLOG(plog::error) << "Communicator Server Connection Status: SOCKET_STATUS_ERROR"; 
     }
 
     uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);

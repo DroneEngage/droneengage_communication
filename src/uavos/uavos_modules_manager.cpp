@@ -740,9 +740,13 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
         default:
         {
             
-            if (intermodule_msg)
-            {   //CMD_TYPE_INTERMODULE exists then this message should be processed by other modules. 
+            if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
+            {
                 processIncommingServerMessage (target_id, mt, full_message, full_message_length, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
+            }
+
+            if (intermodule_msg)
+            {   //CMD_TYPE_INTERMODULE exists then this message should be processed by other modules only. 
                 return ;
             }
 

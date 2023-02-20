@@ -4,5 +4,5 @@
 
 #include <stdio.h>
 
-static std::string version_string = __APP__VERSION__;
+static std::string version_string = __APP__VERSION__; 
 #endif 

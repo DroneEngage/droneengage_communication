@@ -57,7 +57,7 @@ std::thread m_scheduler;
 bool exit_scheduler = false;
 
     
-static std::string configName = "config.module.json";
+static std::string configName = "de_comm.config.module.json";
 
 
 void quit_handler( int sig );
@@ -79,7 +79,7 @@ void _usage(void)
 {
     _version ();
     std::cout << std::endl << _INFO_CONSOLE_TEXT "Options" << _NORMAL_CONSOLE_TEXT_ << std::ends;
-    std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--config:          -c ./config.json   default [./config.module.json]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
+    std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--config:          -c ./config.json   default [./de_comm.config.module.json]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--version:         -v" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
@@ -251,7 +251,6 @@ void connectToCommServer ()
  */
 void initSockets()
 {
-
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
     
     // UDP Server

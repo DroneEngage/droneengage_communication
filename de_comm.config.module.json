@@ -30,6 +30,8 @@
     "logger_enabled"            : true,
     "logger_debug"              : false,
 
+    // hack - sometimes you need to restart the app when connection is down:
+    "restart_when_no_connection": "true",
 
     // "led_pins_enabled" is optional and default value is true                           
     "led_pins_enabled" : false,

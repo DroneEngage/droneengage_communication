@@ -32,6 +32,55 @@
 
 using namespace uavos::andruav_servers;
 
+void* uavos::andruav_servers::startWatchDogThread2(void *args)
+{
+    /**
+     * @brief This function mainly detects if communication is idle and there is no disconnection has been detected.
+     * It does that by sending PING backed to Communication Server and geting the reply.
+     * Receiving a ping message will result in incrementing @link.getLastTimeAccess()
+     * A delay for 2 seconds (default) will cause a restart.
+     */
+    
+    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    UNUSED (andruav_server);
+        
+    while (true)
+    {
+        for (int i=0;i<50;++i)
+        {
+            if (andruav_server.shouldExit()) 
+            {
+                return NULL;
+            }
+
+            if ((andruav_server.getLastTimeAccess()!=0)
+                &&                                                       
+                ((get_time_usec() - andruav_server.getLastTimeAccess()) > 10000000l)
+                )
+                {
+                    // andruav_server.uninit();
+                    // //return NULL;
+                    // andruav_server.start();
+                    std::exit(0);
+                    
+                }
+
+            
+                #ifdef DEBUG
+                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() == true" << _NORMAL_CONSOLE_TEXT_ << (get_time_usec() - andruav_server.getLastTimeAccess())<< std::endl;
+                #endif
+
+            if (andruav_server.getStatus() != SOCKET_STATUS_FREASH)
+            {
+                andruav_server.API_pingServer();
+            }
+
+            usleep(500000l); 
+        }
+    }
+
+	return NULL;
+}
 
 void* uavos::andruav_servers::startWatchDogThread(void *args)
 {
@@ -65,8 +114,11 @@ void* uavos::andruav_servers::startWatchDogThread(void *args)
 
 void uavos::andruav_servers::CAndruavCommServer::start ()
 {
+    m_lasttime_access = 0;
     const int result = pthread_create( &m_watch_dog, NULL, &uavos::andruav_servers::startWatchDogThread, this );
 
+    pthread_create( &m_watch_dog2, NULL, &uavos::andruav_servers::startWatchDogThread2, this );
+    
     if ( result ) throw result;
 
 }
@@ -187,6 +239,9 @@ void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std:
 
 void uavos::andruav_servers::CAndruavCommServer::onSocketError()
 {
+    // reset rate...socket error handling is tacking care now of reconnection.
+    m_lasttime_access = 0; 
+
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
@@ -214,6 +269,8 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
  */
 void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const char * message, const std::size_t datalength)
 {
+    m_lasttime_access = get_time_usec();
+
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onBinaryMessageRecieved " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
@@ -276,6 +333,8 @@ void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const 
  */
 void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std::string& jsonMessage)
 {
+    m_lasttime_access = get_time_usec();
+
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onMessageRecieved " << jsonMessage << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
@@ -482,6 +541,8 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
 
 void uavos::andruav_servers::CAndruavCommServer::uninit()
 {
+    m_lasttime_access = 0;
+
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
@@ -504,6 +565,15 @@ void uavos::andruav_servers::CAndruavCommServer::uninit()
 }
 
 
+void uavos::andruav_servers::CAndruavCommServer::API_pingServer()
+{
+    Json message =  { 
+        {"t", get_time_usec()}
+    };
+
+
+    API_sendSystemMessage(TYPE_AndruavSystem_Ping, message);
+}
 
 void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int command_type, const Json& msg) const 
 {

@@ -100,11 +100,11 @@ ENDIF()
 add_compile_options(
   -Wno-return-type 
   -Wno-address-of-packed-member
+  -Werror=unused-variable
+  -Werror=unused-result
   $<$<CONFIG:DEBUG>:-g3>
   $<$<CONFIG:DEBUG>:-Og>
   $<$<CONFIG:RELEASE>:-O2>
-  $<$<CONFIG:RELEASE>:-Werror=unused-variable>
-  $<$<CONFIG:RELEASE>:-Werror=unused-result>
   $<$<CONFIG:RELEASE>:-Werror=parentheses>
 )
 
@@ -128,7 +128,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIRECTORY})
 
 add_subdirectory(src)
 
-configure_file(config.module.json ${OUTPUT_DIRECTORY}/config.module.json COPYONLY)
+configure_file(de_comm.config.module.json ${OUTPUT_DIRECTORY}/de_comm.config.module.json COPYONLY)
 configure_file(root.crt ${OUTPUT_DIRECTORY}/root.crt COPYONLY)
 
 

@@ -48,7 +48,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
     //std::string url =  "https://andruav.com:19408/w/wl/";
     std::string param =  AUTH_ACCOUNT_NAME_PARAMETER + jsonConfig["userName"].get<std::string>()
                 + AUTH_ACCESS_CODE_PARAMETER + jsonConfig["accessCode"].get<std::string>() 
-                + AUTH_GROUP_PARAMETER + "1"
+                + AUTH_GROUP_PARAMETER + "1"   // GROUP ID is Hardcoded ONE
                 + AUTH_APP_NAME_PARAMETER + "uavos"
                 + AUTH_APP_VER_PARAMETER  + version_string 
                 + AUTH_EXTRA_PARAMETER + "uavos"

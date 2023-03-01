@@ -70,7 +70,10 @@ void uavos::andruav_servers::CWSSession::on_resolve(
 void uavos::andruav_servers::CWSSession::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
 {
     if(ec)
+    {
+        PLOG(plog::error) << "CWSSession::on_connect failed..code:" << ec; 
         return fail(ec, "connect");
+    }
 
     // Update the host_ string. This will provide the value of the
     // Host HTTP header during the WebSocket handshake.
@@ -87,7 +90,7 @@ void uavos::andruav_servers::CWSSession::on_connect(beast::error_code ec, tcp::r
     {
         ec = beast::error_code(static_cast<int>(::ERR_get_error()),
             net::error::get_ssl_category());
-        
+        PLOG(plog::error) << "CWSSession::on_connect failed..code:" << ec; 
         return fail(ec, "connect");
     }
 
@@ -149,8 +152,11 @@ void uavos::andruav_servers::CWSSession::on_write(beast::error_code ec, std::siz
 {
     boost::ignore_unused(bytes_transferred);
 
-    if(ec)
+    if(ec) {
+        PLOG(plog::error) << "CWSSession::on_write failed..code:" << ec; 
+        m_callback.onSocketError();
         return fail(ec, "write");
+    }
 }
 
 void uavos::andruav_servers::CWSSession::on_read(
@@ -173,6 +179,7 @@ void uavos::andruav_servers::CWSSession::on_read(
     {
         // handle the disconnect.
         std::cout << "WebSocket Disconnected with Andruav Server#1:" <<  std::endl;
+        PLOG(plog::error) << "WebSocket Disconnected with Andruav Server#1:";
         m_callback.onSocketError();
         return ;
     }
@@ -182,6 +189,7 @@ void uavos::andruav_servers::CWSSession::on_read(
         if(ec)
         {
             std::cout << "WebSocket Disconnected with Andruav Server#2:" <<  std::endl;
+            PLOG(plog::error) << "WebSocket Disconnected with Andruav Server#2:";
             m_callback.onSocketError();
             return ;
         }
@@ -227,7 +235,12 @@ void uavos::andruav_servers::CWSSession::writeText (const std::string message)
     {
         const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
         ws_.binary(false);
-        ws_.write(net::buffer(std::string(message)));
+        const int bytes = ws_.write(net::buffer(std::string(message)));
+        if (bytes<=0)
+        {
+            PLOG(plog::error) << "WebSocket ws_.write error:" << bytes;
+        }
+            
     }
     catch (const std::exception& ex)
     {

@@ -34,6 +34,7 @@ namespace andruav_servers
 {
 
     void *startWatchDogThread(void *args);
+    void *startWatchDogThread2(void *args);
 
 
     class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServer>, public CCallBack_WSSession
@@ -78,7 +79,8 @@ namespace andruav_servers
 
 
         public:
-
+        
+            void API_pingServer();
             void API_sendSystemMessage(const int command_type, const Json& msg) const;
             void API_sendCMD (const std::string& target_party_id, const int command_type, const Json& msg);
             void API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const int bmsg_length, const Json& message_cmd);
@@ -94,6 +96,10 @@ namespace andruav_servers
                 return m_exit;
             }
 
+            inline const u_int64_t getLastTimeAccess()
+            {
+                return m_lasttime_access;
+            }
 
             
         private:
@@ -115,9 +121,10 @@ namespace andruav_servers
 
             u_int8_t m_status =  SOCKET_STATUS_FREASH;
 
-            u_int64_t m_next_connect_time ;
+            u_int64_t m_next_connect_time,  m_lasttime_access =0;
 
             pthread_t m_watch_dog;
+            pthread_t m_watch_dog2;
             bool m_first = true;
             bool m_exit = false;
             CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();

@@ -35,6 +35,7 @@ namespace andruav_servers
 
     void *startWatchDogThread(void *args);
     void *startWatchDogThread2(void *args);
+    void *startWatchDogThread3(void *args);
 
 
     class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServer>, public CCallBack_WSSession
@@ -69,7 +70,7 @@ namespace andruav_servers
             
             void start();
             void connect();
-            void uninit();
+            void uninit(const bool exit=false);
 
 
             void onSocketError () override;

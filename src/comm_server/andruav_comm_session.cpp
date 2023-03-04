@@ -72,8 +72,11 @@ void uavos::andruav_servers::CWSSession::on_connect(beast::error_code ec, tcp::r
     if(ec)
     {
         PLOG(plog::error) << "CWSSession::on_connect failed..code:" << ec; 
+        m_connected = false;
         return fail(ec, "connect");
     }
+    
+    m_connected = true;
 
     // Update the host_ string. This will provide the value of the
     // Host HTTP header during the WebSocket handshake.
@@ -180,6 +183,7 @@ void uavos::andruav_servers::CWSSession::on_read(
         // handle the disconnect.
         std::cout << "WebSocket Disconnected with Andruav Server#1:" <<  std::endl;
         PLOG(plog::error) << "WebSocket Disconnected with Andruav Server#1:";
+        m_connected = false;
         m_callback.onSocketError();
         return ;
     }
@@ -280,9 +284,24 @@ void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const i
 
 void uavos::andruav_servers::CWSSession::close ()
 {
-    PLOG(plog::info) << "Close websocket with Communication Server inprogress."; 
-    ws_.close(websocket::close_code::normal);
-    PLOG(plog::info) << "Close websocket with Communication Server done."; 
+    if (!m_connected) return ;
+    try
+    {
+        PLOG(plog::info) << "Close websocket with Communication Server inprogress."; 
+        ws_.close(websocket::close_code::normal);
+        m_connected = false;
+        PLOG(plog::info) << "Close websocket with Communication Server done."; 
+    }
+    catch (const std::exception& ex)
+    {
+        m_connected = false;
+        return ;
+    }
+    catch (...)
+    {
+        m_connected = false;
+        return ;
+    }
         
 }
         

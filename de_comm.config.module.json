@@ -25,13 +25,15 @@
     "unitID"                    :"drone_cairo",
     "groupID"                   :"1",
     "unitDescription"           :"de_unit 1",
+
     
     // Logger Section
     "logger_enabled"            : true,
     "logger_debug"              : false,
 
-    // hack - sometimes you need to restart the app when connection is down:
-    "restart_when_no_connection": "true",
+    // sometimes you need to reconnect the app when connection is silent and not timedout yet:
+    "ping_server_rate_in_ms": 1500,
+    "max_allowed_ping_delay_in_ms": 5000,
 
     // "led_pins_enabled" is optional and default value is true                           
     "led_pins_enabled" : false,

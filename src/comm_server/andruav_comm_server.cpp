@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 
+#include <thread>         // std::thread
+//#include <mutex>
 
 #define BOOST_BEAST_ALLOW_DEPRECATED
 
@@ -32,6 +34,22 @@
 
 using namespace uavos::andruav_servers;
 
+pthread_t m_watch_dog3;
+
+void* uavos::andruav_servers::startWatchDogThread3(void *args)
+{
+    
+    std::cout <<_INFO_CONSOLE_TEXT << "Restarting Sockets has been Engaged..." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    
+    andruav_server.uninit(true);
+    
+    andruav_server.start();
+
+    return NULL;
+}
+
 void* uavos::andruav_servers::startWatchDogThread2(void *args)
 {
     /**
@@ -43,10 +61,26 @@ void* uavos::andruav_servers::startWatchDogThread2(void *args)
     
     uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
     UNUSED (andruav_server);
+
+    // ping every 1500 ms ass default
+    uint32_t ping_server_rate_in_us = 1500 * 1000l; 
+    uint32_t max_allowed_ping_delay_in_us = 5000;
+
+    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    if (validateField(jsonConfig,"ping_server_rate_in_ms", Json::value_t::number_unsigned))
+    {
+        ping_server_rate_in_us = (uint32_t) jsonConfig["ping_server_rate_in_ms"].get<int>()  * 1000l;
+    }
+    if (validateField(jsonConfig,"max_allowed_ping_delay_in_ms", Json::value_t::number_unsigned))
+    {
+        max_allowed_ping_delay_in_us = (uint32_t) jsonConfig["max_allowed_ping_delay_in_ms"].get<int>() * 1000l;
+    }
+    
         
     while (true)
     {
-        for (int i=0;i<50;++i)
+        for (int i=0;i<10;++i)
         {
             if (andruav_server.shouldExit()) 
             {
@@ -55,19 +89,19 @@ void* uavos::andruav_servers::startWatchDogThread2(void *args)
 
             if ((andruav_server.getLastTimeAccess()!=0)
                 &&                                                       
-                ((get_time_usec() - andruav_server.getLastTimeAccess()) > 10000000l)
+                ((get_time_usec() - andruav_server.getLastTimeAccess()) > max_allowed_ping_delay_in_us)
                 )
                 {
-                    // andruav_server.uninit();
-                    // //return NULL;
-                    // andruav_server.start();
-                    std::exit(0);
-                    
+                    if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
+                    {  
+                        pthread_create( &m_watch_dog3, NULL, &uavos::andruav_servers::startWatchDogThread3, NULL );
+                        return NULL;
+                    }
                 }
 
             
                 #ifdef DEBUG
-                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() == true" << _NORMAL_CONSOLE_TEXT_ << (get_time_usec() - andruav_server.getLastTimeAccess())<< std::endl;
+                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() = false diff="  << (get_time_usec() - andruav_server.getLastTimeAccess()) << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 #endif
 
             if (andruav_server.getStatus() != SOCKET_STATUS_FREASH)
@@ -75,7 +109,7 @@ void* uavos::andruav_servers::startWatchDogThread2(void *args)
                 andruav_server.API_pingServer();
             }
 
-            usleep(500000l); 
+            usleep(ping_server_rate_in_us); 
         }
     }
 
@@ -114,11 +148,12 @@ void* uavos::andruav_servers::startWatchDogThread(void *args)
 
 void uavos::andruav_servers::CAndruavCommServer::start ()
 {
+    m_exit = false;
     m_lasttime_access = 0;
-    const int result = pthread_create( &m_watch_dog, NULL, &uavos::andruav_servers::startWatchDogThread, this );
-
-    pthread_create( &m_watch_dog2, NULL, &uavos::andruav_servers::startWatchDogThread2, this );
+    int result = pthread_create( &m_watch_dog, NULL, &uavos::andruav_servers::startWatchDogThread, this );
+    if ( result ) throw result;
     
+    result = pthread_create( &m_watch_dog2, NULL, &uavos::andruav_servers::startWatchDogThread2, this );
     if ( result ) throw result;
 
 }
@@ -225,7 +260,7 @@ void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std:
         _cwssession.reset();
         
         #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError Socket is Closed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: connectToCommServer" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
     }
     catch(std::exception const& e)
@@ -539,7 +574,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
 }
             
 
-void uavos::andruav_servers::CAndruavCommServer::uninit()
+void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit)
 {
     m_lasttime_access = 0;
 
@@ -549,12 +584,13 @@ void uavos::andruav_servers::CAndruavCommServer::uninit()
 
     PLOG(plog::info) << "uninit initiated."; 
         
-    m_exit = true;
+    m_exit = exit;
     
     _cwssession.get()->close();
     
     // wait for exit
 	pthread_join(m_watch_dog ,NULL);
+    pthread_join(m_watch_dog2 ,NULL);
 	
     PLOG(plog::info) << "uninit finished."; 
     

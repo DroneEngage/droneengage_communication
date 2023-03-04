@@ -4,9 +4,7 @@
 #include <string>
 #include <iostream>
 
-#include <thread>         // std::thread
-//#include <mutex>
-
+#include <thread>
 #define BOOST_BEAST_ALLOW_DEPRECATED
 
 #include <plog/Log.h> 

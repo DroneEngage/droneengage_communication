@@ -70,7 +70,7 @@ namespace andruav_servers
             
             void start();
             void connect();
-            void uninit(const bool exit=false);
+            void uninit(const bool exit);
 
 
             void onSocketError () override;

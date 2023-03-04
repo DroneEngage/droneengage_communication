@@ -385,7 +385,7 @@ void uninit ()
 	
     cLeds.uninit();
     
-    andruav_server.uninit();
+    andruav_server.uninit(true);
     
     #ifdef DEBUG
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;

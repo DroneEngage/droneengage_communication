@@ -54,7 +54,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
                 + AUTH_EXTRA_PARAMETER + "uavos"
                 + AUTH_ACTOR_TYPE_PARAMETER + AUTH_ACTOR_DRONE;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _INFO_CONSOLE_TEXT << " Connecting... " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _TEXT_BOLD_HIGHTLITED_ << " Connecting to server " << _INFO_CONSOLE_TEXT << jsonConfig["auth_ip"].get<std::string>() << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #ifdef DEBUG
     std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif

@@ -14,10 +14,10 @@
 #include "../helpers/colors.hpp"
 #include "../helpers/helpers.hpp"
 #include "../helpers/util_rpi.hpp"
-
 #include "../messages.hpp"
 #include "../configFile.hpp"
 #include "andruav_auth.hpp"
+#include "andruav_unit.hpp"
 #include "../uavos/uavos_modules_manager.hpp"
 #include "andruav_comm_server.hpp"
 #include "andruav_facade.hpp"
@@ -188,9 +188,6 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
         m_next_connect_time = now_time + 10000000l; // retry after 10 sec.
 
         uavos::andruav_servers::CAndruavAuthenticator& andruav_auth = uavos::andruav_servers::CAndruavAuthenticator::getInstance();
-        uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-        const Json& jsonConfig = cConfigFile.GetConfigJSON();
-
         
         m_status = SOCKET_STATUS_CONNECTING;
         if (!andruav_auth.doAuthentication() || !andruav_auth.isAuthenticationOK())   
@@ -209,7 +206,9 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
         }
         serial.append(get_linux_machine_id());
 
-        connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, jsonConfig["partyID"].get<std::string>() );
+        uavos::ANDRUAV_UNIT_INFO&  unit_info = uavos::CAndruavUnitMe::getInstance().getUnitInfo();
+    
+        connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, unit_info.party_id);
 
     }
 

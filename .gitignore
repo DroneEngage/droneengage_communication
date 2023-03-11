@@ -5,5 +5,5 @@ build/
 *.so
 config.null.json
 doxygen_doc/
-
+*.local
 *.log

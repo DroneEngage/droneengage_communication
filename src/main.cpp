@@ -28,6 +28,7 @@
 #include "global.hpp"
 #include "messages.hpp"
 #include "configFile.hpp"
+#include "localConfigFile.hpp"
 #include "udpCommunicator.hpp"
 
 #include "./comm_server/andruav_unit.hpp"
@@ -46,6 +47,7 @@ using namespace std;
 
 
 uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
 uavos::comm::CUDPCommunicator& cUDPClient = uavos::comm::CUDPCommunicator::getInstance();  
 uavos::CUavosModulesManager& cUavosModulesManager = uavos::CUavosModulesManager::getInstance();  
 
@@ -58,7 +60,10 @@ bool exit_scheduler = false;
 
     
 static std::string configName = "de_comm.config.module.json";
+static std::string localConfigName = "de_comm.local";
 
+// This is a timestamp used as instance unique number. if changed then communicator module knows module has restarted.
+std::time_t instance_time_stamp;
 
 void quit_handler( int sig );
 /**
@@ -80,6 +85,7 @@ void _usage(void)
     _version ();
     std::cout << std::endl << _INFO_CONSOLE_TEXT "Options" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--config:          -c ./config.json   default [./de_comm.config.module.json]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
+    std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--bconfig:         -b ./bconfig.json  default [./de_comm.local]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--version:         -v" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
@@ -209,7 +215,7 @@ void initLogger()
     log_filename_final <<  "./logs/log_" << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S") << ".log";
     mkdir("./logs/",0777);
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " detailed:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  std::endl;
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " detailed:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
     auto log_level = debug_log==true?plog::debug:plog::info;
 
     plog::init(log_level, log_filename_final.str().c_str()); 
@@ -223,7 +229,26 @@ void defineMe()
     uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
     uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
     
-    unit_info.party_id = jsonConfig["partyID"].get<std::string>();
+    std::string party_id = cLocalConfigFile.getStringField("partyID");
+    if (party_id=="")
+    {
+        party_id = std::to_string(instance_time_stamp);
+        cLocalConfigFile.addStringField("party_id",party_id.c_str());
+        cLocalConfigFile.apply();
+    }
+    std::string module_key = cLocalConfigFile.getStringField("module_key");
+    if (module_key=="")
+    {
+        
+        module_key = std::to_string(get_time_usec());
+        cLocalConfigFile.addStringField("module_key",module_key.c_str());
+        cLocalConfigFile.apply();
+    }
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "party_id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "module_key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    
+    
+    unit_info.party_id = party_id;
     unit_info.unit_name = jsonConfig["userName"].get<std::string>();
     unit_info.unit_name = jsonConfig["userName"].get<std::string>();
     unit_info.group_name = jsonConfig["groupID"].get<std::string>();
@@ -311,12 +336,13 @@ void initArguments (int argc, char *argv[])
     int opt;
     const struct GetOptLong::option options[] = {
         {"config",         true,   0, 'c'},
+        {"bconfig",        true,   0, 'b'},
         {"version",        false,  0, 'v'},
         {"help",           false,  0, 'h'},
         {0, false, 0, 0}
     };
     // adding ':' means there is extra parameter needed
-    GetOptLong gopt(argc, argv, "c:vh",
+    GetOptLong gopt(argc, argv, "c:b:vh",
                     options);
 
     /*
@@ -326,6 +352,9 @@ void initArguments (int argc, char *argv[])
         switch (opt) {
         case 'c':
             configName = gopt.optarg;
+            break;
+        case 'b':
+            localConfigName = gopt.optarg;
             break;
         case 'v':
             _version();
@@ -347,6 +376,8 @@ void initArguments (int argc, char *argv[])
 void init (int argc, char *argv[]) 
 {
 
+    instance_time_stamp = std::time(nullptr);
+
     initArguments (argc, argv);
 
     // Reading Configuration
@@ -357,7 +388,12 @@ void init (int argc, char *argv[])
 	
     
     cConfigFile.InitConfigFile (configName.c_str());
+    cLocalConfigFile.InitConfigFile (localConfigName.c_str());
     
+    _version();
+    
+    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_TEXT_BOLD_ << " seconds since the Epoch" << std::endl;
+
     initLogger();
 
     defineMe();

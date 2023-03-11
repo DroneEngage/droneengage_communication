@@ -20,11 +20,13 @@
 #include "../messages.hpp"
 #include "../udpCommunicator.hpp"
 #include "../configFile.hpp"
+#include "../localConfigFile.hpp"
 #include "../comm_server/andruav_unit.hpp"
 #include "../comm_server/andruav_comm_server.hpp"
 #include "../comm_server/andruav_facade.hpp"
 #include "../comm_server/andruav_auth.hpp"
 #include "../uavos/uavos_modules_manager.hpp"
+
 
 
 
@@ -59,6 +61,9 @@ Json CUavosModulesManager::createJSONID (const bool& reSend)
     
         CConfigFile& cConfigFile = CConfigFile::getInstance();
         const Json& jsonConfig = cConfigFile.GetConfigJSON();
+        CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+        std::string module_key = cLocalConfigFile.getStringField("module_key");
+    
         Json jsonID;        
         
         jsonID[INTERMODULE_ROUTING_TYPE] =  CMD_TYPE_INTERMODULE;
@@ -69,7 +74,7 @@ Json CUavosModulesManager::createJSONID (const bool& reSend)
         ms[JSON_INTERMODULE_MODULE_CLASS] = "comm"; // module_class 
         ms[JSON_INTERMODULE_MODULE_MESSAGES_LIST] = ""; // module_messages
         ms[JSON_INTERMODULE_MODULE_FEATURES] = Json();
-        ms[JSON_INTERMODULE_MODULE_KEY] = jsonConfig["module_key"]; 
+        ms[JSON_INTERMODULE_MODULE_KEY] = module_key; 
         ms[JSON_INTERMODULE_PARTY_RECORD] = 
         {
             {"sd", jsonConfig["partyID"]},

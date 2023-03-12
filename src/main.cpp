@@ -233,7 +233,7 @@ void defineMe()
     uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
     uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
     
-    std::string party_id = cLocalConfigFile.getStringField("partyID");
+    std::string party_id = cLocalConfigFile.getStringField("party_id");
     if (party_id=="")
     {
         party_id = std::to_string(instance_time_stamp);

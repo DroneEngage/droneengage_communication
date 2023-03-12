@@ -75,6 +75,10 @@ void _version (void)
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage Communicator Server version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
 
+void _versionOnly (void)
+{
+    std::cout << version_string << std::endl;
+}
 
 /**
  * @brief display help for -h command argument.
@@ -338,11 +342,12 @@ void initArguments (int argc, char *argv[])
         {"config",         true,   0, 'c'},
         {"bconfig",        true,   0, 'b'},
         {"version",        false,  0, 'v'},
+        {"versiononly",    false,  0, 'o'},
         {"help",           false,  0, 'h'},
         {0, false, 0, 0}
     };
     // adding ':' means there is extra parameter needed
-    GetOptLong gopt(argc, argv, "c:b:vh",
+    GetOptLong gopt(argc, argv, "c:b:voh",
                     options);
 
     /*
@@ -360,7 +365,11 @@ void initArguments (int argc, char *argv[])
             _version();
             exit(0);
             break;
-        case 'h':
+        case 'o':
+            _versionOnly();
+            exit(0);
+            break;
+       case 'h':
             _usage();
             exit(0);
         default:

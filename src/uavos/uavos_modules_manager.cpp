@@ -63,6 +63,7 @@ Json CUavosModulesManager::createJSONID (const bool& reSend)
         const Json& jsonConfig = cConfigFile.GetConfigJSON();
         CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
         std::string module_key = cLocalConfigFile.getStringField("module_key");
+        uavos::ANDRUAV_UNIT_INFO&  unit_info = uavos::CAndruavUnitMe::getInstance().getUnitInfo();
     
         Json jsonID;        
         
@@ -77,7 +78,7 @@ Json CUavosModulesManager::createJSONID (const bool& reSend)
         ms[JSON_INTERMODULE_MODULE_KEY] = module_key; 
         ms[JSON_INTERMODULE_PARTY_RECORD] = 
         {
-            {"sd", jsonConfig["partyID"]},
+            unit_info.party_id,
             {"gr", jsonConfig["groupID"]}
         };
         

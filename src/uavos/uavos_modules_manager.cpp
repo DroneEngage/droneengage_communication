@@ -78,7 +78,7 @@ Json CUavosModulesManager::createJSONID (const bool& reSend)
         ms[JSON_INTERMODULE_MODULE_KEY] = module_key; 
         ms[JSON_INTERMODULE_PARTY_RECORD] = 
         {
-            unit_info.party_id,
+            {"sd",unit_info.party_id},
             {"gr", jsonConfig["groupID"]}
         };
         

@@ -14,7 +14,7 @@ using Json = nlohmann::json;
 #include <plog/Log.h> 
 #include "plog/Initializers/RollingFileInitializer.h"
 
-#define MAXLINE 8192 
+#define MAXLINE 65507 
 char buffer[MAXLINE]; 
     
 uavos::comm::CUDPCommunicator::~CUDPCommunicator ()

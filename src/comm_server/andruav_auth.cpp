@@ -33,13 +33,19 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
 
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
     
-    if ((!validateField(jsonConfig,"auth_ip", Json::value_t::string))
-     || (validateField(jsonConfig,"auth_port", Json::value_t::number_unsigned) == false)
-     )
+    if (!validateField(jsonConfig,"auth_ip", Json::value_t::string))
     {
 
         std::cout << std::to_string(validateField(jsonConfig,"auth_ip", Json::value_t::string)) << std::endl;
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing login info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        exit(1);
+    }
+    
+    if (validateField(jsonConfig,"auth_port", Json::value_t::number_unsigned) == false)
+    {
+
+        std::cout << std::to_string(validateField(jsonConfig,"auth_port", Json::value_t::number_unsigned)) << std::endl;
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing auth_port info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(1);
     }
 

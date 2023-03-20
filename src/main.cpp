@@ -254,7 +254,6 @@ void defineMe()
     
     unit_info.party_id = party_id;
     unit_info.unit_name = jsonConfig["userName"].get<std::string>();
-    unit_info.unit_name = jsonConfig["userName"].get<std::string>();
     unit_info.group_name = jsonConfig["groupID"].get<std::string>();
     unit_info.description = jsonConfig["unitDescription"].get<std::string>();
 }

@@ -976,6 +976,7 @@ Json CUavosModulesManager::getModuleListAsJSON ()
             {"i", module_item->module_id},
             {"c", module_item->module_class},
             {"t", module_item->time_stamp},
+            {"d", module_item->is_dead},
         };
         modules.push_back(json_module_entry);
     }

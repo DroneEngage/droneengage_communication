@@ -718,24 +718,6 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
                 const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
                 int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
                 
-                // prepare an array for the whole message [text part length + delimiter 0 + binary length]
-                // const int string_length = json_msg.length();
-                // int length = string_length + 1 + binary_length;
-                // char * msg_ptr = new char[length];
-                // std::unique_ptr<char[]> binary_message_new = std::unique_ptr<char []> (msg_ptr);
-                // // copy json part
-                // memcpy(msg_ptr,json_msg.c_str(),string_length);
-                // // add zero '0' delimeter
-                // msg_ptr[json_msg.length()] = 0;
-                // // copy binary message
-                // if (binary_length != 0)
-                // {
-                //     // empty binary contents of a binary can exist if binary contents is optional
-                //     // or will be filled by communicator module.
-                //     memcpy(&binary_message_new[json_msg.length()+1], binary_message, binary_length, ms);
-                // }
-
-                
                 andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, binary_message, binary_length, ms); 
 
                 // binary_message_new.release();
@@ -766,13 +748,14 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
             }
             else if (is_system)
             {
-               andruav_servers::CAndruavCommServer::getInstance().API_sendSystemMessage(mt, ms);    
+                // Send message to Communication Server to be processed by Communication Server as this is a system message.
+                andruav_servers::CAndruavCommServer::getInstance().API_sendSystemMessage(mt, ms);    
             }
             else 
             {
+                // Send message to other parties via Communication Server.
                 andruav_servers::CAndruavCommServer::getInstance().API_sendCMD(target_id, mt, ms);            
             }
-            
         }
         break;
     }
@@ -803,7 +786,7 @@ void CUavosModulesManager::processModuleRemoteExecute (const Json ms)
 
 
 /**
- * @brief Process messages comming from AndruavServer and forward it to subscribed modules.
+ * @brief Process messages comming from Communcation Server or other modules and forward it to subscribed modules.
  * 
  * @param sender_party_id 
  * @param command_type 
@@ -908,7 +891,9 @@ bool CUavosModulesManager::handleDeadModules ()
                 dead_found = true;
                 if (m_status.is_online())
                 {
-                    andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_EMERGENCY, std::string("Module " + module_item->module_id + " is not responding."));
+                    std::string log_msg = std::string("Module " + module_item->module_id + " is not responding.");
+                    andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_EMERGENCY, log_msg);
+                    PLOG(plog::error)<< log_msg ;
                 }
 
                 if (module_item->module_class.find("fcb")==0)
@@ -922,7 +907,6 @@ bool CUavosModulesManager::handleDeadModules ()
                 {
                     CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
                     ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
-                    andruav_unit_info.use_fcb = false;
                     m_status.is_camera_module_connected (false); //TODO: fix when offline
                 }
             }
@@ -936,7 +920,10 @@ bool CUavosModulesManager::handleDeadModules ()
                 module_item->is_dead = false;
                 if (m_status.is_online())
                 {
-                    andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_NOTICE, std::string("Module " + module_item->module_id + " is back online."));
+                    std::string log_msg = std::string("Module " + module_item->module_id + " is back online.");
+                    andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_NOTICE, log_msg);
+                    std::string log_msg = std::string("Module " + module_item->module_id + " is not responding.");
+                    PLOG(plog::warning) << log_msg ;
                 }
             }
             

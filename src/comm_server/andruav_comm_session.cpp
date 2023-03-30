@@ -183,7 +183,7 @@ void uavos::andruav_servers::CWSSession::on_read(
         // handle the disconnect.
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server err:1:" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
         PLOG(plog::error) << "WebSocket Disconnected with Communication Server#1:";
-        m_connected = false;
+        //m_connected = false;
         m_callback.onSocketError();
         return ;
     }
@@ -230,7 +230,9 @@ void uavos::andruav_servers::CWSSession::on_read(
 
 void uavos::andruav_servers::CWSSession::writeText (const std::string message)
 {
-static int errr =0;
+    #ifdef DEBUG_GENERATE_FAILURE
+        static int errr =0;
+    #endif
     #ifdef DEBUG_2
          std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
@@ -244,13 +246,23 @@ static int errr =0;
         {
             PLOG(plog::error) << "WebSocket ws_.write error:" << bytes;
         }
+        #ifdef DEBUG_GENERATE_FAILURE
+        ++errr;
+        #ifdef DEBUG
+         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "errr: " << errr << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
+        if (errr%20==0)
+        {
+            throw std::invalid_argument("AddPositiveIntegers arguments must be positive");
+        }
+        #endif
             
     }
     catch (const std::exception& ex)
     {
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeText" << _NORMAL_CONSOLE_TEXT_ <<   std::endl;
         PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeText."; 
-        //m_callback.onSocketError();
+        m_callback.onSocketError();
         return ;
     }
     
@@ -274,7 +286,7 @@ void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const i
     {
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeBinary" << _NORMAL_CONSOLE_TEXT_ <<   std::endl;
         PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeBinary."; 
-        //m_callback.onSocketError();
+        m_callback.onSocketError();
         return ;
     }
 
@@ -287,21 +299,31 @@ void uavos::andruav_servers::CWSSession::close ()
     if (!m_connected) return ;
     try
     {
+        std::cout << _INFO_CONSOLE_TEXT << "Close websocket with Communication Server inprogress." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
         PLOG(plog::info) << "Close websocket with Communication Server inprogress."; 
-        ws_.close(websocket::close_code::normal);
+        //ws_.close(websocket::close_code::normal);
+        beast::error_code ec;
+        ws_.next_layer().shutdown(ec);
+        if (ec) {
+            std::cout << "WS Error: " << ec.message() << std::endl;
+        }
         m_connected = false;
-        PLOG(plog::info) << "Close websocket with Communication Server done."; 
+        std::cout << _INFO_CONSOLE_TEXT << "Close websocket has been ShutDown." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+        
     }
     catch (const std::exception& ex)
     {
         m_connected = false;
-        return ;
     }
     catch (...)
     {
         m_connected = false;
-        return ;
     }
+    
+    std::cout << _INFO_CONSOLE_TEXT << "Close websocket with Communication Server done." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    PLOG(plog::info) << "Close websocket with Communication Server done."; 
         
 }
         

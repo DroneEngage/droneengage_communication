@@ -97,7 +97,7 @@ void* uavos::andruav_servers::startWatchDogThread2(void *args)
 
             
                 #ifdef DEBUG
-                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() = false diff="  << (get_time_usec() - andruav_server.getLastTimeAccess()) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() = false diff="  << (get_time_usec() - andruav_server.getLastTimeAccess()) << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 #endif
 
             if (andruav_server.getStatus() != SOCKET_STATUS_FREASH)
@@ -121,17 +121,21 @@ void* uavos::andruav_servers::startWatchDogThread(void *args)
         // * note that connect does not return when it successfully connects
         andruav_server.connect(); 
 
-        for (int i=0;i<50;++i) //TODO: validate this
+        for (int i=0;i<5;++i) //TODO: validate this
         {
             if (andruav_server.shouldExit()) 
             {
                 #ifdef DEBUG
-                    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() == true" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() == true" << _NORMAL_CONSOLE_TEXT_ << std::endl;
                 #endif
 
                 return NULL;
             }
-	        usleep(10000); 
+	        #ifdef DEBUG
+                    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() == false & i = " << i << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            #endif
+
+            usleep(10000); 
         }
 
         
@@ -254,7 +258,7 @@ void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std:
         _cwssession.reset();
         
         #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: connectToCommServer" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: connectToCommServer" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
     }
     catch(std::exception const& e)
@@ -272,7 +276,7 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
     m_lasttime_access = 0; 
 
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     if (m_exit== true)
@@ -302,7 +306,7 @@ void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const 
     m_lasttime_access = get_time_usec();
 
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onBinaryMessageRecieved " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onBinaryMessageRecieved " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     Json jMsg;
@@ -366,7 +370,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
     m_lasttime_access = get_time_usec();
 
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onMessageRecieved " << jsonMessage << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onMessageRecieved " << jsonMessage << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     Json jMsg;
@@ -400,7 +404,6 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                     PLOG(plog::info) << "Communication Server Connected: Success ";
                     
                     m_status = SOCKET_STATUS_REGISTERED;
-                    //_cwssession.get()->writeText("OK");
                     uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID(std::string());
                 //    uavos::andruav_servers::CAndruavFacade::getInstance().API_loadTasksByScope(ENUM_TASK_SCOPE::SCOPE_GROUP, TYPE_AndruavMessage_ExternalGeoFence);
                 }
@@ -420,6 +423,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                     //TODO: Execute load tasks ... asked by server  
             }
             default:
+                
                 break;
         }
     }
@@ -459,7 +463,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
 void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage)
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: parseCommand " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: parseCommand " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     uavos::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);
@@ -523,7 +527,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
 void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (const std::string& sender_party_id, const Json& jsonMessage)
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: parseRemoteExecuteCommand " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: parseRemoteExecuteCommand " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     const Json& msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     
@@ -596,7 +600,7 @@ void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit)
     m_lasttime_access = 0;
 
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     PLOG(plog::info) << "uninit initiated."; 
@@ -607,12 +611,20 @@ void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit)
     
     // wait for exit
 	pthread_join(m_watch_dog ,NULL);
+    #ifdef DEBUG
+        std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
     pthread_join(m_watch_dog2 ,NULL);
+    #ifdef DEBUG
+        std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 2" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
 	
     PLOG(plog::info) << "uninit finished."; 
     
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit OUT " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit OUT " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
 }
@@ -670,7 +682,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
         _cwssession.get()->writeText(json_msg.dump());
 
         // #ifdef DEBUG
-        // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << json_msg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << json_msg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
         // #endif
     } 
 }
@@ -695,7 +707,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
     const std::lock_guard<std::mutex> lock(g_i_mutex);
     
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     std::string message_routing;
@@ -723,7 +735,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
         
         msg.release();
         // #ifdef DEBUG
-        // std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << jmsg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        // std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << jmsg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
         // #endif
     } 
 }
@@ -744,7 +756,7 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std:
 {
 
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     Json jMsg;
@@ -771,7 +783,7 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (cons
 {
 
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     Json jMsg;

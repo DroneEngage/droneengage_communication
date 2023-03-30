@@ -277,7 +277,7 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
 {
     
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     m_is_authentication_ok = false;
@@ -359,7 +359,7 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
 bool uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidateHardware (const std::string& response)
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line: " << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line: " << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     
@@ -408,6 +408,6 @@ std::string uavos::andruav_servers::CAndruavAuthenticator::stringifyError (const
 void uavos::andruav_servers::CAndruavAuthenticator::uninit()
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 }

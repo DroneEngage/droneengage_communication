@@ -247,7 +247,7 @@ void CUavosModulesManager::updateCameraList(const std::string& module_id, const 
 {
 
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: updateCameraList " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: updateCameraList " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     // Check if Module "Camera_ModuleName" is listed.
@@ -256,7 +256,7 @@ void CUavosModulesManager::updateCameraList(const std::string& module_id, const 
     {
         // Module Not found in camera list
         #ifdef DEBUG
-            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: updateCameraList // Module Not found in camera list" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: updateCameraList // Module Not found in camera list" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
         std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>> *pcamera_entries = new std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>>();
@@ -439,7 +439,7 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
 {
 
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     bool updated = false;
@@ -797,7 +797,7 @@ void CUavosModulesManager::processIncommingServerMessage (const std::string& sen
 {
     const std::lock_guard<std::mutex> lock(g_i_mutex_process);
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: processIncommingServerMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: processIncommingServerMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     std::vector<std::string> &v = m_module_messages[message_type];
@@ -845,7 +845,7 @@ void CUavosModulesManager::processIncommingServerMessage (const std::string& sen
 void CUavosModulesManager::forwardMessageToModule ( const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item)
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: forwardMessageToModule: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: forwardMessageToModule: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     
@@ -940,7 +940,7 @@ bool CUavosModulesManager::handleDeadModules ()
 void CUavosModulesManager::handleOnAndruavServerConnection (const int status)
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleOnAndruavServerConnection " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleOnAndruavServerConnection " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     MODULE_ITEM_LIST::iterator it;

@@ -25,7 +25,7 @@ using namespace uavos::andruav_servers;
 void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& target_party_id) const  
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     Json jMsg = {{"C", TYPE_AndruavMessage_ID}};
@@ -119,7 +119,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
 void uavos::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, const std::string& target_party_id) const 
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     uavos::CUavosModulesManager& module_manager = uavos::CUavosModulesManager::getInstance();

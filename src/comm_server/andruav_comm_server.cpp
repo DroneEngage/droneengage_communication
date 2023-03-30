@@ -121,7 +121,7 @@ void* uavos::andruav_servers::startWatchDogThread(void *args)
         // * note that connect does not return when it successfully connects
         andruav_server.connect(); 
 
-        for (int i=0;i<5;++i) //TODO: validate this
+        for (int i=0;i<50;++i)
         {
             if (andruav_server.shouldExit()) 
             {
@@ -387,6 +387,16 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
         return ;
     }
 
+    // fix: CWSSession::writeText & CWSSession::on_read spmetimes fails but with a live socket
+    // setting m_status to SOCKET_STATUS_ERROR will render this socket unuseful althougfh there is a valid connection
+    // so this fix to return socket to Connected state when receiving message from server.
+    if (m_status == SOCKET_STATUS_ERROR)
+    { // if not OK then TYPE_AndruavSystem_ConnectedCommServer will have not OK and will set it back. 
+        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communication Server ReConnected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        m_status = SOCKET_STATUS_REGISTERED;
+        uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
+    }
+
 
     if (jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_SYSTEM_MSG)==0)
     {
@@ -595,7 +605,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
 }
             
 
-void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit)
+void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
 {
     m_lasttime_access = 0;
 
@@ -605,20 +615,49 @@ void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit)
 
     PLOG(plog::info) << "uninit initiated."; 
         
-    m_exit = exit;
+    m_exit = exit_mode;
     
     _cwssession.get()->close();
     
-    // wait for exit
-	pthread_join(m_watch_dog ,NULL);
+    struct timespec ts;
+           int s;
+
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+        exit(0);
+    }
+    ts.tv_sec += 10;
+
+    s = pthread_timedjoin_np(m_watch_dog, NULL, &ts);
+    if (s != 0) {
+        exit(0);
+    }
+
     #ifdef DEBUG
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+        exit(0);
+    }
+    ts.tv_sec += 10;
 
-    pthread_join(m_watch_dog2 ,NULL);
+    s = pthread_timedjoin_np(m_watch_dog2, NULL, &ts);
+    if (s != 0) {
+        exit(0);
+    }
     #ifdef DEBUG
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 2" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
+    
+    // // wait for exit
+	// pthread_join(m_watch_dog ,NULL);
+    // #ifdef DEBUG
+    //     std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    // #endif
+
+    // pthread_join(m_watch_dog2 ,NULL);
+    // #ifdef DEBUG
+    //     std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 2" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    // #endif
 
 	
     PLOG(plog::info) << "uninit finished."; 

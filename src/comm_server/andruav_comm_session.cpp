@@ -169,7 +169,7 @@ void uavos::andruav_servers::CWSSession::on_read(
     const std::lock_guard<std::mutex> lock(g_i_mutex_on_read);
 
     #ifdef DEBUG_2
-         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "on_read: " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "on_read: " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     boost::ignore_unused(bytes_transferred);
@@ -230,9 +230,9 @@ void uavos::andruav_servers::CWSSession::on_read(
 
 void uavos::andruav_servers::CWSSession::writeText (const std::string message)
 {
-
+static int errr =0;
     #ifdef DEBUG_2
-         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "writeText: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     try
@@ -262,7 +262,7 @@ void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const i
 {
 
     #ifdef DEBUG_2
-         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "write Binary" << std::endl;
+         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "write Binary" << std::endl;
     #endif
     try
     {

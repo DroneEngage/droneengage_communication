@@ -63,7 +63,7 @@ bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
 void CBuzzer::uninit()
 {
     #ifdef DEBUG
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Buzzer Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Buzzer Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
@@ -95,7 +95,7 @@ void CBuzzer::update_pattern_to_play()
     // if ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time < _pattern_start_interval_time_us) {
     //     // do not interrupt playing patterns / enforce minumum separation
     //     #ifdef DEBUG
-    //         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: do not interrupt playing patterns / enforce minumum separation:" << std::to_string ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    //         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: do not interrupt playing patterns / enforce minumum separation:" << std::to_string ((get_time_usec() & 0xFFFFFFFF) - m_buzzer_status[0].pattern_start_time) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     //     #endif
     
     //     return;
@@ -147,13 +147,13 @@ void CBuzzer::update_pattern_to_play()
 void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
 {
     #ifdef DEBUG_EXTRA
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: update_playing_pattern index:" << std::to_string(buzzer_index) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: update_playing_pattern index:" << std::to_string(buzzer_index) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
 
     if (m_buzzer_status[buzzer_index].tone == 0UL) {
         #ifdef DEBUG_EXTRA
-        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: Null Pattern" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: Null Pattern" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
         return;
     }
@@ -162,7 +162,7 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
     //const uint32_t delta = now -  m_buzzer_status[buzzer_index].pattern_start_time;
     
     #ifdef DEBUG_EXTRA
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: delta " << std::to_string(delta) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: BUZ: delta " << std::to_string(delta) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
         
     if (m_buzzer_status[buzzer_index].counter  == 32) {
@@ -184,7 +184,7 @@ void CBuzzer::update_playing_pattern(const uint8_t buzzer_index)
     m_buzzer_status[buzzer_index].counter ++;
     const uint32_t bit = m_buzzer_status[buzzer_index].counter; // delta / 100UL; // each bit is 100ms
     #ifdef DEBUG_EXTRA
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: bit " << std::to_string(bit) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: bit " << std::to_string(bit) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
         
     
@@ -197,13 +197,13 @@ void CBuzzer::on(const uint8_t buzzer_index, const bool turn_on)
     // // return immediately if nothing to do
     // if ((bool)(m_port_pins[buzzer_index].status) == turn_on) {
     //     #ifdef DEBUG
-    //         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: return immediately if nothing to do " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    //         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: return immediately if nothing to do " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     //     #endif
     //        return;
     // }
 
     #ifdef DEBUG_EXTRA
-          std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: turn_on " << std::to_string(turn_on) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+          std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: turn_on " << std::to_string(turn_on) << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     hal_linux::CRPI_GPIO::getInstance().write(m_port_pins[buzzer_index].gpio_pin, turn_on? LED_STATUS_ON : LED_STATUS_OFF);

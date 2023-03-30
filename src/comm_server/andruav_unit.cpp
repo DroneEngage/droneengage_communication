@@ -41,7 +41,7 @@ uavos::CAndruavUnit* uavos::CAndruavUnits::getUnitByName (const std::string& par
     if (unit== m_AndruavUnits.end())
     {
         #ifdef DEBUG
-            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "getUnitByName " << party_id << " NOT found"<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "getUnitByName " << party_id << " NOT found"<< _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
         uavos::CAndruavUnit * pAndruavUnit= new CAndruavUnit(party_id);
         m_AndruavUnits.insert(std::make_pair(party_id, std::unique_ptr<uavos::CAndruavUnit>(pAndruavUnit)));
@@ -52,7 +52,7 @@ uavos::CAndruavUnit* uavos::CAndruavUnits::getUnitByName (const std::string& par
     else
     {
         #ifdef DEBUG
-            std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "getUnitByName " << party_id << " found"<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "getUnitByName " << party_id << " found"<< _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
         return unit->second.get();

@@ -59,7 +59,7 @@ bool CLEDs::init (const std::vector<PORT_STATUS>& led_pins)
 
 void CLEDs::uninit()
 {
-    std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: LEDS Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: LEDS Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
 

@@ -181,7 +181,9 @@
 #define RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB  502
 #define RemoteCommand_CLEAR_FENCE_DATA 	         503 // andruav fence
 #define RemoteCommand_SET_START_MISSION_ITEM     504
+#define RemoteCommand_TELEMETRYCTRL              108 // Telemetry streaming
 #define RemoteCommand_STREAMVIDEO                110
+
 
 // Drone Report
 #define Drone_Report_NAV_ItemReached            1
@@ -222,6 +224,11 @@
 
 
 
+// Telemetry Request Remote Execute
+#define CONST_TELEMETRY_REQUEST_START		1
+#define CONST_TELEMETRY_REQUEST_END			2
+#define CONST_TELEMETRY_REQUEST_RESUME		3
+#define CONST_TELEMETRY_ADJUST_RATE		    4
 
 
 

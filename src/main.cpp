@@ -73,10 +73,13 @@ void quit_handler( int sig );
 void _version (void)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage Communicator Server version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DEBUG
+    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_TEXT_BOLD_ << __DATE__ << " --- " << __TIME__ << std::endl;
+    #endif
 }
 
 void _versionOnly (void)
-{
+{ // used by script to autoupdate. Do Not change this function.
     std::cout << version_string << std::endl;
 }
 
@@ -94,6 +97,10 @@ void _usage(void)
 }
 
 
+/**
+ * @brief main loop function.
+ * 
+ */
 void scheduler ()
 {
     const int every_sec_1  =  10;
@@ -159,6 +166,13 @@ void scheduler ()
         {
             if (status.is_online())
             {
+                // uavos::STATUS& status = uavos::STATUS::getInstance();
+                // const int streaming_level = status.streaming_level();
+                // if ((streaming_level<=0) || (hz_10 % (every_sec_10 * streaming_level)==0)) {
+                //     // streaming_level =0 or -1 then do not optimize.
+                //     // each streaming level will delay 10 more seconds.
+                //     andruav_facade.API_sendID("");
+                // }
                 andruav_facade.API_sendID("");
             }
         }
@@ -400,6 +414,10 @@ void init (int argc, char *argv[])
     
     _version();
     
+    #ifdef DEBUG
+    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_TEXT_BOLD_ << __DATE__ << " --- " << __TIME__ << std::endl;
+    #endif
+
     std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_TEXT_BOLD_ << " seconds since the Epoch" << std::endl;
 
     initLogger();

@@ -78,8 +78,6 @@ void* uavos::andruav_servers::startWatchDogThread2(void *args)
         
     while (true)
     {
-        for (int i=0;i<10;++i)
-        {
             if (andruav_server.shouldExit()) 
             {
                 return NULL;
@@ -108,7 +106,6 @@ void* uavos::andruav_servers::startWatchDogThread2(void *args)
             }
 
             usleep(ping_server_rate_in_us); 
-        }
     }
 
 	return NULL;
@@ -124,7 +121,7 @@ void* uavos::andruav_servers::startWatchDogThread(void *args)
         // * note that connect does not return when it successfully connects
         andruav_server.connect(); 
 
-        for (int i=0;i<50;++i)
+        for (int i=0;i<50;++i) //TODO: validate this
         {
             if (andruav_server.shouldExit()) 
             {
@@ -278,16 +275,17 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
         std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Andruav Server Connected: Error "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
     if (m_exit== true)
     {
+        std::cout << _INFO_CONSOLE_TEXT << "Communication Server Connection Terminated m_exit is TRUE"  << _NORMAL_CONSOLE_TEXT_ << std::endl;
         m_status =  SOCKET_STATUS_DISCONNECTED;  
         PLOG(plog::warning) << "Communicator Server Connection Status: SOCKET_STATUS_DISCONNECTED with m_exit is TRUE"; 
     }
     else
     {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Communication Server: Socket Status Error "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
         m_status = SOCKET_STATUS_ERROR;
-        PLOG(plog::error) << "Communicator Server Connection Status: SOCKET_STATUS_ERROR"; 
+        PLOG(plog::error) << "Communicator Server: Socket Status Error"; 
     }
 
     uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
@@ -398,8 +396,8 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                 Json message_cmd = jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD];
                 if (message_cmd["s"].get<std::string>().find("OK")==0)
                 {
-                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Andruav Server Connected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                    PLOG(plog::info) << "Andruav Server Connected: Success ";
+                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communication Server Connected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    PLOG(plog::info) << "Communication Server Connected: Success ";
                     
                     m_status = SOCKET_STATUS_REGISTERED;
                     //_cwssession.get()->writeText("OK");
@@ -408,8 +406,8 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                 }
                 else
                 {
-                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Andruav Server Connected: Failed "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                    PLOG(plog::error) << "Andruav Server Connected: Failed "; 
+                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Communication Server Connected: Failed "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    PLOG(plog::error) << "Communication Server Connected: Failed "; 
 
                     m_status = SOCKET_STATUS_ERROR;
                 }
@@ -566,6 +564,28 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
             }
         }
 		break;
+
+        case RemoteCommand_TELEMETRYCTRL:
+        {
+            if (!validateField(msg_cmd, "Act", Json::value_t::number_unsigned))
+            {
+                // bad message format
+                return ;
+            }
+            const int request_type = msg_cmd["Act"].get<int>();
+            if (request_type != CONST_TELEMETRY_ADJUST_RATE) return ;
+            
+            int streaming_level = -1;
+            if (!validateField(msg_cmd, "LVL", Json::value_t::number_unsigned))
+            {
+                // bad message format
+                return ;
+            }
+            streaming_level = msg_cmd["LVL"].get<int>();
+            uavos::STATUS& status = uavos::STATUS::getInstance();
+            status.streaming_level(streaming_level);
+        }
+        break;
 					
     }
 }
@@ -619,7 +639,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int
             
 
 /**
- * @details Sends Andruav Command to Andruav Server
+ * @details Sends Andruav Command to Communication Server
  *  *_GCS_: broadcast to GCS.
  *  *_AGN_: broadcast to vehicles only.
  *  *_GD_: broadcast to all..
@@ -658,7 +678,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
 
 
 /**
- * @details Sends Andruav Command to Andruav Server
+ * @details Sends Andruav Command to Communication Server
  *  *_GCS_: broadcast to GCS.
  *  *_AGN_: broadcast to vehicles only.
  *  *_GD_: broadcast to all..

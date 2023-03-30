@@ -112,6 +112,15 @@ class STATUS {
                 return (m_cpu_status & 0x10000) != 0;
             }
 
+            inline void streaming_level (int streaming_level) 
+            {
+                m_streaming_level = streaming_level;
+            }
+            
+            inline int streaming_level () const 
+            {
+                return m_streaming_level;
+            }
             // std::bool is_online(const std::bool online)
             // {
             //     ;
@@ -140,6 +149,8 @@ class STATUS {
              * 19       0x80000     Soft temperature limit has occurred
              */
             uint32_t m_cpu_status;
+            
+            int m_streaming_level =-1;
            
             
 };

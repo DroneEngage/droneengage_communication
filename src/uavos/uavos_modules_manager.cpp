@@ -836,7 +836,7 @@ void CUavosModulesManager::processIncommingServerMessage (const std::string& sen
 
 
 /**
- * @brief forward a message from Andruav Serveror inter-module to a module.
+ * @brief forward a message from Communication Server inter-module to a module.
  * Normally this module is subscribed in this message id.
  * 
  * @param jsonMessage 
@@ -905,8 +905,6 @@ bool CUavosModulesManager::handleDeadModules ()
                 }
                 else if (module_item->module_class.find("camera")==0)
                 {
-                    CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
-                    ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
                     m_status.is_camera_module_connected (false); //TODO: fix when offline
                 }
             }
@@ -922,7 +920,6 @@ bool CUavosModulesManager::handleDeadModules ()
                 {
                     std::string log_msg = std::string("Module " + module_item->module_id + " is back online.");
                     andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_NOTICE, log_msg);
-                    std::string log_msg = std::string("Module " + module_item->module_id + " is not responding.");
                     PLOG(plog::warning) << log_msg ;
                 }
             }
@@ -942,6 +939,10 @@ bool CUavosModulesManager::handleDeadModules ()
  */
 void CUavosModulesManager::handleOnAndruavServerConnection (const int status)
 {
+    #ifdef DEBUG
+        std::cout <<__FILE__ << "." << __FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleOnAndruavServerConnection " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
     MODULE_ITEM_LIST::iterator it;
     const Json &msg = createJSONID(false);
     std::string msg_dump = msg.dump();    
@@ -951,7 +952,6 @@ void CUavosModulesManager::handleOnAndruavServerConnection (const int status)
     for (it = m_modules_list.begin(); it != m_modules_list.end(); it++)
     {
         MODULE_ITEM_TYPE * module_item = it->second.get();
-
 
         forwardMessageToModule(msg_dump.c_str(), msg_dump.length(),module_item);
     }

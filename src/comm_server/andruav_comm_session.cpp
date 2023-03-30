@@ -181,8 +181,8 @@ void uavos::andruav_servers::CWSSession::on_read(
         (boost::asio::error::fault == ec))
     {
         // handle the disconnect.
-        std::cout << "WebSocket Disconnected with Andruav Server#1:" <<  std::endl;
-        PLOG(plog::error) << "WebSocket Disconnected with Andruav Server#1:";
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server err:1:" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+        PLOG(plog::error) << "WebSocket Disconnected with Communication Server#1:";
         m_connected = false;
         m_callback.onSocketError();
         return ;
@@ -192,8 +192,8 @@ void uavos::andruav_servers::CWSSession::on_read(
         // read the data 
         if(ec)
         {
-            std::cout << "WebSocket Disconnected with Andruav Server#2:" <<  std::endl;
-            PLOG(plog::error) << "WebSocket Disconnected with Andruav Server#2:";
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server err:2:" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+            PLOG(plog::error) << "WebSocket Disconnected with Communication Server#2:";
             m_callback.onSocketError();
             return ;
         }
@@ -212,7 +212,7 @@ void uavos::andruav_servers::CWSSession::on_read(
         }
         else
         {
-            m_callback.onTextMessageRecieved(output); //beast::buffers_to_string(buffer_.data()));    
+            m_callback.onTextMessageRecieved(output);
         }
 
         
@@ -248,9 +248,9 @@ void uavos::andruav_servers::CWSSession::writeText (const std::string message)
     }
     catch (const std::exception& ex)
     {
-        std::cout << "WebSocket Disconnected with Andruav Server on writeText" <<   std::endl;
-        PLOG(plog::error) << "WebSocket Disconnected with Andruav Server on writeText."; 
-        m_callback.onSocketError();
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeText" << _NORMAL_CONSOLE_TEXT_ <<   std::endl;
+        PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeText."; 
+        //m_callback.onSocketError();
         return ;
     }
     
@@ -272,9 +272,9 @@ void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const i
     }
     catch (const std::exception& ex)
     {
-        std::cout << "WebSocket Disconnected with Andruav Server on writeBinary" <<   std::endl;
-        PLOG(plog::error) << "WebSocket Disconnected with Andruav Server on writeBinary."; 
-        m_callback.onSocketError();
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeBinary" << _NORMAL_CONSOLE_TEXT_ <<   std::endl;
+        PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeBinary."; 
+        //m_callback.onSocketError();
         return ;
     }
 

@@ -41,10 +41,6 @@ void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& t
  */
 void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_party_id) const 
 {
-    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
-
-
     uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
     uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
    
@@ -59,8 +55,8 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         {"GM", unit_info.gps_mode},                         // gps mode
         {"TP", unit_info.telemetry_protocol},               // m_telemetry_protocol
         {"C",  unit_info.manual_TX_blocked_mode},           // Remote Control RX Mode
-        {"UD", jsonConfig["unitID"]},                       // unit Name
-        {"DS", jsonConfig["unitDescription"]},              // unit Description
+        {"UD", unit_info.unit_name},                        // unit Name
+        {"DS", unit_info.description},                      // unit Description
         {"p",  unit_info.permission},                       // permissions
         {"dv", version_string},                             // de version
         {"m1", uavos::CUavosModulesManager::getInstance().getModuleListAsJSON()}

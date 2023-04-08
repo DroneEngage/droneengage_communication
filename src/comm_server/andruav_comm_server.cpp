@@ -16,6 +16,7 @@
 #include "../helpers/util_rpi.hpp"
 #include "../messages.hpp"
 #include "../configFile.hpp"
+#include "../localConfigFile.hpp"
 #include "andruav_auth.hpp"
 #include "andruav_unit.hpp"
 #include "../uavos/uavos_modules_manager.hpp"
@@ -476,9 +477,21 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: parseCommand " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
+    // retreive unit or create a new one
     uavos::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);
+    ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
+    
+    // get message command details
     const Json& msg_cmd = jsonMessage.contains(ANDRUAV_PROTOCOL_MESSAGE_CMD)?jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]:Json();
     
+    // if unit is new then ask for details.
+    if ((command_type!=TYPE_AndruavMessage_ID) && (unit_info.is_new == true))  
+    {
+        uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    
+        // do not responde to unknown source
+        return ;
+    }
+
     switch (command_type)
     {
         case TYPE_AndruavMessage_ID:
@@ -493,13 +506,16 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
                 FI:bool: useFCBIMU (optional default:false)
                 
             */
-            Json command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-            ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
+            const Json command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             unit_info.vehicle_type = command["VT"].get<int>();
             unit_info.is_gcs = command["GS"].get<bool>();
             
             
             unit_info.party_id = sender_party_id;
+            
+            if (!validateField(command,"UD", Json::value_t::string)) return ;
+            if (!validateField(command,"DS", Json::value_t::string)) return ;
+            
             unit_info.unit_name = command["UD"].get<std::string>();
             unit_info.description = command["DS"].get<std::string>();
             
@@ -526,7 +542,40 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             if (command.contains("q") == true) unit_info.swarm_leader_I_am_following = command["q"].get<std::string>();
             
             unit_info.last_access_time = get_time_usec();
-            unit_info.is_new = false;
+            if (unit_info.is_new == true)
+            {
+                unit_info.is_new = false;
+            }
+        }
+        break;
+
+        case TYPE_AndruavMessage_Unit_Name:
+        {
+            /*
+                TYPE_AndruavMessage_Unit_Name
+                UN:string: unit name
+                DS:string: unit description
+            */
+
+            const Json command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            
+            if (!validateField(command,"UN", Json::value_t::string)) return ;
+            if (!validateField(command,"DS", Json::value_t::string)) return ;
+
+            uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
+            uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+
+            unit_info.unit_name   = command["UN"].get<std::string>();
+            unit_info.description = command["DS"].get<std::string>();
+
+            uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+            cLocalConfigFile.addStringField("unitID",unit_info.unit_name.c_str());
+            cLocalConfigFile.apply();
+            cLocalConfigFile.addStringField("unitDescription",unit_info.description.c_str());
+            cLocalConfigFile.apply();
+            
+            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendID(sender_party_id);
+   
         }
         break;
     }
@@ -548,14 +597,19 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
     uavos::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);
     ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
     
+    if ((unit_info.is_new == true) &&(remote_execute_command!=TYPE_AndruavMessage_ID)) 
+    {
+        uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    // ask for identification in return.      
+        // do not response to unknown source return ;
+
+        return ;
+    }
+
     switch (remote_execute_command)
     {
         case TYPE_AndruavMessage_ID:
         {
             uavos::andruav_servers::CAndruavFacade::getInstance().API_sendID(sender_party_id);
-    
-            if (unit_info.is_new == true)  uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    // ask for identification in return.  
-    
         }
         break;
 

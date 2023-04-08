@@ -140,6 +140,9 @@
 #define TYPE_AndruavMessage_UpdateSwarm             1058
 #define TYPE_AndruavMessage_Prepherials             1070
 #define TYPE_AndruavMessage_UDPProxy_Info           1071
+#define TYPE_AndruavMessage_Unit_Name               1072
+
+//Binary Starts with 2000
 #define TYPE_AndruavMessage_LightTelemetry          2022
 
 // New Binary Messages 

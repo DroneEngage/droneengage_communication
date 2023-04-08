@@ -262,14 +262,33 @@ void defineMe()
         cLocalConfigFile.addStringField("module_key",module_key.c_str());
         cLocalConfigFile.apply();
     }
+
+    std::string unit_name = cLocalConfigFile.getStringField("unitID");
+    if (unit_name=="") 
+    {
+        unit_name = jsonConfig["unitID"].get<std::string>();
+        cLocalConfigFile.addStringField("unitID",unit_name.c_str());
+        cLocalConfigFile.apply();
+    }
+
+    std::string unit_description = cLocalConfigFile.getStringField("unitDescription");
+    if (unit_description=="") 
+    {
+        unit_description = jsonConfig["unitDescription"].get<std::string>();
+        cLocalConfigFile.addStringField("unitDescription",unit_description.c_str());
+        cLocalConfigFile.apply();
+    }
+
+    
     std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "party_id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
     std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "module_key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
     
     
     unit_info.party_id = party_id;
-    unit_info.unit_name = jsonConfig["userName"].get<std::string>();
+    unit_info.unit_name = unit_name;
+    unit_info.description = unit_description;
     unit_info.group_name = jsonConfig["groupID"].get<std::string>();
-    unit_info.description = jsonConfig["unitDescription"].get<std::string>();
+    
 }
 
 

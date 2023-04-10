@@ -488,8 +488,18 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
     if ((command_type!=TYPE_AndruavMessage_ID) && (unit_info.is_new == true))  
     {
         uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    
-        // do not responde to unknown source
-        return ;
+        
+        /*
+            DONOT add return here unless system requires more security.
+            You cannot receive messages except from units that are logged so it should be secure.
+            if you enable the return the following issue may happen:
+                1- GCS receives ID messages from the unit.
+                2- GCS send asking for mission & other info
+                3- unit will ignore these messages until it receives a MSG_ID from the WEB.
+                4- WebClient sending messages is stateless in general.
+        */
+        
+        //return;
     }
 
     switch (command_type)
@@ -555,6 +565,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
                 TYPE_AndruavMessage_Unit_Name
                 UN:string: unit name
                 DS:string: unit description
+                PR: true/false [optional]
             */
 
             const Json command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
@@ -573,7 +584,18 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             cLocalConfigFile.apply();
             cLocalConfigFile.addStringField("unitDescription",unit_info.description.c_str());
             cLocalConfigFile.apply();
-            
+            if ((command.contains("PR") == true) && (command["PR"].get<bool>() == true))
+            {
+                const std::time_t instance_time_stamp = std::time(nullptr);
+                const std::string party_id = std::to_string(instance_time_stamp);
+                cLocalConfigFile.addStringField("party_id",unit_info.party_id.c_str());
+                cLocalConfigFile.apply();
+                /*
+                  Do not change party_id this will make it unstable because CommunicationServer expects current partyID
+                  Change wll take effective after reboot or server disconnection.
+                */
+                //unit_info.party_id = party_id;   << do not uncomment.
+            }
             uavos::andruav_servers::CAndruavFacade::getInstance().API_sendID(sender_party_id);
    
         }
@@ -600,9 +622,16 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
     if ((unit_info.is_new == true) &&(remote_execute_command!=TYPE_AndruavMessage_ID)) 
     {
         uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    // ask for identification in return.      
-        // do not response to unknown source return ;
-
-        return ;
+        /*
+            DONOT add return here unless system requires more security.
+            You cannot receive messages except from units that are logged so it should be secure.
+            if you enable the return the following issue may happen:
+                1- GCS receives ID messages from the unit.
+                2- GCS send asking for mission & other info
+                3- unit will ignore these messages until it receives a MSG_ID from the WEB.
+                4- WebClient sending messages is stateless in general.
+        */
+       //return ;
     }
 
     switch (remote_execute_command)

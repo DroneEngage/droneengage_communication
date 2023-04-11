@@ -588,7 +588,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             {
                 const std::time_t instance_time_stamp = std::time(nullptr);
                 const std::string party_id = std::to_string(instance_time_stamp);
-                cLocalConfigFile.addStringField("party_id",unit_info.party_id.c_str());
+                cLocalConfigFile.addStringField("party_id",party_id.c_str());
                 cLocalConfigFile.apply();
                 /*
                   Do not change party_id this will make it unstable because CommunicationServer expects current partyID

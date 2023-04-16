@@ -511,6 +511,16 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
         if ((msg_cmd.contains(JSON_INTERMODULE_TIMESTAMP_INSTANCE)) && (module_item->time_stamp != msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>()))
         {
             // module restarted
+            
+            if (msg_cmd.contains(JSON_INTERMODULE_VERSION))
+            {
+                module_item->version = msg_cmd[JSON_INTERMODULE_VERSION].get<std::string>();;
+            }
+            else
+            {
+                module_item->version = std::string("na");
+            }
+
             //MODULE HAS BEEN RESTARTED
             module_item->time_stamp = msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>();
             andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " has been restarted."));

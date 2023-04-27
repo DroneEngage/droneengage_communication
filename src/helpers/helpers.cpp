@@ -5,17 +5,24 @@
 #include <vector>
 #include <sstream>
 #include <stdlib.h>
-
+#include <cstdlib>
+#include <cstdint>
+#include <stdexcept>
 #include "helpers.hpp"
 
 
 
+uint32_t hex_string_to_uint32(const char* hex_str) {
+    char* end_ptr;
+    uint32_t hex_val = std::strtoul(hex_str, &end_ptr, 16);
+    if (*end_ptr != '\0') {
+        throw std::invalid_argument("Invalid hexadecimal string: " + std::string(hex_str));
+    }
+    return hex_val;
+}
 
 std::string str_tolower(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(), 
-                // static_cast<int(*)(int)>(std::tolower)         // wrong
-                // [](int c){ return std::tolower(c); }           // wrong
-                // [](char c){ return std::tolower(c); }          // wrong
                    [](unsigned char c){ return std::tolower(c); } // correct
                   );
     return s;

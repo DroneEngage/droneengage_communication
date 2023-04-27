@@ -27,6 +27,7 @@ inline int wait_time_nsec (const time_t& seconds, const long& nano_seconds)
 	return nanosleep(&_time_wait, &tim2);
 }
 
+extern uint32_t hex_string_to_uint32(const char* hex_str);
 
 extern std::string str_tolower(std::string s);
 

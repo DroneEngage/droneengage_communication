@@ -400,7 +400,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
 
 
     if (jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_SYSTEM_MSG)==0)
-    {
+    {   // Handle Communication Server SYSTEM messages... this is communication establish message and not _SYS_ messages.
         const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
         switch (command_type)
         {
@@ -429,10 +429,6 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
             }
             break;
 
-            case TYPE_AndruavSystem_LoadTasks:
-            {
-                    //TODO: Execute load tasks ... asked by server  
-            }
             default:
                 
                 break;
@@ -448,8 +444,6 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
 
         std::string sender = jMsg[ANDRUAV_PROTOCOL_SENDER];
 
-
-        
         const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
         switch (command_type)
         {
@@ -480,7 +474,21 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
     // retreive unit or create a new one
     uavos::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);
     ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
+
+    uint32_t permission = 0;
+    if (validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_PERMISSION, Json::value_t::number_unsigned))
+    {
+        permission =  jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION].get<int>();
+    }
+    UNUSED (permission);
+
+    bool is_system = false;
+    if ((validateField(jsonMessage, ANDRUAV_PROTOCOL_SENDER, Json::value_t::string)) && (jsonMessage[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(SPECIAL_NAME_SYS_NAME)==0))
+    {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
+        is_system = true;
+    }
     
+
     // get message command details
     const Json& msg_cmd = jsonMessage.contains(ANDRUAV_PROTOCOL_MESSAGE_CMD)?jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD]:Json();
     
@@ -491,7 +499,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
         
         /*
             DONOT add return here unless system requires more security.
-            You cannot receive messages except from units that are logged so it should be secure.
+            You cannot receive messages except via Communication Server from units that are logged into the system so it should be secure.
             if you enable the return the following issue may happen:
                 1- GCS receives ID messages from the unit.
                 2- GCS send asking for mission & other info
@@ -544,7 +552,6 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             if (command.contains("z") == true) unit_info.flying_last_start_time = command["z"].get<long long>();
             if (command.contains("a") == true) unit_info.flying_total_duration = command["a"].get<long long>();
             if (command.contains("p") == true) unit_info.permission = command["p"].get<std::string>();
-            
             
             if (command.contains("C") == true) unit_info.manual_TX_blocked_mode = command["C"].get<int>();
             
@@ -612,6 +619,20 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
     #endif
     const Json& msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
     
+    uint32_t permission = 0;
+    if (validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_PERMISSION, Json::value_t::number_unsigned))
+    {
+        permission =  jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION].get<int>();
+    }
+    UNUSED (permission);
+
+    bool is_system = false;
+    if ((validateField(jsonMessage, ANDRUAV_PROTOCOL_SENDER, Json::value_t::string)) && (jsonMessage[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(SPECIAL_NAME_SYS_NAME)==0))
+    {   // permission is not needed if this command sender is the communication server not a remote GCS or Unit.
+        is_system = true;
+    }
+
+
     if (!msg_cmd.contains("C")) return ;
 
     int remote_execute_command = msg_cmd["C"];
@@ -624,7 +645,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
         uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    // ask for identification in return.      
         /*
             DONOT add return here unless system requires more security.
-            You cannot receive messages except from units that are logged so it should be secure.
+            You cannot receive messages except via Communication Server from units that are logged into the system so it should be secure.
             if you enable the return the following issue may happen:
                 1- GCS receives ID messages from the unit.
                 2- GCS send asking for mission & other info

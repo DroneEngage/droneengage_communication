@@ -25,6 +25,7 @@
 //------------------------------------------------------------------------------
 
 static std::mutex g_i_mutex_writeText, g_i_mutex_on_read; 
+static int wait_time = 30;
 
 // Report a failure
 void uavos::andruav_servers::CWSSession::fail(beast::error_code ec, char const* what)
@@ -56,8 +57,8 @@ void uavos::andruav_servers::CWSSession::on_resolve(
     if(ec)
         return fail(ec, "resolve");
 
-    // Set a timeout on the operation
-    beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
+    // // Set a timeout on the operation
+    beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(wait_time));
 
     // Make the connection on the IP address we get from a lookup
     beast::get_lowest_layer(ws_).async_connect(
@@ -84,7 +85,7 @@ void uavos::andruav_servers::CWSSession::on_connect(beast::error_code ec, tcp::r
     host_ += ':' + std::to_string(ep.port());
 
     // Set a timeout on the operation
-    beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(30));
+    beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(wait_time));
 
     // Set SNI Hostname (many hosts need this to handshake successfully)
     if(! SSL_set_tlsext_host_name(
@@ -141,7 +142,8 @@ void uavos::andruav_servers::CWSSession::on_handshake(beast::error_code ec)
         return fail(ec, "handshake");
 
 
-        // Read a message into our buffer
+    beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(wait_time));
+    // Read a message into our buffer
     ws_.async_read(
             buffer_,
             beast::bind_front_handler(

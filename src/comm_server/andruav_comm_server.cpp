@@ -35,19 +35,6 @@ using namespace uavos::andruav_servers;
 
 pthread_t m_watch_dog3;
 
-void* uavos::andruav_servers::startWatchDogThread3(void *args)
-{
-    
-    std::cout <<_INFO_CONSOLE_TEXT << "Restarting Sockets has been Engaged..." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
-    
-    andruav_server.uninit(true);
-    
-    andruav_server.start();
-
-    return NULL;
-}
 
 void* uavos::andruav_servers::startWatchDogThread2(void *args)
 {
@@ -91,7 +78,6 @@ void* uavos::andruav_servers::startWatchDogThread2(void *args)
                 {
                     if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
                     {  
-                        pthread_create( &m_watch_dog3, NULL, &uavos::andruav_servers::startWatchDogThread3, NULL );
                         return NULL;
                     }
                 }

@@ -438,9 +438,9 @@ void CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * module_item)
 bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
 {
 
-    #ifdef DEBUG
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
+    // #ifdef DEBUG
+    //     std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    // #endif
     
     bool updated = false;
 
@@ -598,7 +598,9 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
     const bool is_binary =  !(full_message[full_message_length-1]==125 || (full_message[full_message_length-2]==125));
     
     #ifdef DEBUG
+    #ifdef DEBUG_MSG        
         std::cout<< jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE] << std::endl;
+    #endif
     #endif
 
     if ((!validateField(jsonMessage, INTERMODULE_ROUTING_TYPE, Json::value_t::string))
@@ -807,14 +809,18 @@ void CUavosModulesManager::processIncommingServerMessage (const std::string& sen
 {
     const std::lock_guard<std::mutex> lock(g_i_mutex_process);
     #ifdef DEBUG
+    #ifdef DEBUG_MSG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: processIncommingServerMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     #endif
 
     std::vector<std::string> &v = m_module_messages[message_type];
     for(std::vector<std::string>::iterator it = v.begin(); it != v.end(); ++it) 
     {
         #ifdef DEBUG
-            std::cout << *it << std::endl;
+        #ifdef DEBUG_MSG        
+        std::cout << *it << std::endl;
+        #endif
         #endif
         
         auto uavos_module = m_modules_list.find(*it);
@@ -855,9 +861,10 @@ void CUavosModulesManager::processIncommingServerMessage (const std::string& sen
 void CUavosModulesManager::forwardMessageToModule ( const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item)
 {
     #ifdef DEBUG
+    #ifdef DEBUG_MSG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: forwardMessageToModule: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
-
+    #endif
     
     //const Json &msg = createJSONID(false);
     struct sockaddr_in module_address = *module_item->m_module_address.get();  
@@ -950,7 +957,9 @@ bool CUavosModulesManager::handleDeadModules ()
 void CUavosModulesManager::handleOnAndruavServerConnection (const int status)
 {
     #ifdef DEBUG
+    #ifdef DEBUG_MSG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleOnAndruavServerConnection " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     #endif
 
     MODULE_ITEM_LIST::iterator it;

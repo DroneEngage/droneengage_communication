@@ -104,6 +104,7 @@ add_compile_options(
   -Werror=unused-result
   $<$<CONFIG:DEBUG>:-g3>
   $<$<CONFIG:DEBUG>:-Og>
+  $<$<CONFIG:DEBUG>:-ggdb>
   $<$<CONFIG:RELEASE>:-O2>
   $<$<CONFIG:RELEASE>:-Werror=parentheses>
 )

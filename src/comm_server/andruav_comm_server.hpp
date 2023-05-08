@@ -9,7 +9,7 @@
 #include <pthread.h>
 
 #include "andruav_unit.hpp"
-#include "andruav_comm_session.hpp"
+#include "andruav_comm_ws.hpp"
 
 
 #include "../helpers/json.hpp"
@@ -38,7 +38,7 @@ namespace andruav_servers
     void *startWatchDogThread3(void *args);
 
 
-    class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServer>, public CCallBack_WSSession
+    class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServer>, public CCallBack_WSASession
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -113,8 +113,10 @@ namespace andruav_servers
             Json generateJSONSystemMessage (const int messageType, const Json& message) const;
             
         private:
-            std::shared_ptr<uavos::andruav_servers::CWSSession> _cwssession;  
-            
+            //std::shared_ptr<uavos::andruav_servers::CWSSession> _cwssession;  
+            uavos::andruav_servers::CWSAProxy& _cwsa_proxy = uavos::andruav_servers::CWSAProxy::getInstance();
+            std::unique_ptr<uavos::andruav_servers::CWSASession> _cwsa_session;
+
             std::string m_url_param;
             std::string m_host;
             std::string m_port;
@@ -126,7 +128,6 @@ namespace andruav_servers
 
             pthread_t m_watch_dog;
             pthread_t m_watch_dog2;
-            bool m_first = true;
             bool m_exit = false;
             CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();
     };

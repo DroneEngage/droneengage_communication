@@ -45,55 +45,55 @@ void* uavos::andruav_servers::startWatchDogThread2(void *args)
      * A delay for 2 seconds (default) will cause a restart.
      */
     
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
-    UNUSED (andruav_server);
+    // uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    // UNUSED (andruav_server);
 
-    // ping every 1500 ms ass default
-    uint32_t ping_server_rate_in_us = 1500 * 1000l; 
-    uint32_t max_allowed_ping_delay_in_us = 5000;
+    // // ping every 1500 ms ass default
+    // uint32_t ping_server_rate_in_us = 1500 * 1000l; 
+    // uint32_t max_allowed_ping_delay_in_us = 5000;
 
-    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
-    if (validateField(jsonConfig,"ping_server_rate_in_ms", Json::value_t::number_unsigned))
-    {
-        ping_server_rate_in_us = (uint32_t) jsonConfig["ping_server_rate_in_ms"].get<int>()  * 1000l;
-    }
-    if (validateField(jsonConfig,"max_allowed_ping_delay_in_ms", Json::value_t::number_unsigned))
-    {
-        max_allowed_ping_delay_in_us = (uint32_t) jsonConfig["max_allowed_ping_delay_in_ms"].get<int>() * 1000l;
-    }
+    // uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+    // const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    // if (validateField(jsonConfig,"ping_server_rate_in_ms", Json::value_t::number_unsigned))
+    // {
+    //     ping_server_rate_in_us = (uint32_t) jsonConfig["ping_server_rate_in_ms"].get<int>()  * 1000l;
+    // }
+    // if (validateField(jsonConfig,"max_allowed_ping_delay_in_ms", Json::value_t::number_unsigned))
+    // {
+    //     max_allowed_ping_delay_in_us = (uint32_t) jsonConfig["max_allowed_ping_delay_in_ms"].get<int>() * 1000l;
+    // }
     
         
-    while (true)
-    {
-            if (andruav_server.shouldExit()) 
-            {
-                return NULL;
-            }
+    // while (true)
+    // {
+    //         if (andruav_server.shouldExit()) 
+    //         {
+    //             return NULL;
+    //         }
 
-            if ((andruav_server.getLastTimeAccess()!=0)
-                &&                                                       
-                ((get_time_usec() - andruav_server.getLastTimeAccess()) > max_allowed_ping_delay_in_us)
-                )
-                {
-                    if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
-                    {  
-                        return NULL;
-                    }
-                }
+    //         if ((andruav_server.getLastTimeAccess()!=0)
+    //             &&                                                       
+    //             ((get_time_usec() - andruav_server.getLastTimeAccess()) > max_allowed_ping_delay_in_us)
+    //             )
+    //             {
+    //                 if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
+    //                 {  
+    //                     return NULL;
+    //                 }
+    //             }
 
             
-                #ifdef DEBUG
-                    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() = false diff="  << (get_time_usec() - andruav_server.getLastTimeAccess()) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                #endif
+    //             #ifdef DEBUG
+    //                 std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() = false diff="  << (get_time_usec() - andruav_server.getLastTimeAccess()) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    //             #endif
 
-            if (andruav_server.getStatus() != SOCKET_STATUS_FREASH)
-            {
-                andruav_server.API_pingServer();
-            }
+    //         if (andruav_server.getStatus() != SOCKET_STATUS_FREASH)
+    //         {
+    //             andruav_server.API_pingServer();
+    //         }
 
-            usleep(ping_server_rate_in_us); 
-    }
+    //         usleep(ping_server_rate_in_us); 
+    // }
 
 	return NULL;
 }
@@ -101,47 +101,33 @@ void* uavos::andruav_servers::startWatchDogThread2(void *args)
 void* uavos::andruav_servers::startWatchDogThread(void *args)
 {
 	
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    // uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
         
-    while (true)
-    {
-        // * note that connect does not return when it successfully connects
-        andruav_server.connect(); 
-
-        for (int i=0;i<50;++i)
-        {
-            if (andruav_server.shouldExit()) 
-            {
-                #ifdef DEBUG
-                    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() == true" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                #endif
-
-                return NULL;
-            }
-	        #ifdef DEBUG
-                    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() == false & i = " << i << _NORMAL_CONSOLE_TEXT_ << std::endl;
-            #endif
-
-            usleep(10000); 
-        }
+    // while (!m_exit)
+    // {
+    //     // * note that connect does not return when it successfully connects
+    //     andruav_server.connect(); 
 
         
-    }
+
+    //     usleep(1000000l); 
+    // }
 
 	return NULL;
 }
 
-
+/**
+ * @brief Entry function for Connection.
+ * 
+ */
 void uavos::andruav_servers::CAndruavCommServer::start ()
 {
-    m_exit = false;
-    m_lasttime_access = 0;
-    int result = pthread_create( &m_watch_dog, NULL, &uavos::andruav_servers::startWatchDogThread, this );
-    if ( result ) throw result;
-    
-    result = pthread_create( &m_watch_dog2, NULL, &uavos::andruav_servers::startWatchDogThread2, this );
-    if ( result ) throw result;
+    if (m_exit) return ;
 
+    connect(); 
+    
+    m_lasttime_access = 0;
+    
 }
 
 
@@ -209,7 +195,8 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
 }
 
 /**
- * @brief Connects to Andruav Communication Server
+ * @brief Connects to Andruav Communication Server. 
+ * This function uses information received form AuthServer.
  * 
  * @param server_ip 
  * @param server_port 
@@ -224,26 +211,18 @@ void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std:
         m_host = std::string(server_ip);
         m_port = std::string(server_port);
         m_party_id = std::string(party_id);
-        // The io_context is required for all I/O
-        net::io_context ioc;
 
-        // The SSL context is required, and holds certificates
-        ssl::context ctx{ssl::context::tlsv12_client};
-
-        // This holds the root certificate used for verification
-        //load_root_certificates(ctx);
         m_url_param = "/?f=" + key + "&s=" + m_party_id;
         
-        // Launch the asynchronous operation
-        _cwssession = std::shared_ptr<uavos::andruav_servers::CWSSession>(new uavos::andruav_servers::CWSSession(ioc, ctx, *this));
-        _cwssession.get()->run(m_host.c_str(), m_port.c_str(), m_url_param.c_str());
+        // Launch Synchronous Socket
+        if (_cwsa_session)
+        {
+            _cwsa_session.get()->shutdown();
+        }
+        _cwsa_session = _cwsa_proxy.run(m_host.c_str(), m_port.c_str(), m_url_param.c_str(), *this);
 
-        // Run the I/O service. The call will return when
-        // the socket is closed.
-        ioc.run();
+       // _cwsa_session = _cwsa_proxy.run(m_host.c_str(), m_port.c_str(), m_url_param.c_str(), *this);
 
-        _cwssession.reset();
-        
         #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: connectToCommServer" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
@@ -280,6 +259,7 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
     }
 
     uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
+
 }
 
 /**
@@ -707,7 +687,11 @@ void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
         
     m_exit = exit_mode;
     
-    _cwssession.get()->close();
+    if (_cwsa_session)
+    {
+        _cwsa_session.get()->close();
+        _cwsa_session.reset();
+    }
     
     struct timespec ts;
            int s;
@@ -738,17 +722,6 @@ void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 2" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    // // wait for exit
-	// pthread_join(m_watch_dog ,NULL);
-    // #ifdef DEBUG
-    //     std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    // #endif
-
-    // pthread_join(m_watch_dog2 ,NULL);
-    // #ifdef DEBUG
-    //     std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 2" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    // #endif
-
 	
     PLOG(plog::info) << "uninit finished."; 
     
@@ -774,7 +747,8 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
         Json json_msg  = this->generateJSONSystemMessage (command_type, msg);
-        _cwssession.get()->writeText(json_msg.dump());
+        //_cwssession.get()->writeText(json_msg.dump());
+        _cwsa_session.get()->writeText(json_msg.dump());
     } 
 }
             
@@ -808,7 +782,8 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
         Json json_msg  = this->generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
-        _cwssession.get()->writeText(json_msg.dump());
+        //_cwssession.get()->writeText(json_msg.dump());
+        _cwsa_session.get()->writeText(json_msg.dump());
 
         // #ifdef DEBUG
         // std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << json_msg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -836,7 +811,9 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
     const std::lock_guard<std::mutex> lock(g_i_mutex);
     
     #ifdef DEBUG
+    #ifdef DEBUG_MSG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     #endif
     
     std::string message_routing;
@@ -860,8 +837,9 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
         memcpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
 
 
-        _cwssession.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
-        
+        //_cwssession.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
+        _cwsa_session.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
+
         msg.release();
         // #ifdef DEBUG
         // std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << jmsg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -885,7 +863,10 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std:
 {
 
     #ifdef DEBUG
+    #ifdef DEBUG_MSG        
+    
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     #endif
 
     Json jMsg;
@@ -912,7 +893,10 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (cons
 {
 
     #ifdef DEBUG
+    #ifdef DEBUG_MSG        
+    
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     #endif
 
     Json jMsg;

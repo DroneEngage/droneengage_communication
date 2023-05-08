@@ -42,7 +42,7 @@
 #include <plog/Log.h> 
 #include "plog/Initializers/RollingFileInitializer.h"
 
-using namespace boost;
+//using namespace boost;
 using namespace std;
 
 
@@ -57,6 +57,8 @@ notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
 
 std::thread m_scheduler;
 bool exit_scheduler = false;
+std::thread m_ws;
+
 
     
 static std::string configName = "de_comm.config.module.json";
@@ -70,6 +72,25 @@ void quit_handler( int sig );
  * @brief display version info
  * 
  */
+
+/**
+ * @brief Establish connection with Communication Server
+ * 
+ * @Warning THIS FUNCTION DOES NOT RETURN....
+ * TODO: Call it in a thread.
+ */
+void establishServerConnection ()
+{
+    
+    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    while (!uavos::STATUS::getInstance().m_exit_me)
+    {
+        andruav_server.start();
+
+        usleep(1000000); // 10Hz
+    }
+}
+
 void _version (void)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage Communicator Server version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -192,7 +213,9 @@ void onReceive (const char * message, int len, struct sockaddr_in * ssock)
 {
         
     #ifdef DEBUG        
+    #ifdef DEBUG_MSG        
         std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     #endif
 
     cUavosModulesManager.parseIntermoduleMessage(message, len, ssock);
@@ -292,17 +315,7 @@ void defineMe()
 }
 
 
-/**
- * @brief Establish connection with Communication Server
- * 
- * @Warning THIS FUNCTION DOES NOT RETURN....
- * TODO: Call it in a thread.
- */
-void connectToCommServer ()
-{
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
-    andruav_server.start();
-}
+
 
 
 
@@ -449,7 +462,7 @@ void init (int argc, char *argv[])
 
     initSockets();
 
-    connectToCommServer ();
+    m_ws = std::thread (establishServerConnection); //establishServerConnection ();
 
 }
 
@@ -462,6 +475,7 @@ void uninit ()
     exit_scheduler = true;
     // wait for exit
     m_scheduler.join();
+    m_ws.join();
 	//pthread_join(m_scheduler ,NULL);
 	
     cLeds.uninit();

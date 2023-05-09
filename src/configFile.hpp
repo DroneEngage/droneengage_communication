@@ -28,7 +28,7 @@ namespace uavos
             //       due to the compilers behavior to check accessibility
             //       before deleted status
         private:
-            CConfigFile() {}                    // Constructor? (the {} brackets) are needed here.
+            CConfigFile():m_fileURL(""){}                    // Constructor? (the {} brackets) are needed here.
 
             // C++ 11
             // =======
@@ -37,7 +37,19 @@ namespace uavos
             
 
         public:
-            void InitConfigFile (const char* fileURL);
+            /**
+             * @brief read JSON data from file.
+             * This is the inital function
+             * 
+             * @param fileURL file path.
+             */
+            void InitConfigFile (const std::string& fileURL);
+            
+            /**
+             * @brief re-read data ffrom file.
+             * 
+             */
+            void Refresh ();
             const Json& GetConfigJSON();
 
         protected:
@@ -46,6 +58,7 @@ namespace uavos
             
 
         private:
+            std::string m_fileURL;
             std::stringstream m_fileContents;
             Json m_ConfigJSON;
         

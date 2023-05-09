@@ -19,13 +19,18 @@ const Json& CConfigFile::GetConfigJSON()
 }
 
 
-void CConfigFile::InitConfigFile (const char* fileURL)
+void CConfigFile::InitConfigFile (const std::string& fileURL)
 {
-    CConfigFile::ReadFile (fileURL);
-    
-    CConfigFile::ParseData (m_fileContents.str());
+    m_fileURL = fileURL;
+    Refresh();
 }
 
+void CConfigFile::Refresh()
+{
+    CConfigFile::ReadFile (m_fileURL.c_str());
+    
+    CConfigFile::ParseData (m_fileContents.str());
+} 
 
 void CConfigFile::ReadFile (const char * fileURL)
 {

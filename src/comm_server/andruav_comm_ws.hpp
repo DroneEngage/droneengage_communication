@@ -64,7 +64,6 @@ class CWSASession
         public:
 
             void run();
-
             void writeText (const std::string& message);
             void writeBinary (const char * bmsg, const int& length);
             void receive_message();
@@ -113,7 +112,7 @@ class CWSAProxy
 
     public:
         std::unique_ptr<uavos::andruav_servers::CWSASession> run(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback);
-        boost::asio::io_context io_context;
+        boost::asio::io_context io_context_;
     
 };
         

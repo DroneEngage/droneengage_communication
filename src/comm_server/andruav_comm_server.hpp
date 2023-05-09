@@ -33,11 +33,9 @@ namespace uavos
 namespace andruav_servers
 {
 
-    void *startWatchDogThread(void *args);
-    void *startWatchDogThread2(void *args);
-    void *startWatchDogThread3(void *args);
 
-
+    #define MIN_RECONNECT_RATE_US 10000000l
+    
     class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServer>, public CCallBack_WSASession
     {
         public:
@@ -56,7 +54,7 @@ namespace andruav_servers
 
         private:
 
-            CAndruavCommServer() 
+            CAndruavCommServer():m_exit(false) 
             {
                 m_next_connect_time = 0;
             };
@@ -68,7 +66,7 @@ namespace andruav_servers
         
         public:
             
-            void start();
+            void start(const u_int64_t timeout_us);
             void connect();
             void uninit(const bool exit);
 
@@ -92,7 +90,7 @@ namespace andruav_servers
             }
 
         public:
-            const bool& shouldExit()
+            const bool& shouldExit() const
             {
                 return m_exit;
             }
@@ -104,6 +102,7 @@ namespace andruav_servers
 
             
         private:
+            void* startWatchDogThread();
 
             void connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
             void parseCommand (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage);
@@ -124,11 +123,12 @@ namespace andruav_servers
 
             u_int8_t m_status =  SOCKET_STATUS_FREASH;
 
-            u_int64_t m_next_connect_time,  m_lasttime_access =0;
+            u_int64_t m_next_connect_time,  m_reconnect_rate, m_lasttime_access =0;
 
-            pthread_t m_watch_dog;
+
+            std::unique_ptr<std::thread> m_watch_dog;
             pthread_t m_watch_dog2;
-            bool m_exit = false;
+            bool m_exit;
             CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();
     };
 }

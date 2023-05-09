@@ -57,7 +57,6 @@ notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
 
 std::thread m_scheduler;
 bool exit_scheduler = false;
-std::thread m_ws;
 
 
     
@@ -73,23 +72,6 @@ void quit_handler( int sig );
  * 
  */
 
-/**
- * @brief Establish connection with Communication Server
- * 
- * @Warning THIS FUNCTION DOES NOT RETURN....
- * TODO: Call it in a thread.
- */
-void establishServerConnection ()
-{
-    
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
-    while (!uavos::STATUS::getInstance().m_exit_me)
-    {
-        andruav_server.start();
-
-        usleep(1000000); // 10Hz
-    }
-}
 
 void _version (void)
 {
@@ -462,9 +444,28 @@ void init (int argc, char *argv[])
 
     initSockets();
 
-    m_ws = std::thread (establishServerConnection); //establishServerConnection ();
-
 }
+
+
+void loop () 
+{
+    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    
+    uint64_t retry_rate_us = MIN_RECONNECT_RATE_US;
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    if (validateField(jsonConfig,"max_allowed_ping_delay_in_ms", Json::value_t::number_unsigned))
+    {
+        retry_rate_us = jsonConfig["max_allowed_ping_delay_in_ms"].get<int>() * 1000l;
+    }
+    
+
+    while (!uavos::STATUS::getInstance().m_exit_me)
+    {
+       andruav_server.start(retry_rate_us);
+       std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
+
 
 void uninit ()
 {
@@ -475,8 +476,6 @@ void uninit ()
     exit_scheduler = true;
     // wait for exit
     m_scheduler.join();
-    m_ws.join();
-	//pthread_join(m_scheduler ,NULL);
 	
     cLeds.uninit();
     
@@ -528,10 +527,6 @@ int main (int argc, char *argv[])
 {
     init (argc, argv);
 
-    while (!uavos::STATUS::getInstance().m_exit_me)
-    {
-       std::this_thread::sleep_for(std::chrono::seconds(1));
-       
-    }
+    loop();
 
 }

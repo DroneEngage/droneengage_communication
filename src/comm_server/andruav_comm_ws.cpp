@@ -34,7 +34,8 @@ void uavos::andruav_servers::CWSASession::run()
         // Set SNI Hostname (many hosts need this to handshake successfully)
         if (!SSL_set_tlsext_host_name(ws_.next_layer().native_handle(), host_.c_str()))
         {
-            throw std::runtime_error("Failed to set SNI hostname");
+            m_connected = false;
+            return ;
         }
 
         // Set a decorator to change the User-Agent of the handshake
@@ -51,12 +52,12 @@ void uavos::andruav_servers::CWSASession::run()
         ws_.handshake(host_ , url_param_, ec);
         if (ec)
         {
-            throw std::runtime_error("WebSocket handshake failed: " + ec.message());
+            m_connected = false;
+            return ;
         }
 
         m_thread_receiver = std::thread {[&](){ receive_message(); }};
 
-        //io_context_.run();
     }
     catch(std::exception const& e)
     {
@@ -72,28 +73,13 @@ void uavos::andruav_servers::CWSASession::receive_message()
     beast::error_code ec;
     
     while (m_connected) {
-        // boost::asio::steady_timer timer(io_context_);
-        // timer.expires_after(std::chrono::seconds(5));
-        // timer.async_wait([](const boost::system::error_code& ec)
-        // {
-        //     if (ec == boost::asio::error::operation_aborted)
-        //     {
-        //         // The timer was cancelled, so the receive operation completed successfully
-        //         std::cout << "OKOK" << std::endl;
-        //         return;
-        //     }
-        //     else
-        //     {
-        //         // The timer expired, so the receive operation timed out
-        //         std::cout << "OFFFF" << std::endl;
-        //         throw boost::system::system_error(boost::asio::error::timed_out);
-        //     }
-        // });
-
-        // Read a message into our buffer
-        {
-        const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
         
+
+
+        try
+        {
+        
+        if (!m_connected) return ;
         ws_.read(buffer, ec);
         if (!m_connected) return ;
         if (ec) {
@@ -115,8 +101,21 @@ void uavos::andruav_servers::CWSASession::receive_message()
                 // Other WebSocket or networking error
                 std::cout << "WebSocket read error: " << ec.message() << std::endl;
             }
-            break;
+            return ;
         }
+        }
+        catch (const boost::system::system_error& e) {
+            std::cerr << "Boost system error: " << e.what() << "\n";
+            // Handle the error here
+            return ;
+        } catch (const boost::beast::system_error& e) {
+            std::cerr << "Boost Beast system error: " << e.what() << "\n";
+            // Handle the error here
+            return ;
+        } 
+        catch (const std::exception& ex)
+        {
+            return ;
         }
         
 
@@ -125,8 +124,12 @@ void uavos::andruav_servers::CWSASession::receive_message()
         // copy buffer including NULLS
         os << beast::make_printable(buffer.data());   
         std::string output = os.str();
-
-        std::cout << "Received message: " << output << std::endl;
+        // if (output=="") 
+        // {
+        //     buffer.consume(buffer.size());
+        //     continue;
+        // }
+        std::cout << "Received message: " << buffer.size() << ":" << output << std::endl;
         
 
         if (ws_.got_binary() == true)
@@ -143,9 +146,11 @@ void uavos::andruav_servers::CWSASession::receive_message()
 
     }
     
+    // NO ERROR HANDLING HERE.
+    // SOCKET DISCONNECTION IS DETECTED BY DELAY OR WHEN SENDING DATA
     // Close the WebSocket connection
-    close(websocket::close_code::normal);
-    m_callback.onSocketError();
+    //close(websocket::close_code::normal);
+    //m_callback.onSocketError();
 }
     
 
@@ -158,15 +163,38 @@ void uavos::andruav_servers::CWSASession::close(beast::websocket::close_code cod
     m_connected = false;
     
     beast::error_code ec;
-    ws_.close(websocket::close_code::normal, ec);
-    if (ec) {
-        // Handle the error
-        std::cerr << "Error closing WebSocket: " << ec.message() << std::endl;
+    try
+    {
+           
+    if (!ws_.is_open()) 
+    {
         return ;
     }
+        
+    ws_.next_layer().next_layer().cancel();
+    ws_.next_layer().next_layer().close();
+    
+    // uncomments blockes when CTRL+C
+    // ws_.close(websocket::close_code::normal, ec);
+    // if (ec) {
+    //     // Handle the error
+    //     std::cerr << "Error closing WebSocket: " << ec.message() << std::endl;
+        
+    //     return ;
+    // }
 
-    while (ws_.is_open()) {
-        usleep(1000);
+    } catch (const boost::exception& ex) {
+        // Handle the exception
+        std::cerr << "Caught BOOST_THROW_EXCEPTION: "  << std::endl;
+        return ;
+    } catch (const std::exception& ex) {
+        // Handle other exceptions derived from std::exception
+        std::cerr << "Caught std::exception: " << ex.what() << std::endl;
+        return ;
+    } catch (...) {
+        // Handle any other uncaught exceptions
+        std::cerr << "Caught unknown exception" << std::endl;
+        return ;
     }
 }
 
@@ -196,24 +224,28 @@ void uavos::andruav_servers::CWSASession::writeText (const std::string& message)
             return;
         }
     } catch (const boost::exception& ex) {
-    // Handle the exception
-    std::cerr << "Caught BOOST_THROW_EXCEPTION: "  << std::endl;
+        // Handle the exception
+        std::cerr << "Caught BOOST_THROW_EXCEPTION: "  << std::endl;
+        m_callback.onSocketError();
+        return ;
     } catch (const std::exception& ex) {
         // Handle other exceptions derived from std::exception
         std::cerr << "Caught std::exception: " << ex.what() << std::endl;
+        m_callback.onSocketError();
+        return ;
     } catch (...) {
         // Handle any other uncaught exceptions
         std::cerr << "Caught unknown exception" << std::endl;
+        m_callback.onSocketError();
+        return ;
     }
 }
 
 void uavos::andruav_servers::CWSASession::writeBinary (const char * bmsg, const int& length)
 {
-    
     const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     
     if (!m_connected) return ;
-    
     try
     {
         boost::system::error_code ec;
@@ -227,11 +259,20 @@ void uavos::andruav_servers::CWSASession::writeBinary (const char * bmsg, const 
             m_callback.onSocketError();
             return;
         }
-    }
-    catch (const std::exception& ex)
-    {
-        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeBinary" << _NORMAL_CONSOLE_TEXT_ <<   std::endl;
-        PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeBinary."; 
+    
+    } catch (const boost::exception& ex) {
+        // Handle the exception
+        std::cerr << "Caught BOOST_THROW_EXCEPTION: "  << std::endl;
+        m_callback.onSocketError();
+        return ;
+    } catch (const std::exception& ex) {
+        // Handle other exceptions derived from std::exception
+        std::cerr << "Caught std::exception: " << ex.what() << std::endl;
+        m_callback.onSocketError();
+        return ;
+    } catch (...) {
+        // Handle any other uncaught exceptions
+        std::cerr << "Caught unknown exception" << std::endl;
         m_callback.onSocketError();
         return ;
     }
@@ -240,18 +281,15 @@ void uavos::andruav_servers::CWSASession::writeBinary (const char * bmsg, const 
 
 void uavos::andruav_servers::CWSASession::shutdown ()
 {
+    //const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     close();
-    
 }
 
 
 std::unique_ptr<uavos::andruav_servers::CWSASession> uavos::andruav_servers::CWSAProxy::run(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback)
 {
-    // The io_context is required for all I/O
-    boost::asio::io_context io_context;
-
     // Create a WebSocket client and connect to the server
-    std::unique_ptr<uavos::andruav_servers::CWSASession> ptr = std::make_unique<uavos::andruav_servers::CWSASession>(io_context, std::string(host), std::string(port), std::string(url_param),callback);
+    std::unique_ptr<uavos::andruav_servers::CWSASession> ptr = std::make_unique<uavos::andruav_servers::CWSASession>(io_context_, std::string(host), std::string(port), std::string(url_param),callback);
     ptr.get()->run();
     return std::move(ptr);
 }

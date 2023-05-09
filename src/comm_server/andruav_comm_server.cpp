@@ -33,85 +33,44 @@
 
 using namespace uavos::andruav_servers;
 
-pthread_t m_watch_dog3;
 
-
-void* uavos::andruav_servers::startWatchDogThread2(void *args)
+void* uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
 {
-    /**
-     * @brief This function mainly detects if communication is idle and there is no disconnection has been detected.
-     * It does that by sending PING backed to Communication Server and geting the reply.
-     * Receiving a ping message will result in incrementing @link.getLastTimeAccess()
-     * A delay for 2 seconds (default) will cause a restart.
-     */
-    
+	uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    uint64_t ping_server_rate_in_us = 1000000l; // 1 sec;
+    if (validateField(jsonConfig,"ping_server_rate_in_ms", Json::value_t::number_unsigned))
+    {
+        ping_server_rate_in_us = (uint64_t) jsonConfig["ping_server_rate_in_ms"].get<int>()  * 1000l;
+    }
+
     // uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
-    // UNUSED (andruav_server);
-
-    // // ping every 1500 ms ass default
-    // uint32_t ping_server_rate_in_us = 1500 * 1000l; 
-    // uint32_t max_allowed_ping_delay_in_us = 5000;
-
-    // uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-    // const Json& jsonConfig = cConfigFile.GetConfigJSON();
-    // if (validateField(jsonConfig,"ping_server_rate_in_ms", Json::value_t::number_unsigned))
-    // {
-    //     ping_server_rate_in_us = (uint32_t) jsonConfig["ping_server_rate_in_ms"].get<int>()  * 1000l;
-    // }
-    // if (validateField(jsonConfig,"max_allowed_ping_delay_in_ms", Json::value_t::number_unsigned))
-    // {
-    //     max_allowed_ping_delay_in_us = (uint32_t) jsonConfig["max_allowed_ping_delay_in_ms"].get<int>() * 1000l;
-    // }
-    
+    m_lasttime_access = get_time_usec();
+    while (!m_exit)
+    {
+        const uint64_t diff =  get_time_usec() - m_lasttime_access;
         
-    // while (true)
-    // {
-    //         if (andruav_server.shouldExit()) 
-    //         {
-    //             return NULL;
-    //         }
+        if (m_status == SOCKET_STATUS_REGISTERED)
+        {
+            std::cout << "you are ok" << std::endl;
+            API_pingServer();
+        }
+        else
+        {
+            std::cout << "you are OFF:" << diff << std::endl;
+        }
 
-    //         if ((andruav_server.getLastTimeAccess()!=0)
-    //             &&                                                       
-    //             ((get_time_usec() - andruav_server.getLastTimeAccess()) > max_allowed_ping_delay_in_us)
-    //             )
-    //             {
-    //                 if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
-    //                 {  
-    //                     return NULL;
-    //                 }
-    //             }
+        if (diff > 10*60*1000000l) abort();
 
-            
-    //             #ifdef DEBUG
-    //                 std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: andruav_server.shouldExit() = false diff="  << (get_time_usec() - andruav_server.getLastTimeAccess()) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    //             #endif
+        if (diff > m_reconnect_rate)
+        {           
+            std::cout << "BOFT:" << diff << std::endl;
+            _cwsa_session.get()->shutdown();
+            onSocketError();    
+        }
 
-    //         if (andruav_server.getStatus() != SOCKET_STATUS_FREASH)
-    //         {
-    //             andruav_server.API_pingServer();
-    //         }
-
-    //         usleep(ping_server_rate_in_us); 
-    // }
-
-	return NULL;
-}
-
-void* uavos::andruav_servers::startWatchDogThread(void *args)
-{
-	
-    // uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
-        
-    // while (!m_exit)
-    // {
-    //     // * note that connect does not return when it successfully connects
-    //     andruav_server.connect(); 
-
-        
-
-    //     usleep(1000000l); 
-    // }
+        usleep(ping_server_rate_in_us); 
+    }
 
 	return NULL;
 }
@@ -120,16 +79,20 @@ void* uavos::andruav_servers::startWatchDogThread(void *args)
  * @brief Entry function for Connection.
  * 
  */
-void uavos::andruav_servers::CAndruavCommServer::start ()
+void uavos::andruav_servers::CAndruavCommServer::start (const u_int64_t reconnect_rate)
 {
+    
+    m_reconnect_rate = (reconnect_rate < MIN_RECONNECT_RATE_US)?MIN_RECONNECT_RATE_US:reconnect_rate;
+
     if (m_exit) return ;
 
+    if (m_watch_dog==nullptr)
+    {
+        m_watch_dog = std::make_unique<std::thread>([&](){ startWatchDogThread(); });
+    }
     connect(); 
     
-    m_lasttime_access = 0;
-    
 }
-
 
 /**
  * @brief Main function that connects to Andruav Authentication
@@ -154,12 +117,14 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
 
         const uint64_t now_time = get_time_usec();
         
+        
+        
         if (m_next_connect_time > now_time)
-        {
+        {   // this is to protect rapid calls to this function without waiting for server to response.
             return ;
         }
 
-        m_next_connect_time = now_time + 10000000l; // retry after 10 sec.
+        m_next_connect_time = now_time + MIN_RECONNECT_RATE_US; // retry after 10 sec.
 
         uavos::andruav_servers::CAndruavAuthenticator& andruav_auth = uavos::andruav_servers::CAndruavAuthenticator::getInstance();
         
@@ -219,9 +184,11 @@ void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std:
         {
             _cwsa_session.get()->shutdown();
         }
+        
         _cwsa_session = _cwsa_proxy.run(m_host.c_str(), m_port.c_str(), m_url_param.c_str(), *this);
-
-       // _cwsa_session = _cwsa_proxy.run(m_host.c_str(), m_port.c_str(), m_url_param.c_str(), *this);
+        
+        // To delay the auto retry
+        m_lasttime_access = get_time_usec();
 
         #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: connectToCommServer" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -238,14 +205,11 @@ void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std:
 
 void uavos::andruav_servers::CAndruavCommServer::onSocketError()
 {
-    // reset rate...socket error handling is tacking care now of reconnection.
-    m_lasttime_access = 0; 
-
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    if (m_exit== true)
+    if (m_exit)
     {
         std::cout << _INFO_CONSOLE_TEXT << "Communication Server Connection Terminated m_exit is TRUE"  << _NORMAL_CONSOLE_TEXT_ << std::endl;
         m_status =  SOCKET_STATUS_DISCONNECTED;  
@@ -361,6 +325,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
     { // if not OK then TYPE_AndruavSystem_ConnectedCommServer will have not OK and will set it back. 
         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communication Server ReConnected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
         m_status = SOCKET_STATUS_REGISTERED;
+        m_lasttime_access = get_time_usec();
         uavos::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
     }
 
@@ -381,8 +346,8 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                     PLOG(plog::info) << "Communication Server Connected: Success ";
                     
                     m_status = SOCKET_STATUS_REGISTERED;
+                    m_lasttime_access = get_time_usec();
                     uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID(std::string());
-                //    uavos::andruav_servers::CAndruavFacade::getInstance().API_loadTasksByScope(ENUM_TASK_SCOPE::SCOPE_GROUP, TYPE_AndruavMessage_ExternalGeoFence);
                 }
                 else
                 {
@@ -677,8 +642,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
 
 void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
 {
-    m_lasttime_access = 0;
-
+    
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
@@ -689,7 +653,7 @@ void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
     
     if (_cwsa_session)
     {
-        _cwsa_session.get()->close();
+        _cwsa_session.get()->shutdown();
         _cwsa_session.reset();
     }
     
@@ -701,10 +665,7 @@ void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
     }
     ts.tv_sec += 10;
 
-    s = pthread_timedjoin_np(m_watch_dog, NULL, &ts);
-    if (s != 0) {
-        exit(0);
-    }
+    m_watch_dog->join(); // Wait for the thread to exit
 
     #ifdef DEBUG
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -781,13 +742,19 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
 
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
-        Json json_msg  = this->generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
-        //_cwssession.get()->writeText(json_msg.dump());
-        _cwsa_session.get()->writeText(json_msg.dump());
+        // const uint64_t diff = (get_time_usec() - m_lasttime_access);
+        // if (diff > m_reconnect_rate)
+        // {           
+        //     std::cout << "BOFT:" << diff << std::endl;
+        //     _cwsa_session.get()->shutdown();
+        //     onSocketError();    
+        //     return ;
+        // }
 
-        // #ifdef DEBUG
-        // std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << json_msg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        // #endif
+
+
+        Json json_msg  = this->generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
+        _cwsa_session.get()->writeText(json_msg.dump());
     } 
 }
 
@@ -828,6 +795,17 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
 
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
+        
+        // const uint64_t diff = (get_time_usec() - m_lasttime_access);
+        // if (diff > m_reconnect_rate)
+        // {           
+        //     std::cout << "BOF:" << diff << std::endl;
+        //     _cwsa_session.get()->shutdown();
+        //     onSocketError();    
+        //     return ;
+        // }
+
+
         Json json  = this->generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, message_cmd);
         std::string json_msg = json.dump();
         char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
@@ -835,15 +813,10 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
         strcpy(msg_ptr,json_msg.c_str());
         msg_ptr[json_msg.length()] = 0;
         memcpy(&msg[json_msg.length()+1], bmsg, bmsg_length);
-
-
-        //_cwssession.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
+    
         _cwsa_session.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
 
         msg.release();
-        // #ifdef DEBUG
-        // std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << jmsg.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        // #endif
     } 
 }
 

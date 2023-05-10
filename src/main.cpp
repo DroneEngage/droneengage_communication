@@ -429,10 +429,10 @@ void init (int argc, char *argv[])
     _version();
     
     #ifdef DEBUG
-    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_TEXT_BOLD_ << __DATE__ << " --- " << __TIME__ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_TEXT_BOLD_ << __DATE__ << " --- " << __TIME__ << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_TEXT_BOLD_ << " seconds since the Epoch" << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_TEXT_BOLD_ << " seconds since the Epoch" << _NORMAL_CONSOLE_TEXT_  << std::endl;
 
     initLogger();
 

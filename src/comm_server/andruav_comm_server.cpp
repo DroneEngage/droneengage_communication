@@ -66,12 +66,14 @@ void* uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
         if (m_status == SOCKET_STATUS_REGISTERED)
         {
             off_count = 0;
-            std::cout << "you are ok" << std::endl;
+            #ifdef DEBUG
+                std::cout << "you are ok" << std::endl;
+            #endif
             API_pingServer();
         }
         else
         {
-            std::cout << "you are OFF:" << diff << std::endl;
+            std::cout  << _LOG_CONSOLE_TEXT_BOLD_ <<  "you are " << _ERROR_CONSOLE_BOLD_TEXT_  " OFFLINE " << _INFO_CONSOLE_TEXT << diff << _LOG_CONSOLE_TEXT_BOLD_ << " us" << _NORMAL_CONSOLE_TEXT_  << std::endl;
         }
 
         if (off_count > 5) abort();
@@ -81,8 +83,11 @@ void* uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
             off_count++;
             m_lasttime_access = get_time_usec();
             std::cout << "BOFT:" << diff << std::endl;
-            _cwsa_session.get()->shutdown();
-            onSocketError();    
+            if (_cwsa_session!= nullptr) 
+            {
+                _cwsa_session.get()->shutdown();
+                onSocketError();    
+            }
         }
 
         usleep(ping_server_rate_in_us); 

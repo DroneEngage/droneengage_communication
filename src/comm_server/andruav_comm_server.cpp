@@ -36,14 +36,27 @@ using namespace uavos::andruav_servers;
 
 void* uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
 {
+    static uint32_t off_count = 0;
+
 	uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
     const Json& jsonConfig = cConfigFile.GetConfigJSON();
-    uint64_t ping_server_rate_in_us = 1000000l; // 1 sec;
+    
+    uint64_t ping_server_rate_in_us = DEFAULT_PING_RATE_US; 
+    uint64_t reconnect_rate = MIN_RECONNECT_RATE_US;
+    
+
     if (validateField(jsonConfig,"ping_server_rate_in_ms", Json::value_t::number_unsigned))
     {
         ping_server_rate_in_us = (uint64_t) jsonConfig["ping_server_rate_in_ms"].get<int>()  * 1000l;
     }
 
+    if (validateField(jsonConfig,"max_allowed_ping_delay_in_ms", Json::value_t::number_unsigned))
+    {
+        reconnect_rate = jsonConfig["max_allowed_ping_delay_in_ms"].get<int>() * 1000l;
+    }
+
+    reconnect_rate = (reconnect_rate < MIN_RECONNECT_RATE_US)?MIN_RECONNECT_RATE_US:reconnect_rate;
+  
     // uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
     m_lasttime_access = get_time_usec();
     while (!m_exit)
@@ -52,6 +65,7 @@ void* uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
         
         if (m_status == SOCKET_STATUS_REGISTERED)
         {
+            off_count = 0;
             std::cout << "you are ok" << std::endl;
             API_pingServer();
         }
@@ -60,10 +74,12 @@ void* uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
             std::cout << "you are OFF:" << diff << std::endl;
         }
 
-        if (diff > 10*60*1000000l) abort();
+        if (off_count > 5) abort();
 
-        if (diff > m_reconnect_rate)
-        {           
+        if (diff > reconnect_rate)
+        {          
+            off_count++;
+            m_lasttime_access = get_time_usec();
             std::cout << "BOFT:" << diff << std::endl;
             _cwsa_session.get()->shutdown();
             onSocketError();    
@@ -79,11 +95,9 @@ void* uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
  * @brief Entry function for Connection.
  * 
  */
-void uavos::andruav_servers::CAndruavCommServer::start (const u_int64_t reconnect_rate)
+void uavos::andruav_servers::CAndruavCommServer::start ()
 {
     
-    m_reconnect_rate = (reconnect_rate < MIN_RECONNECT_RATE_US)?MIN_RECONNECT_RATE_US:reconnect_rate;
-
     if (m_exit) return ;
 
     if (m_watch_dog==nullptr)
@@ -708,7 +722,6 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
         Json json_msg  = this->generateJSONSystemMessage (command_type, msg);
-        //_cwssession.get()->writeText(json_msg.dump());
         _cwsa_session.get()->writeText(json_msg.dump());
     } 
 }
@@ -742,17 +755,6 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
 
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
-        // const uint64_t diff = (get_time_usec() - m_lasttime_access);
-        // if (diff > m_reconnect_rate)
-        // {           
-        //     std::cout << "BOFT:" << diff << std::endl;
-        //     _cwsa_session.get()->shutdown();
-        //     onSocketError();    
-        //     return ;
-        // }
-
-
-
         Json json_msg  = this->generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
         _cwsa_session.get()->writeText(json_msg.dump());
     } 
@@ -796,16 +798,6 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
         
-        // const uint64_t diff = (get_time_usec() - m_lasttime_access);
-        // if (diff > m_reconnect_rate)
-        // {           
-        //     std::cout << "BOF:" << diff << std::endl;
-        //     _cwsa_session.get()->shutdown();
-        //     onSocketError();    
-        //     return ;
-        // }
-
-
         Json json  = this->generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, message_cmd);
         std::string json_msg = json.dump();
         char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];

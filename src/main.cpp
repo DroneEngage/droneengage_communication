@@ -451,17 +451,10 @@ void loop ()
 {
     uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
     
-    uint64_t retry_rate_us = MIN_RECONNECT_RATE_US;
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
-    if (validateField(jsonConfig,"max_allowed_ping_delay_in_ms", Json::value_t::number_unsigned))
-    {
-        retry_rate_us = jsonConfig["max_allowed_ping_delay_in_ms"].get<int>() * 1000l;
-    }
     
-
     while (!uavos::STATUS::getInstance().m_exit_me)
     {
-       andruav_server.start(retry_rate_us);
+       andruav_server.start();
        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

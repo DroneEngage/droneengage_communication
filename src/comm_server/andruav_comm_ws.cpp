@@ -124,14 +124,13 @@ void uavos::andruav_servers::CWSASession::receive_message()
         // copy buffer including NULLS
         os << beast::make_printable(buffer.data());   
         std::string output = os.str();
-        // if (output=="") 
-        // {
-        //     buffer.consume(buffer.size());
-        //     continue;
-        // }
-        std::cout << "Received message: " << buffer.size() << ":" << output << std::endl;
         
-
+        #ifdef DEBUG
+        #ifdef DEBUG_MSG        
+        std::cout << "Received message: " << buffer.size() << ":" << output << std::endl;
+        #endif
+        #endif
+        
         if (ws_.got_binary() == true)
         {
             m_callback.onBinaryMessageRecieved(output.c_str(), buffer.size());

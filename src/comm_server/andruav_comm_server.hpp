@@ -34,7 +34,8 @@ namespace andruav_servers
 {
 
 
-    #define MIN_RECONNECT_RATE_US 10000000l
+    #define MIN_RECONNECT_RATE_US 10000000l // 10 sec
+    #define DEFAULT_PING_RATE_US   2000000l // 2 sec
     
     class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServer>, public CCallBack_WSASession
     {
@@ -66,7 +67,7 @@ namespace andruav_servers
         
         public:
             
-            void start(const u_int64_t timeout_us);
+            void start();
             void connect();
             void uninit(const bool exit);
 
@@ -123,7 +124,7 @@ namespace andruav_servers
 
             u_int8_t m_status =  SOCKET_STATUS_FREASH;
 
-            u_int64_t m_next_connect_time,  m_reconnect_rate, m_lasttime_access =0;
+            u_int64_t m_next_connect_time,  m_lasttime_access =0;
 
 
             std::unique_ptr<std::thread> m_watch_dog;

@@ -92,6 +92,7 @@ typedef struct {
 
   
   int swarm_leader_formation;
+  int swarm_follower_formation;
   std::string swarm_leader_I_am_following;
   
   std::string permission;  

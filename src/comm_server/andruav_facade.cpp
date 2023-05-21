@@ -91,6 +91,12 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
     {
         jMsg["y"] = unit_info.is_whisling;    // is whisling
     }
+    
+    if (unit_info.swarm_follower_formation != FORMATION_NO_SWARM) // NO Formation
+    {
+        jMsg["n"] = unit_info.swarm_follower_formation;    
+    }
+
     if (unit_info.swarm_leader_formation != FORMATION_NO_SWARM) // NO Formation
     {
         jMsg["o"] = unit_info.swarm_leader_formation;    
@@ -314,6 +320,11 @@ void uavos::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::stri
     {
         jMsg["y"] = unit_info.is_whisling;    // is whisling
     }
+    if (unit_info.swarm_follower_formation != FORMATION_NO_SWARM) // NO Formation
+    {
+        jMsg["n"] = unit_info.swarm_follower_formation;    
+    }
+
     if (unit_info.swarm_leader_formation != FORMATION_NO_SWARM) // NO Formation
     {
         jMsg["o"] = unit_info.swarm_leader_formation;    

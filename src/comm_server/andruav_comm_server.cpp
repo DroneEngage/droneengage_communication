@@ -505,6 +505,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             
             if (command.contains("C") == true) unit_info.manual_TX_blocked_mode = command["C"].get<int>();
             
+            if (command.contains("n") == true) unit_info.swarm_follower_formation = command["n"].get<int>();
             if (command.contains("o") == true) unit_info.swarm_leader_formation = command["o"].get<int>();
             if (command.contains("q") == true) unit_info.swarm_leader_I_am_following = command["q"].get<std::string>();
             

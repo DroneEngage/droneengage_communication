@@ -148,6 +148,7 @@
 // New Binary Messages 
 #define TYPE_AndruavMessage_ServoChannel            6001
 #define TYPE_AndruavMessage_MAVLINK                 6502
+#define TYPE_AndruavMessage_SWARM_MAVLINK           6503
 
 
 

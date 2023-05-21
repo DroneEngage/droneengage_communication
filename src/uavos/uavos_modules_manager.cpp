@@ -695,6 +695,7 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
             unit_info.is_tracking_mode              = ms["b"].get<bool>();
             unit_info.manual_TX_blocked_mode        = ms["C"].get<int>();
             unit_info.is_gcs_blocked                = ms["B"].get<bool>();
+            unit_info.swarm_follower_formation      = ms["n"].get<int>();
             unit_info.swarm_leader_formation        = ms["o"].get<int>();
             unit_info.swarm_leader_I_am_following   = ms["q"].get<std::string>();
 

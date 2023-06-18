@@ -550,7 +550,8 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
                 cLocalConfigFile.apply();
                 /*
                   Do not change party_id this will make it unstable because CommunicationServer expects current partyID
-                  Change wll take effective after reboot or server disconnection.
+                  Change will take effective after reboot or server disconnection.
+                  Also if server is asking for fixed UDP port then communication server will allocate the port for the old one.
                 */
                 //unit_info.party_id = party_id;   << do not uncomment.
             }

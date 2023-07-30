@@ -75,9 +75,11 @@ void* uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
         {
             std::cout  << _LOG_CONSOLE_TEXT_BOLD_ <<  "you are " << _ERROR_CONSOLE_BOLD_TEXT_  " OFFLINE " << _INFO_CONSOLE_TEXT << diff << _LOG_CONSOLE_TEXT_BOLD_ << " us" << _NORMAL_CONSOLE_TEXT_  << std::endl;
         }
-
+#ifdef DEBUG
+        if (off_count > 500) abort();
+#else
         if (off_count > 5) abort();
-
+#endif
         if (diff > reconnect_rate)
         {          
             off_count++;

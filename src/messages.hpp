@@ -149,8 +149,11 @@
 #define TYPE_AndruavMessage_ServoChannel            6001
 #define TYPE_AndruavMessage_MAVLINK                 6502
 #define TYPE_AndruavMessage_SWARM_MAVLINK           6503
+#define TYPE_AndruavMessage_INTERNAL_MAVLINK        6504
 
-
+#define TYPE_AndruavMessage_Sonar_Info              13001
+#define TYPE_AndruavMessage_Sonar_Action            13002
+#define TYPE_AndruavMessage_Sonar_RemoteExecute     13003
 
 
 // Andruav Mission Types

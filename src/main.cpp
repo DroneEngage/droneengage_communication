@@ -255,7 +255,7 @@ void defineMe()
     std::string party_id = cLocalConfigFile.getStringField("party_id");
     if (party_id=="")
     {
-        party_id = std::to_string(instance_time_stamp);
+        party_id = std::to_string((get_time_usec() & 0xFFFFFF));
         cLocalConfigFile.addStringField("party_id",party_id.c_str());
         cLocalConfigFile.apply();
     }

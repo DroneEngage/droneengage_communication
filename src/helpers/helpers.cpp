@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <cstdint>
+#include <iomanip>
 #include <stdexcept>
 #include "helpers.hpp"
 
@@ -140,4 +141,18 @@ std::string get_linux_machine_id ()
     {
         return std::string("");
     }
+}
+
+
+std::string convertMacAddressToString(const std::vector<int>& mac)
+{
+    std::ostringstream oss;
+    oss << std::hex << std::setfill('0');
+    for (size_t i = 0; i < mac.size(); ++i) {
+        oss << std::setw(2) << mac[i];
+        if (i < mac.size() - 1) {
+            oss << ":";
+        }
+    }
+    return oss.str();
 }

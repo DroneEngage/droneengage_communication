@@ -12,21 +12,27 @@
 
     
     // Drone-Engage Communication Server Connection
-    "auth_ip"                   : "cloud.ardupilot.org",
+    "auth_ip"                   : "192.168.1.144",
     "auth_port"                 : 19408,
-    "auth_verify_ssl"           : true,
+    "auth_verify_ssl"           : false,
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
     "root_certificate_path"     : "./root.crt",
 
-    "userName"                  :"team@ardupilot.org", 
-    "accessCode"                :"1234",
+    "userName"                  :"single@airgap.droneengage.com", 
+    "accessCode"                :"test",
     "unitID"                    :"drone_cairo",
     "groupID"                   :"1",
     "unitDescription"           :"de_unit 1",
 
-    
+    "p2p_communication": {
+            "driver_ip"         : "127.0.0.1",
+            "driver_port"       : 12340,
+            "channel"           : 4,
+            "password"          : "PWD_WRD1"
+        },
+
     // Logger Section
-    "logger_enabled"            : true,
+    "logger_enabled"            : false,
     "logger_debug"              : false,
 
     // sometimes you need to reconnect the app when connection is silent and not timedout yet:
@@ -51,6 +57,5 @@
                                 ]
 
     //"allow_temp":               cat /sys/class/thermal/thermal_zone0
-    
     
 }

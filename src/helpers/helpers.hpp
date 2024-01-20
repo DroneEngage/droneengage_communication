@@ -40,4 +40,6 @@ extern std::string removeComments(std::string prgm);
 extern bool validateField (const Json& message, const char *field_name, const Json::value_t& field_type);
 
 extern std::string get_linux_machine_id ();
+
+extern std::string convertMacAddressToString(const std::vector<int>& mac);
 #endif

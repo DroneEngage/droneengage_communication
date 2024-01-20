@@ -64,6 +64,22 @@ typedef struct {
     bool is_new = false;   
 } ANDRUAV_UNIT_LOCATION;
 
+
+//////////////////////////////////////// START P2P /////////////////////
+enum ANDRUAV_UNIT_P2P_TYPE 
+{   
+    esp32_mesh   = 0, 
+    unknown = 4
+};
+
+typedef struct {
+    ANDRUAV_UNIT_P2P_TYPE p2p_connection_type = ANDRUAV_UNIT_P2P_TYPE::unknown;
+    std::string address_1;
+    std::string address_2;
+} ANDRUAV_UNIT_P2P_INFO;
+
+/////////////////////////////////////////////////////////////
+
 typedef struct {
   
   bool is_me;
@@ -133,8 +149,6 @@ class CAndruavUnit
             m_unit_info.flying_last_start_time  = 0;
             m_unit_info.swarm_leader_I_am_following = std::string("");
             m_unit_info.is_new = true;
-
-
         }
 
 
@@ -163,9 +177,16 @@ class CAndruavUnit
             return m_unit_location_info;
         }
 
+        ANDRUAV_UNIT_P2P_INFO& getUnitP2PInfo()
+        {
+            return m_unit_p2p_info;
+        }
+
     protected:
         ANDRUAV_UNIT_INFO m_unit_info;
         ANDRUAV_UNIT_LOCATION m_unit_location_info;
+
+        ANDRUAV_UNIT_P2P_INFO m_unit_p2p_info;
 };
 
 

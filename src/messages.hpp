@@ -151,9 +151,16 @@
 #define TYPE_AndruavMessage_SWARM_MAVLINK           6503
 #define TYPE_AndruavMessage_INTERNAL_MAVLINK        6504
 
+
+//P2P Related Messages Starts with 7000 till 7500
+#define Type_AndruavMessage_P2P_NODE_INFO           7000
+
+
 #define TYPE_AndruavMessage_Sonar_Info              13001
 #define TYPE_AndruavMessage_Sonar_Action            13002
 #define TYPE_AndruavMessage_Sonar_RemoteExecute     13003
+
+
 
 
 // Andruav Mission Types

@@ -34,6 +34,7 @@
 #include "./comm_server/andruav_unit.hpp"
 #include "./comm_server/andruav_comm_server.hpp"
 #include "./comm_server/andruav_facade.hpp"
+#include "./comm_server/andruav_comm_p2p.hpp"
 #include "./uavos/uavos_modules_manager.hpp"
 #include "./hal/gpio.hpp"
 #include "./notification_module/leds.hpp"
@@ -50,7 +51,7 @@ uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
 uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
 uavos::comm::CUDPCommunicator& cUDPClient = uavos::comm::CUDPCommunicator::getInstance();  
 uavos::CUavosModulesManager& cUavosModulesManager = uavos::CUavosModulesManager::getInstance();  
-
+uavos::andruav_servers::CP2P& cP2P = uavos::andruav_servers::CP2P::getInstance();
 //hal_linux::CRPI_GPIO &cGPIO = hal_linux::CRPI_GPIO::getInstance();
 notification::CLEDs &cLeds = notification::CLEDs::getInstance();
 notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
@@ -244,6 +245,51 @@ void initLogger()
     plog::init(log_level, log_filename_final.str().c_str()); 
 
     PLOG(plog::info) << "Drone-Engage Communicator Server version " << version_string; 
+}
+
+void initP2P()
+{
+    
+    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    
+    if (jsonConfig.contains("p2p_communication") == false) 
+    {
+        // no p2p_communication
+        std::cout << _INFO_CONSOLE_TEXT << "WARNING: " << _ERROR_CONSOLE_BOLD_TEXT_ "p2p_communication " << _INFO_CONSOLE_TEXT << "field is not defined." <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        cP2P.disable();
+        return ;
+    }
+    
+    const Json& jsonConfig_p2p = jsonConfig["p2p_communication"];
+    if (!validateField(jsonConfig_p2p,"driver_ip", Json::value_t::string))
+    {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: " << _TEXT_BOLD_HIGHTLITED_ "p2p_communication:driver_ip " << _INFO_CONSOLE_TEXT << "field is not defined." <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        cP2P.disable();
+        return ;
+    }
+    if (!validateField(jsonConfig_p2p,"driver_port", Json::value_t::number_unsigned))
+    {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: " << _TEXT_BOLD_HIGHTLITED_ "p2p_communication:driver_port " << _INFO_CONSOLE_TEXT << "field is not defined." <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        cP2P.disable();
+        return ;
+    }
+    if (!validateField(jsonConfig_p2p,"channel", Json::value_t::number_unsigned))
+    {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: " << _TEXT_BOLD_HIGHTLITED_ "p2p_communication:channel" << _INFO_CONSOLE_TEXT << "field is not defined." <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        cP2P.disable();
+        return ;            
+    }
+    if (!validateField(jsonConfig_p2p,"password", Json::value_t::string))
+    {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: " << _TEXT_BOLD_HIGHTLITED_ "p2p_communication:password " << _INFO_CONSOLE_TEXT << "field is not defined." <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        cP2P.disable();
+        return ;
+    }
+    
+
+    cP2P.init(jsonConfig_p2p["driver_ip"].get<std::string>().c_str(), jsonConfig_p2p["driver_port"].get<int>(), jsonConfig_p2p["channel"].get<int>(), jsonConfig_p2p["password"].get<std::string>().c_str());
+    cP2P.start();
+    cP2P.getAddress();
 }
 
 void defineMe()
@@ -444,6 +490,7 @@ void init (int argc, char *argv[])
 
     initSockets();
 
+    initP2P();
 }
 
 

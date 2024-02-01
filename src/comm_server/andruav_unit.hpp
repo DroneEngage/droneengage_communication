@@ -2,6 +2,7 @@
 #define ANDRUAV_UNIT_H_
 
 #include <iostream>
+#include <limits> 
 #include <string>
 #include <map>
 
@@ -68,14 +69,19 @@ typedef struct {
 //////////////////////////////////////// START P2P /////////////////////
 enum ANDRUAV_UNIT_P2P_TYPE 
 {   
-    esp32_mesh   = 0, 
-    unknown = 4
+    unknown         = 0,
+    esp32_mesh      = 1
+     
 };
 
 typedef struct {
     ANDRUAV_UNIT_P2P_TYPE p2p_connection_type = ANDRUAV_UNIT_P2P_TYPE::unknown;
     std::string address_1;
     std::string address_2;
+    uint16_t network_layer = std::numeric_limits<uint16_t>::max() ;  // 0 if root or direct p2p with no mesh.
+
+    std::string parent_address;
+    bool parent_connection_status=false;
 } ANDRUAV_UNIT_P2P_INFO;
 
 /////////////////////////////////////////////////////////////
@@ -118,7 +124,7 @@ typedef struct {
   std::string description;
   uint64_t last_access_time;
   
-  bool is_new;      
+  bool is_new = true;      
 } ANDRUAV_UNIT_INFO;
 
 

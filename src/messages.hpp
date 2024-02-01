@@ -216,6 +216,7 @@
 #define ERROR_GPS                               10
 #define ERROR_POWER                             11
 #define ERROR_TYPE_ERROR_MODULE                 13
+#define ERROR_TYPE_ERROR_P2P                    23
 #define ERROR_GEO_FENCE_ERROR                   100
 
 // 0	MAV_SEVERITY_EMERGENCY	System is unusable. This is a "panic" condition.

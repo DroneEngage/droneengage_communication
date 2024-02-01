@@ -488,7 +488,6 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             
             unit_info.unit_name = command["UD"].get<std::string>();
             unit_info.description = command["DS"].get<std::string>();
-            
             if (command.contains("VR") == true) unit_info.is_video_recording = command["VR"].get<int>();
             if (command.contains("FI") == true) unit_info.use_fcb = command["FI"].get<bool>();
             if (command.contains("SD") == true) unit_info.is_shutdown = command["SD"].get<bool>();
@@ -512,16 +511,19 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             if (command.contains("q") == true) unit_info.swarm_leader_I_am_following = command["q"].get<std::string>();
             
             unit_info.last_access_time = get_time_usec();
-            if (unit_info.is_new == true)
-            {
-                unit_info.is_new = false;
-            }
+            
+            std::string res = unit_info.is_new?"New":"OLD" ;
+            std::cout << _INFO_CONSOLE_TEXT << "TYPE_AndruavMessage_ID: " << unit_info.is_new << _SUCCESS_CONSOLE_TEXT_ <<  msg_cmd.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+            unit_info.is_new = false;
+            
         }
         break;
 
         case TYPE_AndruavMessage_Unit_Name:
         {
             /*
+                Set Unit Name
                 TYPE_AndruavMessage_Unit_Name
                 UN:string: unit name
                 DS:string: unit description

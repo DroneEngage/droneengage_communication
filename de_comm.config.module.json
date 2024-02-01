@@ -25,6 +25,7 @@
     "unitDescription"           :"de_unit 1",
 
     "p2p_communication": {
+            "enabled"           : true,
             "driver_ip"         : "127.0.0.1",
             "driver_port"       : 12340,
             "channel"           : 4,

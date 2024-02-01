@@ -177,7 +177,17 @@ void scheduler ()
                 //     // each streaming level will delay 10 more seconds.
                 //     andruav_facade.API_sendID("");
                 // }
-                andruav_facade.API_sendID("");
+                if (!cP2P.isDiabled())
+                {
+                    cP2P.getAddress();
+                    
+                    andruav_facade.API_sendID(ANDRUAV_PROTOCOL_SENDER_ALL);
+                }
+                else
+                {
+                    andruav_facade.API_sendID("");
+                }
+                
             }
         }
 

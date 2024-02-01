@@ -15,9 +15,14 @@
 #include "../helpers/colors.hpp"
 #include "../helpers/json.hpp"
 #include "../helpers/helpers.hpp"
+
+#include "../messages.hpp"
+#include "../comm_server/andruav_facade.hpp"
+#include "andruav_comm_p2p.hpp"
+
+
 using Json = nlohmann::json;
 
-#include "andruav_comm_p2p.hpp"
 
 
 
@@ -203,8 +208,9 @@ void uavos::andruav_servers::CP2P::InternalReceiverEntry()
         
         if (n > 0) 
         {
-            OnMessageReceived((const char *) buffer,n);
             buffer[n]=0;
+            OnMessageReceived((const char *) buffer,n);
+            
             if (m_callback_udp_proxy != nullptr)
             {
                 m_callback_udp_proxy->OnMessageReceived(this, (const char *) buffer,n);
@@ -243,9 +249,9 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
         {
             case TYPE_P2P_MakeRestart:
             {
-                std::cout << _INFO_CONSOLE_TEXT << "WARNING: " << _ERROR_CONSOLE_BOLD_TEXT_ "P2P Device Restarted." << _INFO_CONSOLE_TEXT << "field is not defined." <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT << "WARNING: P2P Device" << _ERROR_CONSOLE_BOLD_TEXT_ " Restarted." <<_NORMAL_CONSOLE_TEXT_ << std::endl;
                 PLOG(plog::warning)<< "P2P Device Restarted." ;
-
+                andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_CRITICAL, std::string("P2P Restarted."));
             }
             return ;
 
@@ -255,7 +261,7 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
                 // example:
                 // {"cmd":0,"info":{"network_type":"esp32_mesh","me":{"mac":"24:0a:c4:80:cc:d4","mac_ap":"24:0a:c4:80:cc:d5"},"connected":false}}
                 const Json info = jMsg["info"];
-                std::cout << info["network_type"].get<std::string>() << std::endl;
+                std::cout << "P2P RX MSG: TYPE_P2P_GetMyAddress"  << std::endl;
 
                 std::string macAddress = info["me"]["mac"];
                 ANDRUAV_UNIT_P2P_INFO&  unit_p2p_info = uavos::CAndruavUnitMe::getInstance().getUnitP2PInfo();
@@ -270,8 +276,34 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
                     PLOG(plog::warning) << "P2P Device mesh address received." << unit_p2p_info.address_1 ;
 
                     std::cout << _INFO_CONSOLE_TEXT << "P2P Mesh address: " << _SUCCESS_CONSOLE_TEXT_ <<  macAddress << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+                    andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_NOTICE, std::string("P2P Device mesh address recieved."));
                 }
+            }
+            break;
+
+            case TYPE_P2P_GetParentAddress:
+            {
+                const Json info = jMsg["info"];
+
+                std::cout << "P2P RX MSG: TYPE_P2P_GetParentAddress"  << std::endl;
+
+                ANDRUAV_UNIT_P2P_INFO&  unit_p2p_info = uavos::CAndruavUnitMe::getInstance().getUnitP2PInfo();
+                unit_p2p_info.parent_address = info["bssid"].get<std::string>();
+                unit_p2p_info.parent_connection_status = info["connected"].get<bool>();
+
+                PLOG(plog::warning) << "P2P Device parent received:" << unit_p2p_info.address_1 ;
+
+                std::cout << _INFO_CONSOLE_TEXT << "P2P parent address: " << _SUCCESS_CONSOLE_TEXT_ <<  unit_p2p_info.parent_address << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+                andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_NOTICE, std::string("P2P Device parent address recieved."));
                 
+            }   
+            break;
+
+
+            case TYPE_P2P_GetChildrenAddress:
+            {
                 
             }
             break;

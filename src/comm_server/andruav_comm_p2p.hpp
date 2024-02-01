@@ -13,8 +13,8 @@
 #endif
 
 #define TYPE_P2P_GetMyAddress           0
-#define TYPE_P2P_GetChildrenAccress     1
-#define TYPE_P2P_GetParentAccress       2
+#define TYPE_P2P_GetChildrenAddress     1
+#define TYPE_P2P_GetParentAddress       2
 #define TYPE_P2P_SendMessageToNode      3
 #define TYPE_P2P_MakeRestart            7
 #define TYPE_P2P_ConnectToNodeByMac     11

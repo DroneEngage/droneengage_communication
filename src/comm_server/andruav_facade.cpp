@@ -62,6 +62,19 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         {"m1", uavos::CUavosModulesManager::getInstance().getModuleListAsJSON()}
     };
  
+    uavos::ANDRUAV_UNIT_P2P_INFO& andruav_unit_p2p_info = m_andruavMe.getUnitP2PInfo();
+    if (andruav_unit_p2p_info.p2p_connection_type != ANDRUAV_UNIT_P2P_TYPE::unknown)
+    {   // P2P is available
+        jMsg["p2"] = 
+        {
+            {"c",  andruav_unit_p2p_info.p2p_connection_type},
+            {"a1", andruav_unit_p2p_info.address_1},
+            {"a2", andruav_unit_p2p_info.address_2},
+
+            {"pa", andruav_unit_p2p_info.parent_address},
+            {"pc", andruav_unit_p2p_info.parent_connection_status}
+        };
+    }   
     if (unit_info.is_tracking_mode)
     {
         jMsg["b"] = unit_info.is_tracking_mode;
@@ -115,6 +128,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
     {
         jMsg["a"] = unit_info.flying_total_duration;    // is whisling
     }
+    std::cout << "API_sendID:" <<  jMsg.dump() << std::endl;
     uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
 }
 

@@ -441,7 +441,8 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
     // #ifdef DEBUG
     //     std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     // #endif
-    
+    const std::lock_guard<std::mutex> lock(g_i_mutex);
+
     bool updated = false;
 
     const uint64_t &now = get_time_usec();
@@ -454,7 +455,7 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
     * @brief insert module in @param m_modules_list
     * this is the main list of modules.
     */
-    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    
         
     auto module_entry = m_modules_list.find(module_id);
     if (module_entry == m_modules_list.end()) 
@@ -629,7 +630,20 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
 
     const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-                
+
+    /*
+        The logic below is as follows:
+
+        case .... MSG ....:
+            regardless of the value of [intermodule_msg] of these messages, these messages are captured by 
+            case statements and handled in a way predefined my communicator module.
+
+
+        The default section uses the concept of [intermodule_msg] where messages are not forwarded to server
+        if it is marked intermodule_msg=true as it should be processed by other modules only.
+        
+        the other default section forwards the message normally to andruav communication server.
+    */            
     switch (mt)
     {
         case TYPE_AndruavModule_ID:
@@ -738,6 +752,9 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
         }
         break;
 
+        
+
+
         default:
         {
             
@@ -748,9 +765,19 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
 
             if (intermodule_msg)
             {   //CMD_TYPE_INTERMODULE exists then this message should be processed by other modules only. 
+                
+                /**
+                    Note that these processing has already done by processIncommingServerMessage() so all
+                    we need to do is to exit when intermodule_msg=true.
+                */
+
+                // Do not send it to server from here.
                 return ;
             }
 
+
+
+            // Sending Messages to Andruav Communication Server 
             if (is_binary)
             {    
                 // search for char '0' and then binary message is the next byte after it.
@@ -769,6 +796,7 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
                 // Send message to other parties via Communication Server.
                 andruav_servers::CAndruavCommServer::getInstance().API_sendCMD(target_id, mt, ms);            
             }
+
         }
         break;
     }
@@ -963,11 +991,12 @@ void CUavosModulesManager::handleOnAndruavServerConnection (const int status)
     #endif
     #endif
 
+    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    
     MODULE_ITEM_LIST::iterator it;
     const Json &msg = createJSONID(false);
     std::string msg_dump = msg.dump();    
     
-    const std::lock_guard<std::mutex> lock(g_i_mutex);
     
     for (it = m_modules_list.begin(); it != m_modules_list.end(); it++)
     {
@@ -982,8 +1011,10 @@ Json CUavosModulesManager::getModuleListAsJSON ()
 {
     Json modules = Json::array();
     
-    MODULE_ITEM_LIST::iterator it;
     const std::lock_guard<std::mutex> lock(g_i_mutex);
+    
+    MODULE_ITEM_LIST::iterator it;
+    
     
     for (it = m_modules_list.begin(); it != m_modules_list.end(); it++)
     {

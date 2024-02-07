@@ -104,41 +104,41 @@ Json CUavosModulesManager::createJSONID (const bool& reSend)
 
 
 /**
-* @brief update UAVOS vehicle permission based on module permissions.
+* @brief update UAVOS vehicle feature based on module features.
 * ex: "d" : [ "C", "V" ]
-* @param module_permissions 
+* @param module_features 
 * 
-* @return true if permission updated
-* @return false if permissions the samme
+* @return true if a feature has been updated
+* @return false if features are the samme
 */
-bool CUavosModulesManager::updateUavosPermission (const Json& module_permissions)
+bool CUavosModulesManager::updateUavosPermission (const Json& module_features)
 {
     CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
     bool updated = false;
-    //const int&  len = module_permissions.size();
-    for (const auto permission : module_permissions)
+    //const int&  len = module_features.size();
+    for (const auto feature : module_features)
     {
-        const std::string& permission_item = permission.get<std::string>(); //module_permissions[i].get<std::string>();
+        const std::string& feature_item = feature.get<std::string>(); //module_features[i].get<std::string>();
         ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
-        if (permission_item.compare("T") ==0)
+        if (feature_item.compare("T") ==0)
         {
             if (andruav_unit_info.permission[4]=='T') break;
             andruav_unit_info.permission[4] = 'T';
             updated = true;
         }
-        else if (permission_item.compare("R") ==0)
+        else if (feature_item.compare("R") ==0)
         {
             if (andruav_unit_info.permission[6]=='R') break;
             andruav_unit_info.permission[6] = 'R';
             updated = true;
         }
-        else if (permission_item.compare("V") ==0)
+        else if (feature_item.compare("V") ==0)
         {
             if (andruav_unit_info.permission[8]=='V') break;
             andruav_unit_info.permission[8] = 'V';
             updated = true;
         }
-        else if (permission_item.compare("C") ==0)
+        else if (feature_item.compare("C") ==0)
         {
             if (andruav_unit_info.permission[10]=='C') break;
             andruav_unit_info.permission[10] = 'C';

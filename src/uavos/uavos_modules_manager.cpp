@@ -24,6 +24,7 @@
 #include "../comm_server/andruav_unit.hpp"
 #include "../comm_server/andruav_comm_server.hpp"
 #include "../comm_server/andruav_facade.hpp"
+#include "../comm_server/andruav_comm_p2p.hpp"
 #include "../comm_server/andruav_auth.hpp"
 #include "../uavos/uavos_modules_manager.hpp"
 
@@ -752,7 +753,17 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
         }
         break;
 
-        
+        case TYPE_AndruavMessage_SWARM_MAVLINK:
+        {
+            uavos::andruav_servers::CP2P& cP2P = uavos::andruav_servers::CP2P::getInstance();
+            const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
+            int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
+    
+    
+            cP2P.processForwardSwarmMessage(target_id, &binary_message[1], binary_length);
+            
+        }
+        break;
 
 
         default:

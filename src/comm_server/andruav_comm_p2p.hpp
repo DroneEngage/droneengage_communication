@@ -92,6 +92,11 @@ class CP2P
         void connectAsMeshRoot (std::string wifi_password, uint8_t wifi_channel);
         void connectToMeshNode (const std::string mac);
         
+
+    public:
+        void processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length);
+
+
     protected:
         void sendMSG(const char * msg, const int length);
         void startReceiver();

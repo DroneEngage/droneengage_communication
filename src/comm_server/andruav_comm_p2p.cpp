@@ -193,6 +193,7 @@ void uavos::andruav_servers::CP2P::stop()
     
 }
 
+
 void uavos::andruav_servers::CP2P::InternalReceiverEntry()
 {
     #ifdef DEBUG
@@ -415,3 +416,16 @@ void uavos::andruav_servers::CP2P::connectToMeshNode (const std::string mac)
     sendMSG(jsonStr.c_str(), jsonStr.length());
     return;
 }
+
+
+void uavos::andruav_servers::CP2P::processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length)
+{
+    uavos::CAndruavUnit* unit = CAndruavUnits::getInstance().getUnitByName(target_id);
+    //ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
+    uavos::ANDRUAV_UNIT_P2P_INFO& andruav_unit_p2p_info = unit->getUnitP2PInfo();
+                
+    //UNUSED(unit_info);
+    std::cout << _INFO_CONSOLE_TEXT << "@@@@@@@TYPE_AndruavMessage_ID: " << andruav_unit_p2p_info.address_1 << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+}
+

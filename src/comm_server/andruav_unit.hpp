@@ -78,6 +78,10 @@ typedef struct {
     ANDRUAV_UNIT_P2P_TYPE p2p_connection_type = ANDRUAV_UNIT_P2P_TYPE::unknown;
     std::string address_1;
     std::string address_2;
+    
+    std::uint8_t wifi_channel;
+    std::string wifi_password;
+
     uint16_t network_layer = std::numeric_limits<uint16_t>::max() ;  // 0 if root or direct p2p with no mesh.
 
     std::string parent_address;

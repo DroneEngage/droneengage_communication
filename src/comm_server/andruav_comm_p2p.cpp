@@ -67,6 +67,9 @@ bool uavos::andruav_servers::CP2P::init (const char * driver_ip, const int drive
 {
     const char * host = "0.0.0.0";
     const int listenningPort = 0;
+    m_wifi_password = wifi_pwd;
+    m_wifi_channel = channel;
+    
     // pthread initialization
 	m_thread = pthread_self(); // get pthread ID
 	pthread_setschedprio(m_thread, SCHED_FIFO); // setting priority
@@ -252,8 +255,10 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
                 std::cout << _INFO_CONSOLE_TEXT << "WARNING: P2P Device" << _ERROR_CONSOLE_BOLD_TEXT_ " Restarted." <<_NORMAL_CONSOLE_TEXT_ << std::endl;
                 PLOG(plog::warning)<< "P2P Device Restarted." ;
                 andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_CRITICAL, std::string("P2P Restarted."));
+
+                connectAsMeshRoot(m_wifi_password, m_wifi_channel);
             }
-            return ;
+            break ;
 
 
             case TYPE_P2P_GetMyAddress:
@@ -263,21 +268,33 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
                 const Json info = jMsg["info"];
                 std::cout << "P2P RX MSG: TYPE_P2P_GetMyAddress"  << std::endl;
 
-                std::string macAddress = info["me"]["mac"];
                 ANDRUAV_UNIT_P2P_INFO&  unit_p2p_info = uavos::CAndruavUnitMe::getInstance().getUnitP2PInfo();
                 unit_p2p_info.p2p_connection_type = ANDRUAV_UNIT_P2P_TYPE::unknown;
 
                 if (info["network_type"].get<std::string>().compare("esp32_mesh")==0)
                 {
+                    if (!info.contains("me") ||
+                        !validateField(info["me"],"mac", Json::value_t::string)     ||
+                        !info["me"].contains("mac_ap")                              ||
+                        !info["me"].contains("wifi_channel")                        ||
+                        !validateField(info["me"],"wifi_pwd", Json::value_t::string))
+                    {
+                        std::cout << _ERROR_CONSOLE_TEXT_ << "P2P Mesh address: " << _ERROR_CONSOLE_BOLD_TEXT_ <<  "BAD MESSAGE FORMAT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                        return ;
+                    }
                     unit_p2p_info.p2p_connection_type = ANDRUAV_UNIT_P2P_TYPE::esp32_mesh;
                     unit_p2p_info.address_1 = info["me"]["mac"];
                     unit_p2p_info.address_2 = info["me"]["mac_ap"];
+
+                    unit_p2p_info.wifi_channel = info["me"]["wifi_channel"];
+                    unit_p2p_info.wifi_password = info["me"]["wifi_pwd"];
                     
                     PLOG(plog::warning) << "P2P Device mesh address received." << unit_p2p_info.address_1 ;
 
-                    std::cout << _INFO_CONSOLE_TEXT << "P2P Mesh address: " << _SUCCESS_CONSOLE_TEXT_ <<  macAddress << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    std::cout << _INFO_CONSOLE_TEXT << "P2P Mesh address: " << _SUCCESS_CONSOLE_TEXT_ <<  unit_p2p_info.address_1 << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
                     andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_NOTICE, std::string("P2P Device mesh address recieved."));
+
                 }
             }
             break;
@@ -326,6 +343,8 @@ void uavos::andruav_servers::CP2P::sendMSG (const char * msg, const int length)
     
     try
     {
+        std::cout << _INFO_CONSOLE_TEXT << "CP2P::sendMSG:::" << msg <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
         sendto(m_SocketFD, msg, length,  
             MSG_CONFIRM, (const struct sockaddr *) m_udpProxyServer, 
                 sizeof(struct sockaddr_in));         
@@ -338,6 +357,19 @@ void uavos::andruav_servers::CP2P::sendMSG (const char * msg, const int length)
 }
 
 
+void uavos::andruav_servers::CP2P::restartMesh(const bool manual)
+{
+    Json jMsg = 
+    {
+        {"cmd", TYPE_P2P_MakeRestart},
+        {"manual", manual}
+    };
+
+    std::string jsonStr = jMsg.dump();
+    sendMSG(jsonStr.c_str(), jsonStr.length());
+    return;
+}
+
 /**
  * @brief gets address of this node.
  * 
@@ -349,13 +381,29 @@ void uavos::andruav_servers::CP2P::getAddress ()
         {"cmd", TYPE_P2P_GetMyAddress}
     };
 
-    const char * dump = jMsg.dump().c_str();
-    sendMSG(dump, strlen (dump));
-    return ;
+    std::string jsonStr = jMsg.dump();
+    sendMSG(jsonStr.c_str(), jsonStr.length());
+    return;
 }
 
 
-void uavos::andruav_servers::CP2P::connectToNode (const std::string mac)
+void uavos::andruav_servers::CP2P::connectAsMeshRoot (std::string wifi_password,  uint8_t wifi_channel)
+{
+    Json jMsg = 
+    {
+        {"cmd", TYPE_P2P_MeshCreateConnection},
+        {"need_router", false},
+        {"password", wifi_password},
+        {"wifi_channel", wifi_channel},
+        {"max_level", 1}
+    };
+
+    std::string jsonStr = jMsg.dump();
+    sendMSG(jsonStr.c_str(), jsonStr.length());
+    return;
+}
+
+void uavos::andruav_servers::CP2P::connectToMeshNode (const std::string mac)
 {
     Json jMsg = 
     {
@@ -363,7 +411,7 @@ void uavos::andruav_servers::CP2P::connectToNode (const std::string mac)
         {"mac", mac}
     };
 
-    const char * dump = jMsg.dump().c_str();
-    sendMSG(dump, strlen (dump));
-    return ;
+    std::string jsonStr = jMsg.dump();
+    sendMSG(jsonStr.c_str(), jsonStr.length());
+    return;
 }

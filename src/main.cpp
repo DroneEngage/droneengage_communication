@@ -296,9 +296,10 @@ void initP2P()
         return ;
     }
     
-
+    //cP2P.setCallback(this);
     cP2P.init(jsonConfig_p2p["driver_ip"].get<std::string>().c_str(), jsonConfig_p2p["driver_port"].get<int>(), jsonConfig_p2p["channel"].get<int>(), jsonConfig_p2p["password"].get<std::string>().c_str());
     cP2P.start();
+    cP2P.restartMesh(true);
     cP2P.getAddress();
 }
 

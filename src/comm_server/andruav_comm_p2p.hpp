@@ -20,7 +20,7 @@
 #define TYPE_P2P_ConnectToNodeByMac     11
 #define TYPE_P2P_ScanMesh               12
 #define TYPE_P2P_MeshScanResult         13
-
+#define TYPE_P2P_MeshCreateConnection   15
 
 
 
@@ -87,10 +87,11 @@ class CP2P
 
     public:
 
+        void restartMesh(const bool manual);
         void getAddress();
-        void connectToNode (const std::string mac);
+        void connectAsMeshRoot (std::string wifi_password, uint8_t wifi_channel);
+        void connectToMeshNode (const std::string mac);
         
-
     protected:
         void sendMSG(const char * msg, const int length);
         void startReceiver();
@@ -119,7 +120,8 @@ class CP2P
 
         CCallBack_UdpProxy * m_callback_udp_proxy = nullptr;
 
-        
+        std::string m_wifi_password;
+        int m_wifi_channel;
     private:
     
         CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();

@@ -510,6 +510,24 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             if (command.contains("o") == true) unit_info.swarm_leader_formation = command["o"].get<int>();
             if (command.contains("q") == true) unit_info.swarm_leader_I_am_following = command["q"].get<std::string>();
             
+
+            
+            if (command.contains("p2") == true)
+            {
+                // P2P data if exists
+                const Json p2p = command["p2"];
+                uavos::ANDRUAV_UNIT_P2P_INFO& andruav_unit_p2p_info = unit->getUnitP2PInfo();
+                
+                if (p2p.contains("a1") == true) andruav_unit_p2p_info.p2p_connection_type       = p2p["c"];
+                if (p2p.contains("a1") == true) andruav_unit_p2p_info.address_1                 = p2p["a1"];
+                if (p2p.contains("a2") == true) andruav_unit_p2p_info.address_2                 = p2p["a2"];
+                if (p2p.contains("wc") == true) andruav_unit_p2p_info.wifi_channel              = p2p["wc"];
+                if (p2p.contains("wp") == true) andruav_unit_p2p_info.wifi_password             = p2p["wp"];
+
+                if (p2p.contains("pa") == true) andruav_unit_p2p_info.parent_address            = p2p["pa"];
+                if (p2p.contains("pc") == true) andruav_unit_p2p_info.parent_connection_status  = p2p["pc"];
+            }
+
             unit_info.last_access_time = get_time_usec();
             
             std::string res = unit_info.is_new?"New":"OLD" ;
@@ -598,11 +616,15 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
     
     if ((unit_info.is_new == true) &&(remote_execute_command!=TYPE_AndruavMessage_ID)) 
     {
+        // the sender is a new unit so we ask for identification. ... 
+        
         uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    // ask for identification in return.      
+
         /*
-            DONOT add return here unless system requires more security.
+            !DONOT add return here unless system requires more security.
+
             You cannot receive messages except via Communication Server from units that are logged into the system so it should be secure.
-            if you enable the return the following issue may happen:
+            ?If you enable the return the following issues may happen:
                 1- GCS receives ID messages from the unit.
                 2- GCS send asking for mission & other info
                 3- unit will ignore these messages until it receives a MSG_ID from the WEB.

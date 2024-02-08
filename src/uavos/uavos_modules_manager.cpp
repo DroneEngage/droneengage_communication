@@ -575,6 +575,33 @@ bool CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const 
     return updated;
 }
 
+/**
+ * Sending Messages to Andruav Communication Server 
+*/
+void CUavosModulesManager::sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json &msg_cmd )
+{                                                           
+    andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
+    
+    if (is_binary)
+    {    
+        // search for char '0' and then binary message is the next byte after it.
+        const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
+        int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
+    
+        andruavCommServer.API_sendBinaryCMD(target_id, msg_type, &binary_message[1], binary_length, Json());            
+    }
+    else if (is_system)
+    {
+        // Send message to Communication Server to be processed by Communication Server as this is a system message.
+        andruavCommServer.API_sendSystemMessage(msg_type, msg_cmd);    
+    }
+    else 
+    {
+        // Send message to other parties via Communication Server.
+        andruavCommServer.API_sendCMD(target_id, msg_type, msg_cmd);            
+    }
+}
+
 
 /**
  * @brief 
@@ -735,18 +762,18 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
             if (location_info.is_valid)
             {
                 // Generate message part ANDRUAV_PROTOCOL_MESSAGE_CMD
-                Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-                ms["prv"] = std::string ("gps");
-                ms["lat"] = location_info.latitude;
-                ms["lng"] = location_info.longitude;
-                ms["alt"] = location_info.altitude;
-                ms["tim"] = get_time_usec();
+                Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+                msg_cmd["prv"] = std::string ("gps");
+                msg_cmd["lat"] = location_info.latitude;
+                msg_cmd["lng"] = location_info.longitude;
+                msg_cmd["alt"] = location_info.altitude;
+                msg_cmd["tim"] = get_time_usec();
                 
                 // binary_message is the image if exists.
                 const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
                 int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
                 
-                andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, binary_message, binary_length, ms); 
+                andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, binary_message, binary_length, msg_cmd); 
 
                 // binary_message_new.release();
             }
@@ -760,7 +787,12 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
             int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
     
     
-            cP2P.processForwardSwarmMessage(target_id, &binary_message[1], binary_length);
+            bool res = cP2P.processForwardSwarmMessage(target_id, &binary_message[1], binary_length);
+            if (!res)
+            {
+                // forward the messages normally through the server.
+                sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, ms);
+            }
             
         }
         break;
@@ -787,27 +819,7 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
             }
 
 
-
-            // Sending Messages to Andruav Communication Server 
-            if (is_binary)
-            {    
-                // search for char '0' and then binary message is the next byte after it.
-                const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
-                int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
-    
-                andruav_servers::CAndruavCommServer::getInstance().API_sendBinaryCMD(target_id, mt, &binary_message[1], binary_length, Json());            
-            }
-            else if (is_system)
-            {
-                // Send message to Communication Server to be processed by Communication Server as this is a system message.
-                andruav_servers::CAndruavCommServer::getInstance().API_sendSystemMessage(mt, ms);    
-            }
-            else 
-            {
-                // Send message to other parties via Communication Server.
-                andruav_servers::CAndruavCommServer::getInstance().API_sendCMD(target_id, mt, ms);            
-            }
-
+            sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, ms);
         }
         break;
     }

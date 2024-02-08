@@ -94,7 +94,7 @@ class CP2P
         
 
     public:
-        void processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length);
+        bool processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length);
 
 
     protected:

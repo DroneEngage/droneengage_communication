@@ -418,7 +418,11 @@ void uavos::andruav_servers::CP2P::connectToMeshNode (const std::string mac)
 }
 
 
-void uavos::andruav_servers::CP2P::processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length)
+/**
+ * Handle messages sent by mavlink module and forward it to a follower drone using
+ * P2P channel.
+*/
+bool uavos::andruav_servers::CP2P::processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length)
 {
     uavos::CAndruavUnit* unit = CAndruavUnits::getInstance().getUnitByName(target_id);
     //ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
@@ -427,5 +431,6 @@ void uavos::andruav_servers::CP2P::processForwardSwarmMessage(const std::string&
     //UNUSED(unit_info);
     std::cout << _INFO_CONSOLE_TEXT << "@@@@@@@TYPE_AndruavMessage_ID: " << andruav_unit_p2p_info.address_1 << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
+    return false;
 }
 

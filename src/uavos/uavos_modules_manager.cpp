@@ -583,12 +583,15 @@ void CUavosModulesManager::sendMessageToCommunicationServer (const char * full_m
     andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
     
     if (is_binary)
-    {    
-        // search for char '0' and then binary message is the next byte after it.
-        const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
-        int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
-    
-        andruavCommServer.API_sendBinaryCMD(target_id, msg_type, &binary_message[1], binary_length, Json());            
+    {
+        // Search for char '0' and then the binary message is the bytes after it.
+        const char* binary_message = std::find(full_message, full_message + full_message_length, '\0');
+        std::size_t binary_length = binary_message == (full_message + full_message_length) ? 0 : (full_message + full_message_length) - (binary_message + 1);
+
+        // Create a vector to store the binary data
+        std::vector<char> binary_data(binary_message + 1, binary_message + 1 + binary_length);
+
+        andruavCommServer.API_sendBinaryCMD(target_id, msg_type, binary_data.data(), binary_data.size(), Json());
     }
     else if (is_system)
     {

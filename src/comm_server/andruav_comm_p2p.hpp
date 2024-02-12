@@ -12,10 +12,13 @@
 #define MAXLINE 65507 
 #endif
 
+#define MODULE_P2P_TIME_OUT  5000000
+
 #define TYPE_P2P_GetMyAddress           0
 #define TYPE_P2P_GetChildrenAddress     1
 #define TYPE_P2P_GetParentAddress       2
 #define TYPE_P2P_SendMessageToNode      3
+#define TYPE_P2P_IncommingMessage       6
 #define TYPE_P2P_MakeRestart            7
 #define TYPE_P2P_ConnectToNodeByMac     11
 #define TYPE_P2P_ScanMesh               12
@@ -80,26 +83,26 @@ class CP2P
         void start();
         void stop();
 
+        bool isUpdated();
         bool isStarted() const { return m_starrted;}
         bool isDisabled() const { return m_disabled;}
-        bool isUpdated() const { return m_updated;} // class status changed so getAddress may give new data.
-
         void disable() {m_disabled = true;}
-
+        
+        
     public:
 
-        void restartMesh(const bool manual);
+        void restartMesh(const bool manual) const ;
         void getAddress();
-        void connectAsMeshRoot (std::string wifi_password, uint8_t wifi_channel);
-        void connectToMeshNode (const std::string mac);
+        void connectAsMeshRoot (std::string wifi_password, uint8_t wifi_channel) const;
+        void connectToMeshNode (const std::string mac) const;
+        void sendMessageToMeshNode(const std::string mac, const char * bmsg, const int bmsg_length) const;
+
+    public:
+        bool processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length) const;
         
 
-    public:
-        bool processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length);
-
-
     protected:
-        void sendMSG(const char * msg, const int length);
+        void sendMSG(const char * msg, const int length) const ;
         void startReceiver();
 
         void InternalReceiverEntry();
@@ -129,6 +132,8 @@ class CP2P
 
         std::string m_wifi_password;
         int m_wifi_channel;
+        
+        uint64_t m_last_active_time = 0;
     private:
     
         CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();

@@ -231,15 +231,33 @@ void uavos::andruav_servers::CP2P::InternalReceiverEntry()
 }
 
 
+bool uavos::andruav_servers::CP2P::isUpdated() 
+{ 
+    const uint64_t now = get_time_usec();
+    if ((now - m_last_active_time) > MODULE_P2P_TIME_OUT)
+    {   
+        m_updated = true; 
+    }
+    else
+    {   // update watchdog trigger
+        m_last_active_time = now;
+    }
+    return m_updated; // class status changed so getAddress may give new data.
+} 
+
+
 void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int len)
 {
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onMessageRecieved " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
         std::cout << "P2P RX:" << message << std::endl;
     #endif
-
+    
+    
     try
     {
+        
+        m_last_active_time = get_time_usec();
         Json jMsg;
         jMsg = Json::parse(message);
         
@@ -296,11 +314,11 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
 
                     unit_p2p_info.firmware_version = info["fw"];
                     
-                    PLOG(plog::warning) << "P2P Device mesh address received." << unit_p2p_info.address_1 ;
+                    //PLOG(plog::warning) << "P2P Device mesh address received." << unit_p2p_info.address_1 ;
 
                     std::cout << _INFO_CONSOLE_TEXT << "P2P Mesh address: " << _INFO_CONSOLE_TEXT <<  unit_p2p_info.address_1 << " firmware: " << unit_p2p_info.firmware_version << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-                    andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_NOTICE, std::string("P2P Device mesh address recieved."));
+                    // andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_NOTICE, std::string("P2P Device mesh address recieved."));
 
                     if (!info["manual"].get<bool>())
                     {
@@ -332,13 +350,21 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
                 andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_NOTICE, std::string("P2P Device parent address recieved."));
 
                 m_updated = true;
-                
             }   
             break;
 
 
             case TYPE_P2P_GetChildrenAddress:
             {
+                m_updated = true;
+            }
+            break;
+
+
+            case TYPE_P2P_SendMessageToNode:
+            {
+                const Json info = jMsg["info"];
+                
                 m_updated = true;
             }
             break;
@@ -356,7 +382,7 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
 /**
  * Sends binary to Communicator
  **/
-void uavos::andruav_servers::CP2P::sendMSG (const char * msg, const int length)
+void uavos::andruav_servers::CP2P::sendMSG (const char * msg, const int length) const
 {
     
     try
@@ -375,7 +401,7 @@ void uavos::andruav_servers::CP2P::sendMSG (const char * msg, const int length)
 }
 
 
-void uavos::andruav_servers::CP2P::restartMesh(const bool manual)
+void uavos::andruav_servers::CP2P::restartMesh(const bool manual) const
 {
     Json jMsg = 
     {
@@ -409,7 +435,7 @@ void uavos::andruav_servers::CP2P::getAddress ()
 }
 
 
-void uavos::andruav_servers::CP2P::connectAsMeshRoot (std::string wifi_password,  uint8_t wifi_channel)
+void uavos::andruav_servers::CP2P::connectAsMeshRoot (std::string wifi_password,  uint8_t wifi_channel) const
 {
     Json jMsg = 
     {
@@ -428,7 +454,7 @@ void uavos::andruav_servers::CP2P::connectAsMeshRoot (std::string wifi_password,
 /**
  * Connnect to a node using its mac address. I will be one of its child[ren].
 */
-void uavos::andruav_servers::CP2P::connectToMeshNode (const std::string mac)
+void uavos::andruav_servers::CP2P::connectToMeshNode (const std::string mac) const
 {
     Json jMsg = 
     {
@@ -442,11 +468,46 @@ void uavos::andruav_servers::CP2P::connectToMeshNode (const std::string mac)
 }
 
 
+void uavos::andruav_servers::CP2P::sendMessageToMeshNode(const std::string mac, const char * bmsg, const int bmsg_length) const 
+{
+    
+    Json jMsg = 
+    {
+        {"cmd", TYPE_P2P_SendMessageToNode},
+        {"mac", mac}
+    };
+
+    
+    /**** Attach Binary part to String after inserting NULL ***/
+
+    std::string json_msg = jMsg.dump();
+    
+    // Prepare a vector for the whole message
+    std::vector<char> msg(json_msg.begin(), json_msg.end());
+    msg.push_back('\0'); // Add null terminator
+
+    // Append binary message
+    if (bmsg_length != 0)
+    {
+        msg.insert(msg.end(), bmsg, bmsg + bmsg_length);
+    }
+
+    // Access the complete message as a char array
+    char* msg_ptr = msg.data();
+
+    /**** Attachment End ****/
+    
+    
+    sendMSG(msg_ptr, json_msg.length()+1+bmsg_length);
+
+    return ;
+}
+
 /**
  * Handle messages sent by mavlink module and forward it to a follower drone using
  * P2P channel.
 */
-bool uavos::andruav_servers::CP2P::processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length)
+bool uavos::andruav_servers::CP2P::processForwardSwarmMessage(const std::string& target_id, const char * bmsg, const int bmsg_length) const 
 {
     uavos::CAndruavUnit* unit = CAndruavUnits::getInstance().getUnitByName(target_id);
     //ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
@@ -454,7 +515,9 @@ bool uavos::andruav_servers::CP2P::processForwardSwarmMessage(const std::string&
                 
     //UNUSED(unit_info);
     std::cout << _INFO_CONSOLE_TEXT << "@@@@@@@TYPE_AndruavMessage_ID: " << andruav_unit_p2p_info.address_1 << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    if (andruav_unit_p2p_info.address_1.length() > 3) return true;
+    //if (andruav_unit_p2p_info.address_1.length() > 3) return true;
+
+    sendMessageToMeshNode(andruav_unit_p2p_info.address_1, "ALLO", 4 );
     return false;
 }
 

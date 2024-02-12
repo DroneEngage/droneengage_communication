@@ -60,6 +60,13 @@ namespace andruav_servers
             void API_loadTask (const int larger_than_SID, const std::string& account_id, const std::string& party_sid, const std::string& group_name, const std::string& sender, const std::string& receiver, const int msg_type, bool is_permanent ) const;
 
             void API_sendPrepherals (const std::string& target_party_id) const ;
+
+
+            // P2P APIs
+            void API_P2P_restartMeshOnNode (const std::string& target_party_id) const; 
+            void API_P2P_connectToMeshOnMyMac (const std::string& target_party_id) const;
+            void API_P2P_connectToMeshOnMac (const std::string& target_party_id, const std::string& wifi_password, const uint8_t& wifi_channel, const std::string& node_mac) const;
+            void API_P2P_reportConnectedToParent(const std::string& target_party_id, const std::string& parent_mac) const;
     };
 
 }

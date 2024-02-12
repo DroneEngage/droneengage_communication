@@ -41,8 +41,8 @@ void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& t
  */
 void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_party_id) const 
 {
-    uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+    uavos::CAndruavUnitMe& andruavMe = uavos::CAndruavUnitMe::getInstance();
+    uavos::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
    
 
     Json jMsg = 
@@ -62,7 +62,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         {"m1", uavos::CUavosModulesManager::getInstance().getModuleListAsJSON()}
     };
  
-    uavos::ANDRUAV_UNIT_P2P_INFO& andruav_unit_p2p_info = m_andruavMe.getUnitP2PInfo();
+    uavos::ANDRUAV_UNIT_P2P_INFO& andruav_unit_p2p_info = andruavMe.getUnitP2PInfo();
     if (andruav_unit_p2p_info.p2p_connection_type != ANDRUAV_UNIT_P2P_TYPE::unknown)
     {   // P2P is available
         jMsg["p2"] = 
@@ -301,8 +301,8 @@ void uavos::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::stri
 {
     
 
-    uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+    uavos::CAndruavUnitMe& andruavMe = uavos::CAndruavUnitMe::getInstance();
+    uavos::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
    
     //uavos::STATUS& status = uavos::STATUS::getInstance();
 
@@ -352,4 +352,69 @@ void uavos::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::stri
     }
     
     uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Prepherials, jMsg);
+}
+
+/**
+/// @brief tell a unit to connect to my own node.
+/// @param target_party_id 
+*/
+void uavos::andruav_servers::CAndruavFacade::API_P2P_connectToMeshOnMyMac (const std::string& target_party_id) const 
+{
+    uavos::CAndruavUnitMe& andruavMe = uavos::CAndruavUnitMe::getInstance();
+    uavos::ANDRUAV_UNIT_P2P_INFO& andruav_unit_p2p_info = andruavMe.getUnitP2PInfo();
+    
+    API_P2P_connectToMeshOnMac(target_party_id, 
+                        andruav_unit_p2p_info.wifi_password,
+                        andruav_unit_p2p_info.wifi_channel,
+                        andruav_unit_p2p_info.address_2);
+}
+
+/**
+/// @brief tell a drone to connect to a given mesh node.
+/// @param target_party_id 
+/// @param wifi_password 
+/// @param wifi_channel 
+/// @param node_mac 
+*/
+void uavos::andruav_servers::CAndruavFacade::API_P2P_connectToMeshOnMac (const std::string& target_party_id, const std::string& wifi_password, const uint8_t& wifi_channel, const std::string& node_mac) const 
+{
+    
+    Json jMsg = { 
+        {"a", P2P_ACTION_CONNECT_TO_MAC},
+        {"b", node_mac},
+        {"p", wifi_password},
+        {"c", wifi_channel},
+
+     };
+ 
+    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_P2P_ACTION, jMsg);
+ 
+}
+
+
+void uavos::andruav_servers::CAndruavFacade::API_P2P_restartMeshOnNode (const std::string& target_party_id) const 
+{
+    
+    Json jMsg = { 
+        {"a", P2P_ACTION_RESTART_TO_MAC}
+     };
+ 
+    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_P2P_ACTION, jMsg);
+ 
+}
+
+
+void uavos::andruav_servers::CAndruavFacade::API_P2P_reportConnectedToParent(const std::string& target_party_id, const std::string& parent_mac) const 
+{
+
+    uavos::CAndruavUnitMe& andruavMe = uavos::CAndruavUnitMe::getInstance();
+    uavos::ANDRUAV_UNIT_P2P_INFO& andruav_unit_p2p_info = andruavMe.getUnitP2PInfo();
+    Json jMsg = {  
+        {"a", P2P_ACTION_CONNECT_TO_MAC},
+        {"p",  parent_mac},
+        {"b2", andruav_unit_p2p_info.address_2}
+    };
+ 
+    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_P2P_STATUS, jMsg);
+
 }

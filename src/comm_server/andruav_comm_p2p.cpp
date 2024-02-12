@@ -123,6 +123,8 @@ bool uavos::andruav_servers::CP2P::init (const char * driver_ip, const int drive
     m_stopped_called = false;
     
     m_disabled = false;
+    
+    m_updated = true;
 
     return true;
 }
@@ -182,6 +184,7 @@ void uavos::andruav_servers::CP2P::stop()
     catch(const std::exception& e)
     {
         //std::cerr << e.what() << '\n';
+        m_updated = true;
     }
 
     #ifdef DEBUG
@@ -189,8 +192,7 @@ void uavos::andruav_servers::CP2P::stop()
     #endif
     
     
-
-    
+    m_updated = true;
 }
 
 
@@ -258,6 +260,8 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
                 andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_CRITICAL, std::string("P2P Restarted."));
 
                 connectAsMeshRoot(m_wifi_password, m_wifi_channel);
+
+                m_updated = true;
             }
             break ;
 
@@ -289,14 +293,25 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
 
                     unit_p2p_info.wifi_channel = info["me"]["wifi_channel"];
                     unit_p2p_info.wifi_password = info["me"]["wifi_pwd"];
+
+                    unit_p2p_info.firmware_version = info["fw"];
                     
                     PLOG(plog::warning) << "P2P Device mesh address received." << unit_p2p_info.address_1 ;
 
-                    std::cout << _INFO_CONSOLE_TEXT << "P2P Mesh address: " << _SUCCESS_CONSOLE_TEXT_ <<  unit_p2p_info.address_1 << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    std::cout << _INFO_CONSOLE_TEXT << "P2P Mesh address: " << _INFO_CONSOLE_TEXT <<  unit_p2p_info.address_1 << " firmware: " << unit_p2p_info.firmware_version << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
                     andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_NOTICE, std::string("P2P Device mesh address recieved."));
 
+                    if (!info["manual"].get<bool>())
+                    {
+                        // ESP32 is in auto mode.
+                        // the logic now is to always be in manual mode.
+                        restartMesh(true);
+                    }
+
                 }
+
+                m_updated = true;
             }
             break;
 
@@ -315,6 +330,8 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
                 std::cout << _INFO_CONSOLE_TEXT << "P2P parent address: " << _SUCCESS_CONSOLE_TEXT_ <<  unit_p2p_info.parent_address << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
                 andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_P2P, NOTIFICATION_TYPE_NOTICE, std::string("P2P Device parent address recieved."));
+
+                m_updated = true;
                 
             }   
             break;
@@ -322,7 +339,7 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
 
             case TYPE_P2P_GetChildrenAddress:
             {
-                
+                m_updated = true;
             }
             break;
         }
@@ -363,11 +380,12 @@ void uavos::andruav_servers::CP2P::restartMesh(const bool manual)
     Json jMsg = 
     {
         {"cmd", TYPE_P2P_MakeRestart},
-        {"manual", manual}
+        {"manual_mode", manual}
     };
 
     std::string jsonStr = jMsg.dump();
     sendMSG(jsonStr.c_str(), jsonStr.length());
+
     return;
 }
 
@@ -384,6 +402,9 @@ void uavos::andruav_servers::CP2P::getAddress ()
 
     std::string jsonStr = jMsg.dump();
     sendMSG(jsonStr.c_str(), jsonStr.length());
+
+    m_updated = false;
+
     return;
 }
 
@@ -404,11 +425,14 @@ void uavos::andruav_servers::CP2P::connectAsMeshRoot (std::string wifi_password,
     return;
 }
 
+/**
+ * Connnect to a node using its mac address. I will be one of its child[ren].
+*/
 void uavos::andruav_servers::CP2P::connectToMeshNode (const std::string mac)
 {
     Json jMsg = 
     {
-        {"cmd", TYPE_P2P_GetMyAddress},
+        {"cmd", TYPE_P2P_ConnectToNodeByMac},
         {"mac", mac}
     };
 
@@ -430,7 +454,7 @@ bool uavos::andruav_servers::CP2P::processForwardSwarmMessage(const std::string&
                 
     //UNUSED(unit_info);
     std::cout << _INFO_CONSOLE_TEXT << "@@@@@@@TYPE_AndruavMessage_ID: " << andruav_unit_p2p_info.address_1 << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
+    if (andruav_unit_p2p_info.address_1.length() > 3) return true;
     return false;
 }
 

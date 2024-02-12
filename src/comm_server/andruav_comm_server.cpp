@@ -22,6 +22,8 @@
 #include "../uavos/uavos_modules_manager.hpp"
 #include "andruav_comm_server.hpp"
 #include "andruav_facade.hpp"
+#include "andruav_comm_p2p.hpp"
+
 
 // Based on Below Model
 // https://www.boost.org/doc/libs/develop/libs/beast/example/websocket/client/async-ssl/websocket_client_async_ssl.cpp
@@ -518,14 +520,15 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
                 const Json p2p = command["p2"];
                 uavos::ANDRUAV_UNIT_P2P_INFO& andruav_unit_p2p_info = unit->getUnitP2PInfo();
                 
-                if (p2p.contains("a1") == true) andruav_unit_p2p_info.p2p_connection_type       = p2p["c"];
-                if (p2p.contains("a1") == true) andruav_unit_p2p_info.address_1                 = p2p["a1"];
-                if (p2p.contains("a2") == true) andruav_unit_p2p_info.address_2                 = p2p["a2"];
-                if (p2p.contains("wc") == true) andruav_unit_p2p_info.wifi_channel              = p2p["wc"];
-                if (p2p.contains("wp") == true) andruav_unit_p2p_info.wifi_password             = p2p["wp"];
+                if (p2p.contains("a1") == true) andruav_unit_p2p_info.p2p_connection_type      = p2p["c"];
+                if (p2p.contains("a1") == true) andruav_unit_p2p_info.address_1                = p2p["a1"];
+                if (p2p.contains("a2") == true) andruav_unit_p2p_info.address_2                = p2p["a2"];
+                if (p2p.contains("c") == true) andruav_unit_p2p_info.wifi_channel              = p2p["c"];
+                if (p2p.contains("p") == true) andruav_unit_p2p_info.wifi_password             = p2p["p"];
 
                 if (p2p.contains("pa") == true) andruav_unit_p2p_info.parent_address            = p2p["pa"];
                 if (p2p.contains("pc") == true) andruav_unit_p2p_info.parent_connection_status  = p2p["pc"];
+                if (p2p.contains("f") == true) andruav_unit_p2p_info.firmware_version           = p2p["f"];
             }
 
             unit_info.last_access_time = get_time_usec();
@@ -581,6 +584,106 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
    
         }
         break;
+
+
+        /**
+        * @brief P2P SECTION
+        * This should be a generic P2P as much as possible.
+        * For now we will focus on ESP32-Mesh
+        * 
+        * We have two messages here:
+        * 
+        * 1- TYPE_AndruavMessage_P2P_ACTION:
+        *  This message contains requests to connect/disconnect/search ...etc.
+        * 
+        * 
+        * 
+        * 2- TYPE_AndruavMessage_P2P_STATUS:
+        *  This message contains information about P2P status.
+        * 
+        * 
+        */
+
+        case TYPE_AndruavMessage_P2P_ACTION:
+        {
+            /**
+            * @brief This is a general purpose message 
+            * 
+            * a: P2P_ACTION_ ... commands
+            * 
+            */
+
+            const Json command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            
+            if (!command.contains("a") || !command["a"].is_number_integer()) return ;
+                
+            uavos::andruav_servers::CP2P& cP2P = uavos::andruav_servers::CP2P::getInstance();
+                
+            switch (command["a"].get<int>())
+            {
+                case P2P_ACTION_CONNECT_TO_MAC:
+                {
+                    /**
+                    * @brief Request to connect to a node using mac
+                    * 
+                    * a: P2P_ACTION_CONNECT_TO_MAC
+                    * b: mac address
+                    * p: wifi_password
+                    * c: wifi_channel
+                    * 
+                    */
+                    if (!command.contains("b") || !command["b"].is_string()) return ;
+
+                    cP2P.connectToMeshNode(command["b"]);
+                }
+                break;
+                    
+                case P2P_ACTION_RESTART_TO_MAC:
+                {
+                    /**
+                    * @brief Request to connect to a node using mac
+                    * 
+                    * a: P2P_ACTION_RESTART_TO_MAC
+                    *                          
+                    */
+                        
+                    cP2P.restartMesh(true);
+                }
+                break;
+                    
+                default:
+                {
+
+                }
+                break;
+            }
+                
+           }
+           break;
+
+
+           case TYPE_AndruavMessage_P2P_STATUS:
+           {
+                /**
+                 * @brief This is a general purpose message 
+                 * 
+                 * a: P2P_STATUS_ ... commands
+                 * b: mac address
+                 * p: wifi_password
+                 * c: channel
+                 * 
+                */
+
+                const Json command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            
+                if (!command.contains("a") || !command["a"].is_number_integer()) return ;
+                if (!command.contains("b") || !command["b"].is_string()) return ;
+                
+                
+
+
+           }
+           break;
     }
 
 }

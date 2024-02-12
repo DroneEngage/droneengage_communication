@@ -140,17 +140,49 @@
 #define TYPE_AndruavMessage_UpdateSwarm             1058
 #define TYPE_AndruavMessage_Prepherials             1070
 #define TYPE_AndruavMessage_UDPProxy_Info           1071
+
+/**
+ * Used to set unit name and description.
+ * This message is mainly sent from web and received by communication module.
+*/
 #define TYPE_AndruavMessage_Unit_Name               1072
 
 //Binary Starts with 2000
+
+//deprecated telemetry technology
 #define TYPE_AndruavMessage_LightTelemetry          2022
 
-// New Binary Messages 
+// New JSON Messages 
 #define TYPE_AndruavMessage_ServoChannel            6001
+
+
+// New Binary Messages
 #define TYPE_AndruavMessage_MAVLINK                 6502
 #define TYPE_AndruavMessage_SWARM_MAVLINK           6503
+
+/**
+ * Used by other modules to exchange mavlink information
+ * between each other.
+ * This allows custom implementation for sharing mavlink info 
+ * between mavlink module and other modules.
+*/
+#define TYPE_AndruavMessage_INTERNAL_MAVLINK            6504
+
+
+#define TYPE_AndruavMessage_P2P_ACTION                  6505
+#define TYPE_AndruavMessage_P2P_STATUS                  6506
+
+/**
+ * Used by other modules to exchange mavlink information
+ * between each other.
+ * This allows custom implementation for sharing mavlink info 
+ * between mavlink module and other modules.
+*/
 #define TYPE_AndruavMessage_INTERNAL_MAVLINK        6504
 
+
+#define TYPE_AndruavMessage_P2P_ACTION              6505
+#define TYPE_AndruavMessage_P2P_STATUS              6506
 
 //P2P Related Messages Starts with 7000 till 7500
 #define Type_AndruavMessage_P2P_NODE_INFO           7000
@@ -159,8 +191,6 @@
 #define TYPE_AndruavMessage_Sonar_Info              13001
 #define TYPE_AndruavMessage_Sonar_Action            13002
 #define TYPE_AndruavMessage_Sonar_RemoteExecute     13003
-
-
 
 
 // Andruav Mission Types
@@ -180,6 +210,18 @@
 #define TYPE_CMissionAction_Delay                           93 // same as mavlink 
 #define TYPE_CMissionAction_Delay_STATE_MACHINE            112 // same as mavlink
 #define TYPE_CMissionAction_DummyMission                 99999
+
+
+
+// P2P Parameters
+
+#define P2P_ACTION_RESTART_TO_MAC                           0
+#define P2P_ACTION_CONNECT_TO_MAC                           1
+#define P2P_ACTION_CANDICATE_MAC                            2
+
+#define P2P_STATUS_CONNECTED_TO_MAC                         0
+#define P2P_STATUS_DISCONNECTED_FROM_MAC                    1
+
 
 // Remote Control Sub Actions
 #define RC_SUB_ACTION_RELEASED                      0

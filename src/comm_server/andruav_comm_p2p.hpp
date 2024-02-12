@@ -81,7 +81,8 @@ class CP2P
         void stop();
 
         bool isStarted() const { return m_starrted;}
-        bool isDiabled() const { return m_disabled;}
+        bool isDisabled() const { return m_disabled;}
+        bool isUpdated() const { return m_updated;} // class status changed so getAddress may give new data.
 
         void disable() {m_disabled = true;}
 
@@ -119,6 +120,7 @@ class CP2P
         bool m_starrted = false;
         bool m_stopped_called = false;
         bool m_disabled = false;
+        bool m_updated = false;
         std::mutex m_lock;  
 
         char buffer[MAXLINE]; 

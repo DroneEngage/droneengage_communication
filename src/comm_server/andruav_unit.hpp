@@ -82,6 +82,8 @@ typedef struct {
     std::uint8_t wifi_channel;
     std::string wifi_password;
 
+    std::string firmware_version;
+    
     uint16_t network_layer = std::numeric_limits<uint16_t>::max() ;  // 0 if root or direct p2p with no mesh.
 
     std::string parent_address;

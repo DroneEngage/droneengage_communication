@@ -780,6 +780,34 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
         }
         break;
 
+
+        case TYPE_AndruavMessage_P2P_ACTION:
+        {
+            /*
+                here the internal command contains [int_prty] is the party
+                that I should send to it myown mac.
+            */
+                
+                Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+                std::cout << _INFO_CONSOLE_TEXT << "P2P ###:" << msg_cmd <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+	
+                switch (msg_cmd["a"].get<int>())
+                {
+                    case P2P_ACTION_CONNECT_TO_MAC:
+                        if (validateField(msg_cmd,"int_prty", Json::value_t::string))
+                        {
+                            andruav_servers::CAndruavFacade::getInstance().API_P2P_connectToMeshOnMyMac(
+                                    msg_cmd["int_prty"]
+                                ); 
+                            
+                        }
+                    break;
+                }
+                
+        }
+        break;
+
+
         case TYPE_AndruavMessage_SWARM_MAVLINK:
         {
             uavos::andruav_servers::CP2P& cP2P = uavos::andruav_servers::CP2P::getInstance();

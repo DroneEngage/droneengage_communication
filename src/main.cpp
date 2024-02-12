@@ -177,7 +177,7 @@ void scheduler ()
                 //     // each streaming level will delay 10 more seconds.
                 //     andruav_facade.API_sendID("");
                 // }
-                if (!cP2P.isDiabled())
+                if ((!cP2P.isDisabled() && (cP2P.isUpdated())))
                 {
                     cP2P.getAddress();
                     
@@ -299,7 +299,6 @@ void initP2P()
     //cP2P.setCallback(this);
     cP2P.init(jsonConfig_p2p["driver_ip"].get<std::string>().c_str(), jsonConfig_p2p["driver_port"].get<int>(), jsonConfig_p2p["channel"].get<int>(), jsonConfig_p2p["password"].get<std::string>().c_str());
     cP2P.start();
-    cP2P.restartMesh(true);
     cP2P.getAddress();
 }
 

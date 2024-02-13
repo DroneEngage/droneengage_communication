@@ -82,7 +82,7 @@ typedef struct {
     std::uint8_t wifi_channel;
     std::string wifi_password;
 
-    std::string firmware_version;
+    std::string firmware_version = "na";
     
     uint16_t network_layer = std::numeric_limits<uint16_t>::max() ;  // 0 if root or direct p2p with no mesh.
 
@@ -256,7 +256,7 @@ class CAndruavUnits
         }
 
         CAndruavUnit* getUnitByName (const std::string& party_id);
-        
+        CAndruavUnit* getUnitByP2PAddress (const std::string& p2p_address)  const;
 
         
         void addNewUnit (const std::string& party_id)

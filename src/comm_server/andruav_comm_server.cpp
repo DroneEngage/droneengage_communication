@@ -863,16 +863,15 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int
 }
             
 
-/**
- * @details Sends Andruav Command to Communication Server
- *  *_GCS_: broadcast to GCS.
- *  *_AGN_: broadcast to vehicles only.
- *  *_GD_: broadcast to all..
- *  *null: means send to all units if sender is GCS, and if sender is drone means send to all GCS.
- * @param target_name party_id of a target or can be null or _GD_, _AGN_, _GCS_
- * @param command_type 
- * @param msg 
- */
+
+/// @details Sends Andruav Command to Communication Server
+/// *_GCS_: broadcast to GCS.
+/// *_AGN_: broadcast to vehicles only.
+/// *_GD_: broadcast to all..
+/// *null: means send to all units if sender is GCS, and if sender is drone means send to all GCS.
+/// @param target_name party_id of a target or can be null or _GD_, _AGN_, _GCS_
+/// @param command_type 
+/// @param msg 
 void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string& target_name, const int command_type, const Json& msg)
 {
     static std::mutex g_i_mutex; 
@@ -909,7 +908,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
  * @param bmsg 
  * @param bmsg_length
  */
-void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const int bmsg_length, const Json& message_cmd)
+void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const uint64_t bmsg_length, const Json& message_cmd)
 {
     static std::mutex g_i_mutex; 
 
@@ -948,18 +947,16 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
     } 
 }
 
-/**
- * @brief 
- * 
- * @param message_routing @link CMD_COMM_GROUP @endlink, @link CMD_COMM_INDIVIDUAL @endlink
- * @param sender_name 
- * @param target_party_id  single target except for the following
- * *_GD_* all GCS
- * *_AGN_* all agents
- * @param messageType 
- * @param message 
- * @return Json 
- */
+/// @brief 
+/// 
+/// @param message_routing @link CMD_COMM_GROUP @endlink, @link CMD_COMM_INDIVIDUAL @endlink
+/// @param sender_name 
+/// @param target_party_id  single target except for the following
+///  *_GD_* all GCS
+///  *_AGN_* all agents
+/// @param messageType 
+/// @param message 
+/// @return Json 
 Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json& message) const
 {
 
@@ -989,10 +986,12 @@ Json uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std:
     return jMsg;
 }
 
-
+/// @brief Generate JSON message for a system message.
+/// @param messageType 
+/// @param message 
+/// @return Json object of the message.
 Json uavos::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (const int messageType, const Json& message) const
 {
-
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
     

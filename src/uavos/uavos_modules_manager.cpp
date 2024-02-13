@@ -814,11 +814,16 @@ void CUavosModulesManager::parseIntermoduleMessage (const char * full_message, c
         case TYPE_AndruavMessage_SWARM_MAVLINK:
         {
             uavos::andruav_servers::CP2P& cP2P = uavos::andruav_servers::CP2P::getInstance();
-            const char * binary_message = (char *)(memchr (full_message, 0x0, full_message_length));
-            int binary_length = binary_message==0?0:(full_message_length - (binary_message - full_message +1));
-    
-    
-            bool res = cP2P.processForwardSwarmMessage(target_id, &binary_message[1], binary_length);
+            
+            // Search for char '0' and then the binary message is the bytes after it.
+            const char* binary_message = std::find(full_message, full_message + full_message_length, '\0');
+            std::size_t binary_length = binary_message == (full_message + full_message_length) ? 0 : (full_message + full_message_length) - (binary_message + 1);
+            // Create a vector to store the binary data
+            std::vector<char> binary_data(binary_message + 1, binary_message + 1 + binary_length);
+
+
+            //bool res = cP2P.processForwardSwarmMessage(target_id, binary_data.data(), binary_data.size());
+            bool res = cP2P.processForwardSwarmMessage(target_id, full_message, full_message_length);
             if (!res)
             {
                 // forward the messages normally through the server.

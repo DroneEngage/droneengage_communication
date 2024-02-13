@@ -58,3 +58,32 @@ uavos::CAndruavUnit* uavos::CAndruavUnits::getUnitByName (const std::string& par
         return unit->second.get();
     }
 }
+
+
+/**
+ * ! Needs to access a fast list of mac --> units 
+*/
+uavos::CAndruavUnit* uavos::CAndruavUnits::getUnitByP2PAddress (const std::string& p2p_address)  const
+{
+    for (const auto& unit : m_AndruavUnits) {
+        ANDRUAV_UNIT_P2P_INFO&  unit_p2p_info = unit.second.get()->getUnitP2PInfo();
+    
+        
+        if (unit_p2p_info.address_1 == p2p_address) {
+            std::cout << _INFO_CONSOLE_TEXT << "FOUND getUnitByP2PAddress1 " << p2p_address << " <><><><> " << unit_p2p_info.address_1 << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+            return unit.second.get();
+        }
+
+        if (unit_p2p_info.address_2 == p2p_address) {
+            std::cout << _INFO_CONSOLE_TEXT << "FOUND getUnitByP2PAddress2 " << p2p_address << " <><><><> " << unit_p2p_info.address_2 << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
+            return unit.second.get();
+        }
+
+    }
+
+    return nullptr;
+    
+                
+}

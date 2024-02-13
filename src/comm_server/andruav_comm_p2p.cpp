@@ -18,12 +18,31 @@
 
 #include "../messages.hpp"
 #include "../comm_server/andruav_facade.hpp"
+#include "../uavos/uavos_modules_manager.hpp"
 #include "andruav_comm_p2p.hpp"
 
 
 using Json = nlohmann::json;
 
 
+/// @brief The messages first 6 bytes form a mac address.
+/// @param vec 
+/// @return xx:xx:xx:xx:xx:xx or empty string
+std::string extractMacAddress(const std::vector<char>& vec) {
+    if (vec.size() < 6) {
+        return "";  // Return an empty string if the vector does not have at least 6 bytes
+    }
+
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (int i = 0; i < 6; ++i) {
+        ss << std::setw(2) << static_cast<unsigned>(static_cast<unsigned char>(vec[i]));
+        if (i < 5) {
+            ss << ':';
+        }
+    }
+    return ss.str();
+}
 
 
 uavos::andruav_servers::CP2P::~CP2P ()
@@ -246,6 +265,9 @@ bool uavos::andruav_servers::CP2P::isUpdated()
 } 
 
 
+/// @brief Called when a message is received from driver using UDP connection.
+/// @param message 
+/// @param len 
 void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int len)
 {
     #ifdef DEBUG
@@ -261,6 +283,14 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
         Json jMsg;
         jMsg = Json::parse(message);
         
+
+        // Search for char '0' and then the binary message is the bytes after it.
+        const char* binary_message = std::find(message, message + len, '\0');
+        std::size_t binary_length = binary_message == (message + len) ? 0 : (message + len) - (binary_message + 1);
+        // Create a vector to store the binary data
+        std::vector<char> binary_data(binary_message + 1, binary_message + 1 + binary_length);
+
+
         if (!validateField(jMsg, "cmd", Json::value_t::number_unsigned))
         {
             std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR: " << _TEXT_BOLD_HIGHTLITED_ "bad p2p missing cmd number." << _INFO_CONSOLE_TEXT << "field is not defined." <<_NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -312,7 +342,7 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
                     unit_p2p_info.wifi_channel = info["me"]["wifi_channel"];
                     unit_p2p_info.wifi_password = info["me"]["wifi_pwd"];
 
-                    unit_p2p_info.firmware_version = info["fw"];
+                    unit_p2p_info.firmware_version = info["fw"].get<std::string>();
                     
                     //PLOG(plog::warning) << "P2P Device mesh address received." << unit_p2p_info.address_1 ;
 
@@ -364,8 +394,76 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
             case TYPE_P2P_SendMessageToNode:
             {
                 const Json info = jMsg["info"];
-                
+                std::cout << jMsg.dump() << std::endl;
                 m_updated = true;
+
+                // this mac should be MY mac
+                std::string mac = extractMacAddress(binary_data);
+                std::string sender_mac = jMsg["mac"].get<std::string>();
+                std::cout << _INFO_CONSOLE_TEXT <<  sender_mac <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+
+                uavos::CAndruavUnit* unit = m_andruav_units.getUnitByP2PAddress(sender_mac);
+
+                std::string sender_partyID = "none";
+
+                if (unit == nullptr)
+                {
+                    // Message from UNKNOWN SOURCE
+                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ <<  "P2P Message from UNKNOWN SOURCE" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+                    return ;
+                }
+
+                ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
+                sender_partyID = unit_info.party_id;
+
+                //TODO Clean This CODE PLEASE
+                std::string msg = std::string(binary_message+7);
+                std::cout << _INFO_CONSOLE_TEXT <<  "============================" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT <<  binary_data.size() <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT <<  std::string(binary_data.begin(), binary_data.end())  << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT <<   msg << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT <<   mac << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT <<   "sender_partyID:" << sender_partyID << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT <<  "============================"<<_NORMAL_CONSOLE_TEXT_ << std::endl;
+                
+                //TODO Clean This CODE PLEASE
+                Json jMsg2;
+                jMsg2 = Json::parse(msg);
+
+                const int command_type = jMsg2[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+                std::cout << _INFO_CONSOLE_TEXT <<  "command_type:" <<  command_type << std::endl;
+                std::cout << _INFO_CONSOLE_TEXT <<  "============================"<<_NORMAL_CONSOLE_TEXT_ << std::endl;
+                
+
+
+                Json JFinal= 
+                {
+
+                };
+
+                //TODO Clean This CODE PLEASE
+                ANDRUAV_UNIT_INFO& unit_info_my =  uavos::CAndruavUnitMe::getInstance().getUnitInfo();
+                JFinal[INTERMODULE_ROUTING_TYPE] = CMD_COMM_INDIVIDUAL;
+                JFinal[ANDRUAV_PROTOCOL_SENDER] = sender_partyID;
+                JFinal[ANDRUAV_PROTOCOL_TARGET_ID] = unit_info_my.party_id;
+                JFinal[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION] = 0xffffffff;
+                JFinal[ANDRUAV_PROTOCOL_MESSAGE_TYPE] = command_type;
+                std::string json_msg = JFinal.dump();
+                std::cout << _INFO_CONSOLE_TEXT <<  "json_msg:" <<  json_msg << std::endl;
+                uint64_t bmsg_length = binary_data.size()-7;
+                uint64_t bmsg_final_final = json_msg.length() + 1 + bmsg_length;
+                char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
+                std::unique_ptr<char []> msg_f = std::unique_ptr<char []> (msg_ptr);
+                strcpy(msg_ptr,json_msg.c_str());
+                msg_ptr[json_msg.length()] = 0;
+                memcpy(&msg_f[json_msg.length()+1], binary_message+7, bmsg_length);
+    
+
+
+                uavos::CUavosModulesManager::getInstance().processIncommingServerMessage(sender_partyID, command_type,  msg_ptr, bmsg_final_final, std::string());
+                
+                msg_f.release();
+                
             }
             break;
         }
@@ -379,9 +477,9 @@ void uavos::andruav_servers::CP2P::OnMessageReceived (const char * message, int 
     }
 }
 
-/**
- * Sends binary to Communicator
- **/
+/// @brief Sends binary to Communicator using UDP socket
+/// @param msg binary message
+/// @param length binary message length
 void uavos::andruav_servers::CP2P::sendMSG (const char * msg, const int length) const
 {
     
@@ -400,7 +498,9 @@ void uavos::andruav_servers::CP2P::sendMSG (const char * msg, const int length) 
 
 }
 
-
+/// @brief order driver to reboot ESP32. 
+/// @param manual if true then ESP will restart and will not try 
+///         to create AP or take IP. You need to give it wifi_password & wifi_channel.
 void uavos::andruav_servers::CP2P::restartMesh(const bool manual) const
 {
     Json jMsg = 
@@ -415,10 +515,7 @@ void uavos::andruav_servers::CP2P::restartMesh(const bool manual) const
     return;
 }
 
-/**
- * @brief gets address of this node.
- * 
- */
+/// @brief gets address of this node.
 void uavos::andruav_servers::CP2P::getAddress ()
 {
     Json jMsg = 
@@ -434,7 +531,10 @@ void uavos::andruav_servers::CP2P::getAddress ()
     return;
 }
 
-
+/// @brief Connects as a root mesh. 
+///         * You need to restart the ESP32 in manual mode first before calling this function.
+/// @param wifi_password 
+/// @param wifi_channel 
 void uavos::andruav_servers::CP2P::connectAsMeshRoot (std::string wifi_password,  uint8_t wifi_channel) const
 {
     Json jMsg = 
@@ -451,9 +551,8 @@ void uavos::andruav_servers::CP2P::connectAsMeshRoot (std::string wifi_password,
     return;
 }
 
-/**
- * Connnect to a node using its mac address. I will be one of its child[ren].
-*/
+/// @brief Connnect to a node using its mac address. I will be one of its child[ren].
+/// @param mac: parent mac address
 void uavos::andruav_servers::CP2P::connectToMeshNode (const std::string mac) const
 {
     Json jMsg = 
@@ -467,7 +566,11 @@ void uavos::andruav_servers::CP2P::connectToMeshNode (const std::string mac) con
     return;
 }
 
-
+/// @brief send message to a mac addrress. In mesh this need not to be the parent mesh.
+///         it can be any node in the mesh.
+/// @param mac: target mac address.
+/// @param bmsg: binary messages.
+/// @param bmsg_length: binary message length.
 void uavos::andruav_servers::CP2P::sendMessageToMeshNode(const std::string mac, const char * bmsg, const int bmsg_length) const 
 {
     
@@ -479,7 +582,6 @@ void uavos::andruav_servers::CP2P::sendMessageToMeshNode(const std::string mac, 
 
     
     /**** Attach Binary part to String after inserting NULL ***/
-
     std::string json_msg = jMsg.dump();
     
     // Prepare a vector for the whole message
@@ -494,7 +596,6 @@ void uavos::andruav_servers::CP2P::sendMessageToMeshNode(const std::string mac, 
 
     // Access the complete message as a char array
     char* msg_ptr = msg.data();
-
     /**** Attachment End ****/
     
     
@@ -514,10 +615,11 @@ bool uavos::andruav_servers::CP2P::processForwardSwarmMessage(const std::string&
     uavos::ANDRUAV_UNIT_P2P_INFO& andruav_unit_p2p_info = unit->getUnitP2PInfo();
                 
     //UNUSED(unit_info);
+    // TODO Remove the below log and fix validation criteria
     std::cout << _INFO_CONSOLE_TEXT << "@@@@@@@TYPE_AndruavMessage_ID: " << andruav_unit_p2p_info.address_1 << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    //if (andruav_unit_p2p_info.address_1.length() > 3) return true;
+    if (andruav_unit_p2p_info.address_1.length() < 3) return false;
 
-    sendMessageToMeshNode(andruav_unit_p2p_info.address_1, "ALLO", 4 );
-    return false;
+    sendMessageToMeshNode(andruav_unit_p2p_info.address_1, bmsg, bmsg_length );
+    return true;
 }
 

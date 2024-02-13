@@ -74,7 +74,10 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
             {"wp", andruav_unit_p2p_info.wifi_password},
 
             {"pa", andruav_unit_p2p_info.parent_address},
-            {"pc", andruav_unit_p2p_info.parent_connection_status}
+            {"pc", andruav_unit_p2p_info.parent_connection_status},
+            {"f", andruav_unit_p2p_info.firmware_version},
+            
+
         };
     }   
     if (unit_info.is_tracking_mode)

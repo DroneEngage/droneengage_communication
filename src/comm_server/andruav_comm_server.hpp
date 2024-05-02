@@ -13,7 +13,7 @@
 
 
 #include "../helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 
 // SOCKET STATUS
@@ -34,8 +34,8 @@ namespace andruav_servers
 {
 
 
-    #define MIN_RECONNECT_RATE_US 10000000l // 10 sec
-    #define DEFAULT_PING_RATE_US   2000000l // 2 sec
+    #define MIN_RECONNECT_RATE_US   SEC_10 // 10 sec
+    #define DEFAULT_PING_RATE_US    SEC_2 // 2 sec
     
     class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServer>, public CCallBack_WSASession
     {
@@ -81,9 +81,10 @@ namespace andruav_servers
         public:
         
             void API_pingServer();
-            void API_sendSystemMessage(const int command_type, const Json& msg) const;
-            void API_sendCMD (const std::string& target_party_id, const int command_type, const Json& msg);
-            void API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const int bmsg_length, const Json& message_cmd);
+            void API_sendSystemMessage(const int command_type, const Json_de& msg) const;
+            void API_sendCMD (const std::string& target_party_id, const int command_type, const Json_de& msg);
+            void API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const uint64_t bmsg_length, const Json_de& message_cmd);
+            void sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd );
 
             int getStatus ()
             {
@@ -103,14 +104,14 @@ namespace andruav_servers
 
             
         private:
-            void* startWatchDogThread();
+            void startWatchDogThread();
 
             void connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
-            void parseCommand (const std::string& sender_party_id, const int& command_type, const Json& jsonMessage);
-            void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json& jsonMessage);
+            void parseCommand (const std::string& sender_party_id, const int& command_type, const Json_de& jsonMessage);
+            void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json_de& jsonMessage);
             
-            Json generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json& message) const;
-            Json generateJSONSystemMessage (const int messageType, const Json& message) const;
+            Json_de generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json_de& message) const;
+            Json_de generateJSONSystemMessage (const int messageType, const Json_de& message) const;
             
         private:
             //std::shared_ptr<uavos::andruav_servers::CWSSession> _cwssession;  

@@ -12,7 +12,7 @@
 
 #include "../helpers/json.hpp"
 
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 // url commands 
 #define AUTH_AGENT_LOGIN_COMMAND        "/agent/al/"

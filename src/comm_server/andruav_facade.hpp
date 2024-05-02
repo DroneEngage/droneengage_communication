@@ -60,6 +60,8 @@ namespace andruav_servers
             void API_loadTask (const int larger_than_SID, const std::string& account_id, const std::string& party_sid, const std::string& group_name, const std::string& sender, const std::string& receiver, const int msg_type, bool is_permanent ) const;
 
             void API_sendPrepherals (const std::string& target_party_id) const ;
+
+
     };
 
 }

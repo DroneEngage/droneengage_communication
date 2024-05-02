@@ -29,7 +29,6 @@
 #include "messages.hpp"
 #include "configFile.hpp"
 #include "localConfigFile.hpp"
-#include "udpCommunicator.hpp"
 
 #include "./comm_server/andruav_unit.hpp"
 #include "./comm_server/andruav_comm_server.hpp"
@@ -48,9 +47,8 @@ using namespace std;
 
 uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
 uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
-uavos::comm::CUDPCommunicator& cUDPClient = uavos::comm::CUDPCommunicator::getInstance();  
-uavos::CUavosModulesManager& cUavosModulesManager = uavos::CUavosModulesManager::getInstance();  
 
+uavos::comm::CUavosModulesManager& cUavosModulesManager = uavos::comm::CUavosModulesManager::getInstance();  
 //hal_linux::CRPI_GPIO &cGPIO = hal_linux::CRPI_GPIO::getInstance();
 notification::CLEDs &cLeds = notification::CLEDs::getInstance();
 notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
@@ -127,10 +125,7 @@ void scheduler ()
         
         if (hz_10 % every_sec_1 == 0)
         {
-            // if (andruav_server.getStatus() == SOCKET_STATUS_REGISTERED)
-            // {
-            //     andruav_server.API_sendID("");
-            // }
+            
         }
 
         if (hz_10 % every_sec_5 == 0)
@@ -158,7 +153,7 @@ void scheduler ()
             }
             else
             {
-                #ifdef DEBUG
+                #ifdef DDEBUG
                     std::cout  << "get_throttled:" << "NOT RPI" << std::endl;
                 #endif
             }
@@ -167,15 +162,9 @@ void scheduler ()
 
         if (hz_10 % every_sec_10 == 0)
         {
+            // Leave thie the last part in this code block.
             if (status.is_online())
             {
-                // uavos::STATUS& status = uavos::STATUS::getInstance();
-                // const int streaming_level = status.streaming_level();
-                // if ((streaming_level<=0) || (hz_10 % (every_sec_10 * streaming_level)==0)) {
-                //     // streaming_level =0 or -1 then do not optimize.
-                //     // each streaming level will delay 10 more seconds.
-                //     andruav_facade.API_sendID("");
-                // }
                 andruav_facade.API_sendID("");
             }
         }
@@ -184,24 +173,11 @@ void scheduler ()
         {
         }
         
-        usleep(100000); // 10Hz
+        std::this_thread::sleep_for(std::chrono::microseconds(100000)); // 10Hz
+        
     }
 
     return ;
-}
-
-
-void onReceive (const char * message, int len, struct sockaddr_in * ssock)
-{
-        
-    #ifdef DEBUG        
-    #ifdef DEBUG_MSG        
-        std::cout << _INFO_CONSOLE_TEXT << "RX MSG: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-    #endif
-
-    cUavosModulesManager.parseIntermoduleMessage(message, len, ssock);
-
 }
 
 
@@ -212,11 +188,11 @@ void initScheduler()
 
 void initLogger()
 {
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     
     if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
     {
-        std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         return ;
     }
@@ -228,7 +204,7 @@ void initLogger()
         debug_log = jsonConfig["logger_debug"].get<bool>();
     }
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging is " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
 
         
 
@@ -248,7 +224,7 @@ void initLogger()
 
 void defineMe()
 {
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
     uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
     
@@ -307,21 +283,29 @@ void defineMe()
  */
 void initSockets()
 {
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
+    uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+    std::string module_key = cLocalConfigFile.getStringField("module_key");
+    uavos::ANDRUAV_UNIT_INFO&  unit_info = uavos::CAndruavUnitMe::getInstance().getUnitInfo();
     
-    // UDP Server
-    cUDPClient.init(jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
+        
+    cUavosModulesManager.defineModule( MODULE_CLASS_COMM, 
+                        jsonConfig["module_id"],
+                        cLocalConfigFile.getStringField("module_key"),
+                        version_string,
+                        unit_info.party_id,
+                        jsonConfig["groupID"].get<std::string>());
+
+    cUavosModulesManager.init(jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
                     std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
     
-    
-    cUDPClient.SetMessageOnReceive (&onReceive);
-    cUDPClient.start();
 }
 
 
 void initGPIO()
 {
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
 
     if (!jsonConfig.contains("led_pins")
     || ((jsonConfig.contains("led_pins_enabled")) && (jsonConfig["led_pins_enabled"].get<bool>()==false))
@@ -479,7 +463,8 @@ void uninit ()
     #endif
     
     
-    cUDPClient.stop();
+    cUavosModulesManager.uninit();
+
 
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint_after Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;

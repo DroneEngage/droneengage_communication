@@ -8,3 +8,11 @@
 #define BIT(x) (1 << (x))
 
 #endif
+
+
+#if defined (DEBUG)
+
+//  #define DDEBUG
+//  #define DDEBUG_PARSER
+//  #define DDEBUG_MSG
+#endif

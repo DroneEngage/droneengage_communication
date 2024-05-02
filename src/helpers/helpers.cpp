@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <cctype>
 #include <algorithm>
 #include <sys/time.h>
@@ -7,9 +8,76 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <cstdint>
+#include <iomanip>
 #include <stdexcept>
 #include "helpers.hpp"
 
+
+std::string get_time_string()
+{
+  struct timeval _time_stamp;
+  gettimeofday(&_time_stamp, NULL);
+
+  // Convert the timestamp to a time_t value
+  time_t time_t_value = _time_stamp.tv_sec;
+
+  // Convert the time_t value to a tm struct
+  struct tm *tm = localtime(&time_t_value);
+
+  // Format the time string
+  char time_string[20];
+  strftime(time_string, sizeof(time_string), "%Y_%m_%d_%H_%M_%S", tm);
+
+  return time_string;
+}
+
+
+uint64_t get_time_usec()
+{
+	static struct timeval _time_stamp;
+	gettimeofday(&_time_stamp, NULL);
+	return _time_stamp.tv_sec*1000000 + _time_stamp.tv_usec;
+}
+
+
+void time_register(uint64_t& time_box)
+{
+	time_box =  get_time_usec();
+}
+
+
+bool time_passed_usec(const uint64_t& time_box, const uint64_t diff_usec)
+{
+	const u_int64_t now =  get_time_usec();
+    return ((now - time_box) >= diff_usec);
+}
+
+bool time_less_usec(const uint64_t& time_box, const uint64_t diff_usec)
+{
+	const u_int64_t now =  get_time_usec();
+    return ((now - time_box) <= diff_usec);
+}
+
+
+bool time_passed_register_usec(uint64_t& time_box, const uint64_t diff_usec)
+{
+	const u_int64_t now =  get_time_usec();
+    const bool passed = ((now - time_box) >= diff_usec);
+    if (passed) time_box = now;
+
+    return passed;
+}
+
+
+
+int wait_time_nsec (const time_t& seconds, const long& nano_seconds)
+{
+	struct timespec _time_wait, tim2;
+	_time_wait.tv_sec = seconds;
+	_time_wait.tv_nsec = nano_seconds;
+	
+	return nanosleep(&_time_wait, &tim2);
+}
 
 
 uint32_t hex_string_to_uint32(const char* hex_str) {
@@ -98,13 +166,13 @@ std::string removeComments(std::string prgm)
 /**
  * @brief 
  *  returns true if field exist and of specified type
- * @param message Json object
+ * @param message Json_de object
  * @param field_name requested field name
  * @param field_type specified type
  * @return true if found and of specified type
  * @return false 
  */
-bool validateField (const Json& message, const char *field_name, const Json::value_t& field_type)
+bool validateField (const Json_de& message, const char *field_name, const Json_de::value_t& field_type)
 {
     if (
         (message.contains(field_name) == false) 
@@ -139,5 +207,34 @@ std::string get_linux_machine_id ()
     else
     {
         return std::string("");
+    }
+}
+
+
+std::string convertMacAddressToString(const std::vector<int>& mac)
+{
+    std::ostringstream oss;
+    oss << std::hex << std::setfill('0');
+    for (size_t i = 0; i < mac.size(); ++i) {
+        oss << std::setw(2) << mac[i];
+        if (i < mac.size() - 1) {
+            oss << ":";
+        }
+    }
+    return oss.str();
+}
+
+void saveBinaryToFile(const char* binary_message, size_t binary_length, const std::string& file_path)
+{
+    std::ofstream file(file_path, std::ios::binary | std::ios::trunc);
+    if (file.is_open())
+    {
+        file.write(binary_message, binary_length);
+        file.close();
+        std::cout << "Binary content saved to file: " << file_path << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to open the file: " << file_path << std::endl;
     }
 }

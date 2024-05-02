@@ -28,7 +28,7 @@ void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& t
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    Json jMsg = {{"C", TYPE_AndruavMessage_ID}};
+    Json_de jMsg = {{"C", TYPE_AndruavMessage_ID}};
     
     uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_RemoteExecute, jMsg);
 }
@@ -41,11 +41,11 @@ void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& t
  */
 void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_party_id) const 
 {
-    uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+    uavos::CAndruavUnitMe& andruavMe = uavos::CAndruavUnitMe::getInstance();
+    uavos::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
    
 
-    Json jMsg = 
+    Json_de jMsg = 
     {   
         {"VT", unit_info.vehicle_type},                     // vehicle type
         {"GS", unit_info.is_gcs},                           // is gcs
@@ -59,7 +59,8 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         {"DS", unit_info.description},                      // unit Description
         {"p",  unit_info.permission},                       // permissions
         {"dv", version_string},                             // de version
-        {"m1", uavos::CUavosModulesManager::getInstance().getModuleListAsJSON()}
+        {"m1", uavos::comm::CUavosModulesManager::getInstance().getModuleListAsJSON()},
+        {"T", get_time_usec()}                              // This is a time sync so that any time difference sent by this module can be compared.    
     };
  
     if (unit_info.is_tracking_mode)
@@ -115,8 +116,14 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
     {
         jMsg["a"] = unit_info.flying_total_duration;    // is whisling
     }
+    
+    #ifdef DDEBUG
+        std::cout << "API_sendID:" <<  jMsg.dump() << std::endl;
+    #endif
+
     uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
 }
+
 
 void uavos::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, const std::string& target_party_id) const 
 {
@@ -124,11 +131,11 @@ void uavos::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    uavos::CUavosModulesManager& module_manager = uavos::CUavosModulesManager::getInstance();
+    uavos::comm::CUavosModulesManager& module_manager = uavos::comm::CUavosModulesManager::getInstance();
     
-    Json camera_list = module_manager.getCameraList();
+    Json_de camera_list = module_manager.getCameraList();
 
-    const Json jMsg = 
+    const Json_de jMsg = 
     {
         {"R", reply},
         {"T", camera_list}
@@ -148,7 +155,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::st
         NT : sevirity and com,pliant with ardupilot.
         DS : description message.
     */
-    Json message =
+    Json_de message =
         {
             {"EN", error_number},
             {"IT", info_type},
@@ -260,7 +267,7 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_
 
     PLOG(plog::info) << "API_loadTask called"; 
     
-    Json message =
+    Json_de message =
         {
             {"lts", larger_than_SID},
             {"ps", party_sid},
@@ -285,12 +292,12 @@ void uavos::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::stri
 {
     
 
-    uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+    uavos::CAndruavUnitMe& andruavMe = uavos::CAndruavUnitMe::getInstance();
+    uavos::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
    
     //uavos::STATUS& status = uavos::STATUS::getInstance();
 
-    Json jMsg = {  };
+    Json_de jMsg = {  };
  
     if (unit_info.is_tracking_mode)
     {

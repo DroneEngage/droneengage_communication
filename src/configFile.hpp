@@ -4,7 +4,7 @@
 
 #include <sstream>
 #include "./helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 namespace uavos
 {
@@ -50,7 +50,7 @@ namespace uavos
              * 
              */
             void Refresh ();
-            const Json& GetConfigJSON();
+            const Json_de& GetConfigJSON();
 
         protected:
             void ReadFile (const char * fileURL);
@@ -60,7 +60,7 @@ namespace uavos
         private:
             std::string m_fileURL;
             std::stringstream m_fileContents;
-            Json m_ConfigJSON;
+            Json_de m_ConfigJSON;
         
 
     };

@@ -102,6 +102,20 @@
 #define TYPE_AndruavMessage_GPS                     1002
 #define TYPE_AndruavMessage_POWER                   1003
 #define TYPE_AndruavMessage_ID 	                    1004
+/**
+ * @brief This command is used to execute a remote command on another unit.
+ * @param C command id.
+ *      * 1- This command is can me less than 1000 which means it is a specific command need to 
+ *        be executed by target drone such as RemoteCommand_REQUEST_PARA_LIST, RemoteCommand_MISSION_COUNT ...etc.
+ *      * 2- It also can be equal to a command ID such as TYPE_AndruavMessage_ID
+ *        in this case the command need to be sent by the target drone, which in this case wwill
+ *        be sendID. TYPE_AndruavMessage_RemoteExecute(TYPE_AndruavMessage_ID) === request ID and 
+ *        target drone should reply with TYPE_AndruavMessage_ID == sendID.
+ *                   TYPE_AndruavMessage_RemoteExecute(TYPE_AndruavMessage_HomeLocation) == send Home Location
+ *       * Not all command s are implemented.
+ * @param Act :bool which used with @param C to activate & deactivate as extra parameter.
+ * 
+ */
 #define TYPE_AndruavMessage_RemoteExecute 		    1005
 #define TYPE_AndruavMessage_IMG                     1006
 #define TYPE_AndruavMessage_Error                   1008    
@@ -140,16 +154,63 @@
 #define TYPE_AndruavMessage_UpdateSwarm             1058
 #define TYPE_AndruavMessage_Prepherials             1070
 #define TYPE_AndruavMessage_UDPProxy_Info           1071
+/**
+ * @brief used to set unit name and description.
+ * This message is mainly sent from web and received by communication module.
+ * It is used to change unit name and description.
+*/
 #define TYPE_AndruavMessage_Unit_Name               1072
+/**
+ * @brief used to ping a unit name.
+ * This message works in two ways:
+ * * 1- send a ping to a unit to tell it that I am alive via p2p.
+ * * 2- This is similar to send RemoteExecute (TYPE_AndruavMessage_ID)
+ *      But in this case target unit does not need to reply with TYPE_AndruavMessage_ID
+ *      It can reply with same TYPE_AndruavMessage_Ping_Unit
+ *  Note that 1 & 2 can be done in a single message.
+ * 
+ * params:
+ *      [a]: sender_party_id : drone_engage party id. case: #1
+ *      [k]: 1 - request ack.                         case: #2
+ */
+#define TYPE_AndruavMessage_Ping_Unit               1073
+
+#define TYPE_AndruavMessage_P2P_INFO                1074
 
 //Binary Starts with 2000
+
+//deprecated telemetry technology
 #define TYPE_AndruavMessage_LightTelemetry          2022
 
-// New Binary Messages 
+// New JSON Messages 
 #define TYPE_AndruavMessage_ServoChannel            6001
+
+
+// New Binary Messages
 #define TYPE_AndruavMessage_MAVLINK                 6502
 #define TYPE_AndruavMessage_SWARM_MAVLINK           6503
-#define TYPE_AndruavMessage_INTERNAL_MAVLINK        6504
+
+/**
+ * Used by other modules to exchange mavlink information
+ * between each other.
+ * This allows custom implementation for sharing mavlink info 
+ * between mavlink module and other modules.
+*/
+#define TYPE_AndruavMessage_INTERNAL_MAVLINK            6504
+
+
+#define TYPE_AndruavMessage_P2P_ACTION                  6505
+#define TYPE_AndruavMessage_P2P_STATUS                  6506
+
+#define TYPE_AndruavMessage_P2P_InRange_BSSID           6507
+#define TYPE_AndruavMessage_P2P_InRange_Node            6508
+
+
+#define TYPE_AndruavMessage_DUMMY                       9999
+
+
+
+
 
 #define TYPE_AndruavMessage_Sonar_Info              13001
 #define TYPE_AndruavMessage_Sonar_Action            13002
@@ -173,6 +234,25 @@
 #define TYPE_CMissionAction_Delay                           93 // same as mavlink 
 #define TYPE_CMissionAction_Delay_STATE_MACHINE            112 // same as mavlink
 #define TYPE_CMissionAction_DummyMission                 99999
+
+
+
+// P2P Parameters
+
+#define P2P_ACTION_RESTART_TO_MAC                           0
+#define P2P_ACTION_CONNECT_TO_MAC                           1
+#define P2P_ACTION_CANDICATE_MAC                            2
+#define P2P_ACTION_SCAN_NETWORK                             3
+/**
+ * @brief this is different from P2P_ACTION_CONNECT_TO_MAC 
+ * in that it does not require direct access 
+ * or specifies who is parent to whom.
+ */
+#define P2P_ACTION_ACCESS_TO_MAC                            4
+
+#define P2P_STATUS_CONNECTED_TO_MAC                         0
+#define P2P_STATUS_DISCONNECTED_FROM_MAC                    1
+
 
 // Remote Control Sub Actions
 #define RC_SUB_ACTION_RELEASED                      0
@@ -209,6 +289,7 @@
 #define ERROR_GPS                               10
 #define ERROR_POWER                             11
 #define ERROR_TYPE_ERROR_MODULE                 13
+#define ERROR_TYPE_ERROR_P2P                    23
 #define ERROR_GEO_FENCE_ERROR                   100
 
 // 0	MAV_SEVERITY_EMERGENCY	System is unusable. This is a "panic" condition.

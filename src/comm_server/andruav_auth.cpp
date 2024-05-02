@@ -31,20 +31,20 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
 {
     uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
 
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     
-    if (!validateField(jsonConfig,"auth_ip", Json::value_t::string))
+    if (!validateField(jsonConfig,"auth_ip", Json_de::value_t::string))
     {
 
-        std::cout << std::to_string(validateField(jsonConfig,"auth_ip", Json::value_t::string)) << std::endl;
+        std::cout << std::to_string(validateField(jsonConfig,"auth_ip", Json_de::value_t::string)) << std::endl;
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing login info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(1);
     }
     
-    if (validateField(jsonConfig,"auth_port", Json::value_t::number_unsigned) == false)
+    if (validateField(jsonConfig,"auth_port", Json_de::value_t::number_unsigned) == false)
     {
 
-        std::cout << std::to_string(validateField(jsonConfig,"auth_port", Json::value_t::number_unsigned)) << std::endl;
+        std::cout << std::to_string(validateField(jsonConfig,"auth_port", Json_de::value_t::number_unsigned)) << std::endl;
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing auth_port info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(1);
     }
@@ -100,14 +100,14 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doValidateHardware(const std
 
     uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
 
-    const Json& jsonConfig = cConfigFile.GetConfigJSON();
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     
-    if ((!validateField(jsonConfig,"auth_ip", Json::value_t::string))
-     || (validateField(jsonConfig,"auth_port", Json::value_t::number_unsigned) == false)
+    if ((!validateField(jsonConfig,"auth_ip", Json_de::value_t::string))
+     || (validateField(jsonConfig,"auth_port", Json_de::value_t::number_unsigned) == false)
      )
     {
 
-        std::cout << std::to_string(validateField(jsonConfig,"auth_ip", Json::value_t::string)) << std::endl;
+        std::cout << std::to_string(validateField(jsonConfig,"auth_ip", Json_de::value_t::string)) << std::endl;
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing login info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(1);
     }
@@ -180,8 +180,8 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     ssl_verify = false;
 #endif
 
-    const Json& jsonConfig = uavos::CConfigFile::getInstance().GetConfigJSON();
-    if (validateField(jsonConfig,"auth_verify_ssl", Json::value_t::boolean)==true)
+    const Json_de& jsonConfig = uavos::CConfigFile::getInstance().GetConfigJSON();
+    if (validateField(jsonConfig,"auth_verify_ssl", Json_de::value_t::boolean)==true)
     {
         ssl_verify = jsonConfig["auth_verify_ssl"].get<bool>();
         std::cout << _LOG_CONSOLE_TEXT_BOLD_ <<  "Verify SSL:";
@@ -195,7 +195,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
         }
     }
 
-    if (validateField(jsonConfig,"root_certificate_path", Json::value_t::string)==true)
+    if (validateField(jsonConfig,"root_certificate_path", Json_de::value_t::string)==true)
     {
         std::cout << _LOG_CONSOLE_TEXT_BOLD_ <<  "root certificate: ";
         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << jsonConfig["root_certificate_path"].get<std::string>() << std::endl;
@@ -282,11 +282,11 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
 
     m_is_authentication_ok = false;
 
-    const Json& json_response = Json::parse(response);
+    const Json_de& json_response = Json_de::parse(response);
     
     m_auth_error = 0; //reset error;
 
-    if (validateField (json_response, "e", Json::value_t::number_unsigned) == false)
+    if (validateField (json_response, "e", Json_de::value_t::number_unsigned) == false)
     {   
         m_auth_error = -1;
         m_auth_error_string = "BAD XML";
@@ -297,7 +297,7 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
     // Error Should be read before any other validation as if error some fields are not sent.
     m_auth_error = json_response[AUTH_REPLY_ERROR].get<int>();
     
-    if (validateField (json_response, AUTH_REPLY_ERROR_MSG, Json::value_t::string))
+    if (validateField (json_response, AUTH_REPLY_ERROR_MSG, Json_de::value_t::string))
     {
         m_auth_error_string = json_response[AUTH_REPLY_ERROR_MSG];
     }
@@ -310,35 +310,35 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
     }
 
 
-    if (!validateField (json_response, "sid", Json::value_t::string))
+    if (!validateField (json_response, "sid", Json_de::value_t::string))
     {
         return ;
     }
 
     
-    if (!validateField (json_response, "per", Json::value_t::string))
+    if (!validateField (json_response, "per", Json_de::value_t::string))
     {
         return ;
     }
 
-    if (!validateField (json_response, AUTH_REPLY_COMM_SERVER, Json::value_t::object))
+    if (!validateField (json_response, AUTH_REPLY_COMM_SERVER, Json_de::value_t::object))
     {
         return ;
     }
     
-    const Json& json_comm_server = json_response[AUTH_REPLY_COMM_SERVER];
+    const Json_de& json_comm_server = json_response[AUTH_REPLY_COMM_SERVER];
 
-    if (!validateField (json_comm_server, AUTH_REPLY_COMM_SERVER_PUBLIC_HOST, Json::value_t::string))
+    if (!validateField (json_comm_server, AUTH_REPLY_COMM_SERVER_PUBLIC_HOST, Json_de::value_t::string))
     {
         return ;
     }
 
-    if (!validateField (json_comm_server, AUTH_REPLY_COMM_SERVER_PORT, Json::value_t::number_unsigned))
+    if (!validateField (json_comm_server, AUTH_REPLY_COMM_SERVER_PORT, Json_de::value_t::number_unsigned))
     {
         return ;
     }
 
-    if (!validateField (json_comm_server, AUTH_REPLY_COMM_SERVER_LOGIN_TEMP_KEY, Json::value_t::string))
+    if (!validateField (json_comm_server, AUTH_REPLY_COMM_SERVER_LOGIN_TEMP_KEY, Json_de::value_t::string))
     {
         return ;
     }
@@ -358,26 +358,27 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
 
 bool uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidateHardware (const std::string& response)
 {
-    #ifdef DEBUG
+    #ifdef DDEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line: " << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     
-    const Json& json_response = Json::parse(response);
+    const Json_de& json_response = Json_de::parse(response);
     
     m_auth_error = 0; //reset error;
 
-    if (validateField (json_response, "e", Json::value_t::number_unsigned) == false)
+    if (validateField (json_response, "e", Json_de::value_t::number_unsigned) == false)
     {   
         m_auth_error = -1;
         m_auth_error_string = "BAD XML";
+        std::cout << _TEXT_BOLD_HIGHTLITED_ << "HW AUTH: " << _ERROR_CONSOLE_BOLD_TEXT_ << "Failed ... Bad XML" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return false;
     }
 
      // Error Should be read before any other validation as if error some fields are not sent.
     m_auth_error = json_response[AUTH_REPLY_ERROR].get<int>();
     
-    if (validateField (json_response, AUTH_REPLY_ERROR_MSG, Json::value_t::string))
+    if (validateField (json_response, AUTH_REPLY_ERROR_MSG, Json_de::value_t::string))
     {
         m_hardware_error_string = json_response[AUTH_REPLY_ERROR_MSG];
     }
@@ -385,9 +386,13 @@ bool uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidate
     if (m_auth_error != 0)
     {
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Error Hardware Authentication:  (" << std::to_string(m_auth_error) << " - " << m_hardware_error_string <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        
         return false;
     }
 
+    
+    std::cout << _INFO_CONSOLE_TEXT  << "HW AUTH: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Passed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
     return true;
 }
 

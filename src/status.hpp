@@ -1,6 +1,9 @@
 #ifndef HAL_STATUS_H
 #define HAL_STATUS_H
 
+
+#include "./comm_server/andruav_unit.hpp"
+
 namespace uavos 
 {
 class STATUS {
@@ -38,6 +41,16 @@ class STATUS {
             inline void is_online(const bool online) 
             {
                 m_online = online; 
+            }
+
+            inline const bool is_p2p_connected() const
+            {
+                return false;
+            }
+
+            inline void is_p2p_connected(const bool is_p2p_connected) 
+            {
+                return ;
             }
 
             inline bool is_fcb_module_connected() const

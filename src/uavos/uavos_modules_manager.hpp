@@ -17,6 +17,14 @@ using Json = nlohmann::json;
 
 #include "../global.hpp"
 #include "../status.hpp"
+#include "udpCommunicator.hpp"
+
+
+#define MODULE_CLASS_COMM                       "comm"
+#define MODULE_CLASS_FCB                        "fcb"
+#define MODULE_CLASS_VIDEO                      "camera"
+#define MODULE_CLASS_GENERIC                    "gen"
+
 
 // 5 seconds
 #define MODULE_TIME_OUT  5000000
@@ -82,11 +90,13 @@ typedef std::map <std::string, std::unique_ptr<std::map
 
 namespace uavos
 {
+namespace comm
+{
     /**
      * @brief Handles different uavos modules registration, updating, message forwarding and calling back.
      * 
      */
-    class CUavosModulesManager
+    class CUavosModulesManager : public CCallBack_UDPCommunicator
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -102,13 +112,29 @@ namespace uavos
 
         private:
 
-            CUavosModulesManager() {};
+            CUavosModulesManager():cUDPClient(this)
+            {
+
+            }
 
 
         public:
             
-            ~CUavosModulesManager ();
+            ~CUavosModulesManager (){};
            
+         public:
+
+            void defineModule (std::string module_class, 
+                            std::string module_id, 
+                            std::string module_key, 
+                            std::string module_version, 
+                            std::string party_id, 
+                            std::string group_id
+                        );
+            
+            bool init (const std::string host, int listenningPort);
+            void uninit();
+         
             void parseIntermoduleMessage (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_in* ssock);
             Json createJSONID (const bool& reSend);
             
@@ -129,6 +155,16 @@ namespace uavos
             
             Json getModuleListAsJSON();
 
+        public:
+
+            void setMessageOnReceive (void (*onReceive)(const char *, int len))
+                {
+                    m_OnReceive = onReceive;
+                }
+        
+            void onReceive (const char * message, int len, struct sockaddr_in *  sock) override;
+            void (*m_OnReceive)(const char *, int len) = nullptr;
+        
         private:
 
             bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);
@@ -157,7 +193,40 @@ namespace uavos
             
             void checkLicenseStatus(MODULE_ITEM_TYPE * module_item);
 
+            
+            //void sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json &msg_cmd );
+
         private:
+
+            /**
+             * @brief Identifies the type of the module.
+             * Modules of the same identical functions should have the same class
+             * For example multiple camera modules should have same MODULE_CLASS_VIDEO.
+             * 
+             */
+            std::string m_module_class;
+
+            /**
+             * @brief this id identifies this particular module. This can be 
+             * FCB_Main, FCB_Secondary ....etc.
+             * or CAM_MOD1, CAM_MOD2 ...etc.
+             * 
+             */
+            std::string m_module_id;
+
+            /**
+             * @brief this is a GUID key for this module. the difference between
+             * m_module_id & m_module_key is that m_module_key should be unique over
+             * the whole system.
+             * 
+             */
+            std::string m_module_key;
+            
+            
+            std::string m_module_version;
+
+            std::string m_party_id;
+            std::string m_group_id;
 
             /**
              * @brief 
@@ -183,7 +252,9 @@ namespace uavos
             
             uavos::STATUS &m_status = uavos::STATUS::getInstance();
             
+            CUDPCommunicator cUDPClient; 
+            
     };
 }
-
+}
 #endif

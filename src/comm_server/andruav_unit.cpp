@@ -40,7 +40,7 @@ uavos::CAndruavUnit* uavos::CAndruavUnits::getUnitByName (const std::string& par
     auto unit = m_AndruavUnits.find(party_id);
     if (unit== m_AndruavUnits.end())
     {
-        #ifdef DEBUG
+        #ifdef DDEBUG
             std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "getUnitByName " << party_id << " NOT found"<< _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
         uavos::CAndruavUnit * pAndruavUnit= new CAndruavUnit(party_id);
@@ -51,7 +51,7 @@ uavos::CAndruavUnit* uavos::CAndruavUnits::getUnitByName (const std::string& par
     }
     else
     {
-        #ifdef DEBUG
+        #ifdef DDEBUG
             std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "getUnitByName " << party_id << " found"<< _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 

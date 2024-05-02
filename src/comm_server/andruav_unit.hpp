@@ -2,6 +2,7 @@
 #define ANDRUAV_UNIT_H_
 
 #include <iostream>
+#include <limits> 
 #include <string>
 #include <map>
 
@@ -11,7 +12,7 @@
 
 #include "../helpers/helpers.hpp"
 #include "../helpers/json.hpp"
-using Json = nlohmann::json;
+using Json_de = nlohmann::json;
 
 
 namespace uavos
@@ -101,8 +102,9 @@ typedef struct {
   std::string group_name;
   std::string description;
   uint64_t last_access_time;
+  uint64_t unit_sync_time;
   
-  bool is_new;      
+  bool is_new = true;      
 } ANDRUAV_UNIT_INFO;
 
 
@@ -133,8 +135,6 @@ class CAndruavUnit
             m_unit_info.flying_last_start_time  = 0;
             m_unit_info.swarm_leader_I_am_following = std::string("");
             m_unit_info.is_new = true;
-
-
         }
 
 

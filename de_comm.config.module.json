@@ -18,15 +18,15 @@
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
     "root_certificate_path"     : "./root.crt",
 
-    "userName"                  :"team@ardupilot.org", 
-    "accessCode"                :"1234",
+    "userName"                  :"mhefny@andruav.com", 
+    "accessCode"                :"mhefny",
     "unitID"                    :"drone_cairo",
     "groupID"                   :"1",
     "unitDescription"           :"de_unit 1",
 
     
     // Logger Section
-    "logger_enabled"            : true,
+    "logger_enabled"            : false,
     "logger_debug"              : false,
 
     // sometimes you need to reconnect the app when connection is silent and not timedout yet:
@@ -48,9 +48,14 @@
     "buzzer_pins"               :[
                                     {"name":"status", "gpio":13},
                                     {"name":"LoudBuzzer", "gpio":6}
-                                ]
+                                ],
 
     //"allow_temp":               cat /sys/class/thermal/thermal_zone0
+ 
     
-    
+
+    "images": {
+        "save_images":  true,
+        "media_folder": "./media"
+    }
 }

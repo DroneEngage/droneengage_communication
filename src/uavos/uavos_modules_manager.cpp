@@ -752,6 +752,11 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
             location_info.last_access_time              = get_time_usec();
             location_info.is_new                        = true;
             location_info.is_valid                      = true;
+        
+            if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
+            {
+                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
+            }
         }
         break;
         
@@ -803,63 +808,8 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
                 break;
             }
             
-            std::size_t binary_length = actual_useful_size - first_string_length;
-            
-            
-            
-            CAndruavUnitMe& m_andruavMe = CAndruavUnitMe::getInstance();
-            ANDRUAV_UNIT_LOCATION&  location_info = m_andruavMe.getUnitLocationInfo();
-
             Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
-            const uint64_t now = get_time_usec();
-            if (location_info.is_valid)
-            {
-                // Generate message part ANDRUAV_PROTOCOL_MESSAGE_CMD
-                msg_cmd["prv"] = std::string ("gps");
-                msg_cmd["lat"] = location_info.latitude;
-                msg_cmd["lng"] = location_info.longitude;
-                msg_cmd["alt"] = location_info.altitude;
-                msg_cmd["tim"] = now;
-            }
-            else
-            {
-                //msg_cmd["prv"] null means not source.
-                msg_cmd["lat"] = 0;
-                msg_cmd["lng"] = 0;
-                msg_cmd["alt"] = 0;
-                msg_cmd["tim"] = now;
-            }
-
-            uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-            const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
-    
-            if (jsonConfig.contains("images") == true) 
-            {
-                const Json_de json_image = jsonConfig["images"];
-
-                if ((!json_image.contains("save_images")) 
-                    || (json_image["save_images"].get<bool>()==true)) 
-                {
-                    std::string file_path = "./";
-                    if (validateField(json_image,"media_folder", Json_de::value_t::string))
-                    {
-                        file_path = json_image["media_folder"].get<std::string>();
-                    }
-                    
-                    std::ostringstream oss;
-                    oss << file_path << "/"
-                        << "img_"  <<  get_time_string()
-                        << "_lat_" << location_info.latitude
-                        << "_lng_" << location_info.longitude
-                        << "_alt_" << int(location_info.altitude / 1000)
-                        << ".jpg";
-
-                    std::string file_name = oss.str();
-
-   
-                    saveBinaryToFile (&full_message[first_string_length+1], binary_length-1, file_name);
-                }
-            }
+            
             andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
             andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, msg_cmd);
         }

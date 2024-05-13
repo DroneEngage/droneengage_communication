@@ -455,14 +455,14 @@ void uavos::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * m
     {
         if (auth.doValidateHardware(module_item->hardware_serial, module_item->hardware_type))
         {
-            std::cout << std::endl << _LOG_CONSOLE_TEXT_BOLD_ << "Module License " << _SUCCESS_CONSOLE_TEXT_ << "OK " <<  _SUCCESS_CONSOLE_BOLD_TEXT_ << module_item->module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << std::endl << _LOG_CONSOLE_BOLD_TEXT << "Module License " << _SUCCESS_CONSOLE_TEXT_ << "OK " <<  _SUCCESS_CONSOLE_BOLD_TEXT_ << module_item->module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
             PLOG(plog::info)<< "Module License OK: " << module_item->module_id ;
 
             module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_OK;
         }
         else
         {
-            std::cout << std::endl << _LOG_CONSOLE_TEXT_BOLD_ << "Module License " << _ERROR_CONSOLE_BOLD_TEXT_ <<  "INVALID " << module_item->module_id<< _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << std::endl << _LOG_CONSOLE_BOLD_TEXT << "Module License " << _ERROR_CONSOLE_BOLD_TEXT_ <<  "INVALID " << module_item->module_id<< _NORMAL_CONSOLE_TEXT_ << std::endl;
             PLOG(plog::error)<< "Module License Invalid: " << module_item->module_id ;
 
             module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_BAD;

@@ -60,9 +60,9 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
                 + AUTH_EXTRA_PARAMETER + "uavos"
                 + AUTH_ACTOR_TYPE_PARAMETER + AUTH_ACTOR_DRONE;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _TEXT_BOLD_HIGHTLITED_ << " Connecting to server " << _INFO_CONSOLE_TEXT << jsonConfig["auth_ip"].get<std::string>() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Auth Server " << _TEXT_BOLD_HIGHTLITED_ << " Connecting to server " << _INFO_CONSOLE_TEXT << jsonConfig["auth_ip"].get<std::string>() << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #ifdef DEBUG
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Auth URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
        
     const bool res = getAuth_doAuthentication (url, param);
@@ -125,9 +125,9 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doValidateHardware(const std
                 + AUTH_HARDWARE_TYPE_PARAMETER + std::to_string(hardware_type)
                 + AUTH_SUB_COMMAND_PARAMETER + AUTH_SUB_COMMAND_VERIFY_HARDWARE_ID;
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Auth Server " << _LOG_CONSOLE_TEXT << " connection established " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " successfully" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Auth Server " << _LOG_CONSOLE_TEXT << " connection established " << _SUCCESS_CONSOLE_BOLD_TEXT_ << " successfully" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #ifdef DEBUG
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "HARDWARE URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _LOG_CONSOLE_BOLD_TEXT << "HARDWARE URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     const int res = getAuth_doValidateHardware (url, param);
@@ -137,7 +137,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doValidateHardware(const std
     {
         // error 
         #ifdef DEBUG
-            std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Hardware Verification Failed !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _LOG_CONSOLE_BOLD_TEXT << "Hardware Verification Failed !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
         return false;
@@ -145,7 +145,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doValidateHardware(const std
     else
     {
         #ifdef DEBUG
-            std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Hardware Verification Succeeded !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << _LOG_CONSOLE_BOLD_TEXT << "Hardware Verification Succeeded !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
         return true;
@@ -184,7 +184,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     if (validateField(jsonConfig,"auth_verify_ssl", Json_de::value_t::boolean)==true)
     {
         ssl_verify = jsonConfig["auth_verify_ssl"].get<bool>();
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ <<  "Verify SSL:";
+        std::cout << _LOG_CONSOLE_BOLD_TEXT <<  "Verify SSL:";
         if (ssl_verify)
         {
             std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << " verify on" << std::endl;
@@ -197,7 +197,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
 
     if (validateField(jsonConfig,"root_certificate_path", Json_de::value_t::string)==true)
     {
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ <<  "root certificate: ";
+        std::cout << _LOG_CONSOLE_BOLD_TEXT <<  "root certificate: ";
         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << jsonConfig["root_certificate_path"].get<std::string>() << std::endl;
         curl_easy_setopt(easyhandle, CURLOPT_CAINFO, jsonConfig["root_certificate_path"].get<std::string>().c_str());
     }

@@ -75,7 +75,7 @@ void _version (void)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage Communicator Server version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #ifdef DEBUG
-    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_TEXT_BOLD_ << __DATE__ << " --- " << __TIME__ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_BOLD_TEXT << __DATE__ << " --- " << __TIME__ << std::endl;
     #endif
 }
 
@@ -192,7 +192,7 @@ void initLogger()
     
     if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
     {
-        std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Logging " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         return ;
     }
@@ -204,7 +204,7 @@ void initLogger()
         debug_log = jsonConfig["logger_debug"].get<bool>();
     }
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Logging " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
 
         
 
@@ -214,7 +214,7 @@ void initLogger()
     log_filename_final <<  "./logs/log_" << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S") << ".log";
     mkdir("./logs/",0777);
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " detailed:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_BOLD_TEXT << " detailed:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
     auto log_level = debug_log==true?plog::debug:plog::info;
 
     plog::init(log_level, log_filename_final.str().c_str()); 
@@ -261,8 +261,8 @@ void defineMe()
     }
 
     
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "party_id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "module_key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "party_id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "module_key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
     
     
     unit_info.party_id = party_id;
@@ -298,7 +298,7 @@ void initSockets()
     }
     else
     {
-        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "WARNING:" << _INFO_CONSOLE_TEXT << " MISSING FIELD " << _ERROR_CONSOLE_BOLD_TEXT_ << "s2s_udp_packet_size " <<  _INFO_CONSOLE_TEXT << "is missing in config file. default value " << _ERROR_CONSOLE_BOLD_TEXT_  << "8160 " <<  _INFO_CONSOLE_TEXT <<  "is used." << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+        std::cout << _LOG_CONSOLE_BOLD_TEXT << "WARNING:" << _INFO_CONSOLE_TEXT << " MISSING FIELD " << _ERROR_CONSOLE_BOLD_TEXT_ << "s2s_udp_packet_size " <<  _INFO_CONSOLE_TEXT << "is missing in config file. default value " << _ERROR_CONSOLE_BOLD_TEXT_  << "8160 " <<  _INFO_CONSOLE_TEXT <<  "is used." << _NORMAL_CONSOLE_TEXT_ << std::endl;    
     }
 
     cUavosModulesManager.defineModule( MODULE_CLASS_COMM, 
@@ -425,10 +425,10 @@ void init (int argc, char *argv[])
     _version();
     
     #ifdef DEBUG
-    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_TEXT_BOLD_ << __DATE__ << " --- " << __TIME__ << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_BOLD_TEXT << __DATE__ << " --- " << __TIME__ << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_TEXT_BOLD_ << " seconds since the Epoch" << _NORMAL_CONSOLE_TEXT_  << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_BOLD_TEXT << " seconds since the Epoch" << _NORMAL_CONSOLE_TEXT_  << std::endl;
 
     initLogger();
 

@@ -99,9 +99,9 @@ void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort,
     } 
 
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Comm Server is Listening at " <<  _INFO_CONSOLE_TEXT << host << ":" <<  listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Comm Server is Listening at " <<  _INFO_CONSOLE_TEXT << host << ":" <<  listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
 
-    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Max Packet Size " << _INFO_CONSOLE_TEXT << chunkSize <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDP Max Packet Size " << _INFO_CONSOLE_TEXT << chunkSize <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
 
 }
 

@@ -59,10 +59,6 @@ uavos::comm::CUDPCommunicator::~CUDPCommunicator ()
 void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort, int chunkSize)
 {
     
-    #ifdef DDEBUG
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-
     if (m_chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
     {
         perror("invalid udp packet size."); 
@@ -102,7 +98,10 @@ void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort,
         exit(-1) ;
     } 
 
-    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:3" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "Comm Server is Listening at " <<  _INFO_CONSOLE_TEXT << host << ":" <<  listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+
+    std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "UDP Max Packet Size " << _INFO_CONSOLE_TEXT << chunkSize <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
 
 }
 

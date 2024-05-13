@@ -290,6 +290,17 @@ void initSockets()
     uavos::ANDRUAV_UNIT_INFO&  unit_info = uavos::CAndruavUnitMe::getInstance().getUnitInfo();
     
         
+    int udp_chunk_size = DEFAULT_UDP_DATABUS_PACKET_SIZE;
+    
+    if (validateField(jsonConfig, "s2s_udp_packet_size",Json_de::value_t::number_unsigned)) 
+    {
+        udp_chunk_size = jsonConfig["s2s_udp_packet_size"].get<int>();
+    }
+    else
+    {
+        std::cout << _LOG_CONSOLE_TEXT_BOLD_ << "WARNING:" << _INFO_CONSOLE_TEXT << " MISSING FIELD " << _ERROR_CONSOLE_BOLD_TEXT_ << "s2s_udp_packet_size " <<  _INFO_CONSOLE_TEXT << "is missing in config file. default value " << _ERROR_CONSOLE_BOLD_TEXT_  << "8160 " <<  _INFO_CONSOLE_TEXT <<  "is used." << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    }
+
     cUavosModulesManager.defineModule( MODULE_CLASS_COMM, 
                         jsonConfig["module_id"],
                         cLocalConfigFile.getStringField("module_key"),
@@ -298,7 +309,8 @@ void initSockets()
                         jsonConfig["groupID"].get<std::string>());
 
     cUavosModulesManager.init(jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
-                    std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
+                    std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()),
+                    udp_chunk_size);
     
 }
 

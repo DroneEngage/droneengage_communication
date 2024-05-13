@@ -20,10 +20,6 @@ using Json_de = nlohmann::json;
 
 char buffer[MAXLINE]; 
 
-#define MAX_UDP_DATABUS_PACKET_SIZE 8192
-
-const int chunkSize = MAX_UDP_DATABUS_PACKET_SIZE; 
-
 
 uavos::comm::CUDPCommunicator::~CUDPCommunicator ()
 {
@@ -60,11 +56,22 @@ uavos::comm::CUDPCommunicator::~CUDPCommunicator ()
  * @param host address of Communicator
  * @param listenningPort port of communicator
  */
-void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort)
+void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort, int chunkSize)
 {
     
-    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DDEBUG
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
 
+    if (m_chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
+    {
+        perror("invalid udp packet size."); 
+        exit(EXIT_FAILURE); 
+    }
+
+    m_chunkSize = chunkSize;
+
+    
     // pthread initialization
 	m_thread = pthread_self(); // get pthread ID
 	pthread_setschedprio(m_thread, SCHED_FIFO); // setting priority
@@ -254,7 +261,7 @@ void uavos::comm::CUDPCommunicator::SendMsg(const char * message, const std::siz
 
         while (remainingLength > 0)
         {
-            int chunkLength = std::min(chunkSize, remainingLength);
+            int chunkLength = std::min(m_chunkSize, remainingLength);
             remainingLength -= chunkLength;
             
             // Create a new message with the chunk size + sizeof(uint8_t)

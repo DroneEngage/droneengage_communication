@@ -132,7 +132,7 @@ namespace comm
                             std::string group_id
                         );
             
-            bool init (const std::string host, int listenningPort);
+            bool init (const std::string host, int listenningPort, int chunkSize);
             void uninit();
          
             void parseIntermoduleMessage (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_in* ssock);

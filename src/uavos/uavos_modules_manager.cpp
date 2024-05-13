@@ -47,11 +47,11 @@ void uavos::comm::CUavosModulesManager::onReceive (const char * message, int len
 }
 
 
-bool uavos::comm::CUavosModulesManager::init (const std::string host, int listenningPort)
+bool uavos::comm::CUavosModulesManager::init (const std::string host, int listenningPort, int chunkSize)
 {
     std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-    cUDPClient.init (host.c_str(), listenningPort);
+    cUDPClient.init (host.c_str(), listenningPort, chunkSize);
 
     cUDPClient.start();
 

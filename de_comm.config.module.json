@@ -8,7 +8,8 @@
     
     // IP & Port Communication Module is listening to.
     "s2s_udp_listening_ip"      : "0.0.0.0",
-    "s2s_udp_listening_port"    : "60000",
+    "s2s_udp_listening_port"    : "60000", 
+    "s2s_udp_packet_size"       : 8192,
 
     
     // Drone-Engage Communication Server Connection

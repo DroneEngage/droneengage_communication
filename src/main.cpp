@@ -33,7 +33,7 @@
 #include "./comm_server/andruav_unit.hpp"
 #include "./comm_server/andruav_comm_server.hpp"
 #include "./comm_server/andruav_facade.hpp"
-#include "./uavos/uavos_modules_manager.hpp"
+#include "./de_broker/de_modules_manager.hpp"
 #include "./hal/gpio.hpp"
 #include "./notification_module/leds.hpp"
 #include "./notification_module/buzzer.hpp"
@@ -45,10 +45,10 @@
 using namespace std;
 
 
-uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
+de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
 
-uavos::comm::CUavosModulesManager& cUavosModulesManager = uavos::comm::CUavosModulesManager::getInstance();  
+de::comm::CUavosModulesManager& cUavosModulesManager = de::comm::CUavosModulesManager::getInstance();  
 //hal_linux::CRPI_GPIO &cGPIO = hal_linux::CRPI_GPIO::getInstance();
 notification::CLEDs &cLeds = notification::CLEDs::getInstance();
 notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
@@ -109,16 +109,16 @@ void scheduler ()
     const int every_sec_10 = 100;
     const int every_sec_15 = 150;
 
-    uavos::andruav_servers::CAndruavFacade& andruav_facade = uavos::andruav_servers::CAndruavFacade::getInstance();
+    de::andruav_servers::CAndruavFacade& andruav_facade = de::andruav_servers::CAndruavFacade::getInstance();
     
     uint64_t hz_10 = 0;
-    uavos::STATUS &status = uavos::STATUS::getInstance();
+    de::STATUS &status = de::STATUS::getInstance();
 
     while (!exit_scheduler)
     {
         hz_10++;
         
-        status.is_online(uavos::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED);
+        status.is_online(de::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED);
 
         cLeds.update();
         cBuzzer.update();
@@ -225,8 +225,8 @@ void initLogger()
 void defineMe()
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
-    uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+    de::CAndruavUnitMe& m_andruavMe = de::CAndruavUnitMe::getInstance();
+    de::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
     
     std::string party_id = cLocalConfigFile.getStringField("party_id");
     if (party_id=="")
@@ -283,11 +283,11 @@ void defineMe()
  */
 void initSockets()
 {
-    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+    de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
-    uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+    de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
     std::string module_key = cLocalConfigFile.getStringField("module_key");
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = uavos::CAndruavUnitMe::getInstance().getUnitInfo();
+    de::ANDRUAV_UNIT_INFO&  unit_info = de::CAndruavUnitMe::getInstance().getUnitInfo();
     
         
     int udp_chunk_size = DEFAULT_UDP_DATABUS_PACKET_SIZE;
@@ -413,7 +413,7 @@ void init (int argc, char *argv[])
     initArguments (argc, argv);
 
     // Reading Configuration
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING UAVOS COMMUNICATOR ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING DroneEngage COMMUNICATOR ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     signal(SIGINT,quit_handler);
     signal(SIGTERM,quit_handler);
@@ -445,10 +445,10 @@ void init (int argc, char *argv[])
 
 void loop () 
 {
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    de::andruav_servers::CAndruavCommServer& andruav_server = de::andruav_servers::CAndruavCommServer::getInstance();
     
     
-    while (!uavos::STATUS::getInstance().m_exit_me)
+    while (!de::STATUS::getInstance().m_exit_me)
     {
        andruav_server.start();
        std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -459,9 +459,9 @@ void loop ()
 void uninit ()
 {
 
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    de::andruav_servers::CAndruavCommServer& andruav_server = de::andruav_servers::CAndruavCommServer::getInstance();
 
-    uavos::STATUS::getInstance().m_exit_me = true;
+    de::STATUS::getInstance().m_exit_me = true;
     exit_scheduler = true;
     // wait for exit
     m_scheduler.join();

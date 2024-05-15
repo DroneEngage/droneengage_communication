@@ -4,7 +4,7 @@
 
 #include "./comm_server/andruav_unit.hpp"
 
-namespace uavos 
+namespace de 
 {
 class STATUS {
     

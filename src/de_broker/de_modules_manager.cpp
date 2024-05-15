@@ -24,7 +24,7 @@
 #include "../comm_server/andruav_comm_server.hpp"
 #include "../comm_server/andruav_facade.hpp"
 #include "../comm_server/andruav_auth.hpp"
-#include "../uavos/uavos_modules_manager.hpp"
+#include "../de_broker/de_modules_manager.hpp"
 
 
 
@@ -35,7 +35,7 @@ static std::mutex g_i_mutex;
 static std::mutex g_i_mutex_process; 
 
 
-void uavos::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in *  sock)
+void de::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in *  sock)
 {
     #ifdef DDEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -47,7 +47,7 @@ void uavos::comm::CUavosModulesManager::onReceive (const char * message, int len
 }
 
 
-bool uavos::comm::CUavosModulesManager::init (const std::string host, int listenningPort, int chunkSize)
+bool de::comm::CUavosModulesManager::init (const std::string host, int listenningPort, int chunkSize)
 {
     std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
@@ -59,7 +59,7 @@ bool uavos::comm::CUavosModulesManager::init (const std::string host, int listen
 }
 
 
-void uavos::comm::CUavosModulesManager::uninit ()
+void de::comm::CUavosModulesManager::uninit ()
 {
     #ifdef DEBUG
 	    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -71,7 +71,7 @@ void uavos::comm::CUavosModulesManager::uninit ()
             
 
 
-void uavos::comm::CUavosModulesManager::defineModule (
+void de::comm::CUavosModulesManager::defineModule (
                  std::string module_class,
                  std::string module_id,
                  std::string module_key,
@@ -103,7 +103,7 @@ void uavos::comm::CUavosModulesManager::defineModule (
  * @param reSend if true then module should reply with module JSONID
  * @return const Json 
  */
-Json uavos::comm::CUavosModulesManager::createJSONID (const bool& reSend)
+Json de::comm::CUavosModulesManager::createJSONID (const bool& reSend)
 {
     try
     {
@@ -127,7 +127,7 @@ Json uavos::comm::CUavosModulesManager::createJSONID (const bool& reSend)
                         {"gr", m_group_id}
                     };
         
-        // this is NEW in communicator and could be ignored by current UAVOS modules.
+        // this is NEW in communicator and could be ignored by current DroneEngage modules.
         ms[JSON_INTERMODULE_SOCKET_STATUS]      = andruav_servers::CAndruavCommServer::getInstance().getStatus();
         ms[JSON_INTERMODULE_RESEND]             = reSend;
 
@@ -149,14 +149,14 @@ Json uavos::comm::CUavosModulesManager::createJSONID (const bool& reSend)
 
 
 /**
-* @brief update UAVOS vehicle feature based on module features.
+* @brief update DroneEngage vehicle feature based on module features.
 * ex: "d" : [ "C", "V" ]
 * @param module_features 
 * 
 * @return true if a feature has been updated
 * @return false if features are the samme
 */
-bool uavos::comm::CUavosModulesManager::updateUavosPermission (const Json& module_features)
+bool de::comm::CUavosModulesManager::updateUavosPermission (const Json& module_features)
 {
     CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
     bool updated = false;
@@ -204,7 +204,7 @@ bool uavos::comm::CUavosModulesManager::updateUavosPermission (const Json& modul
 * 
 * @param module_id 
 */
-void uavos::comm::CUavosModulesManager::cleanOrphanCameraEntries (const std::string& module_id, const uint64_t& time_now)
+void de::comm::CUavosModulesManager::cleanOrphanCameraEntries (const std::string& module_id, const uint64_t& time_now)
 {
     auto camera_module = m_camera_list.find(module_id);
     if (camera_module == m_camera_list.end()) return ;
@@ -288,7 +288,7 @@ void uavos::comm::CUavosModulesManager::cleanOrphanCameraEntries (const std::str
 * }
 * @param msg_cmd 
 */
-void uavos::comm::CUavosModulesManager::updateCameraList(const std::string& module_id, const Json& msg_cmd)
+void de::comm::CUavosModulesManager::updateCameraList(const std::string& module_id, const Json& msg_cmd)
 {
 
     #ifdef DEBUG
@@ -375,7 +375,7 @@ void uavos::comm::CUavosModulesManager::updateCameraList(const std::string& modu
 }
 
 
-Json uavos::comm::CUavosModulesManager::getCameraList()
+Json de::comm::CUavosModulesManager::getCameraList()
 {
     Json camera_list = Json::array();
 
@@ -412,7 +412,7 @@ Json uavos::comm::CUavosModulesManager::getCameraList()
 }
 
 
-bool uavos::comm::CUavosModulesManager::updateModuleSubscribedMessages (const std::string& module_id, const Json& message_array)
+bool de::comm::CUavosModulesManager::updateModuleSubscribedMessages (const std::string& module_id, const Json& message_array)
 {
     bool new_module = false;
 
@@ -447,7 +447,7 @@ bool uavos::comm::CUavosModulesManager::updateModuleSubscribedMessages (const st
  * 
  * @param module_item 
  */
-void uavos::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * module_item)
+void de::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * module_item)
 {
     andruav_servers::CAndruavAuthenticator &auth = andruav_servers::CAndruavAuthenticator::getInstance();
 
@@ -486,7 +486,7 @@ void uavos::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * m
 * @return true module has been added.
 * @return false no new modules.
 */
-bool uavos::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
+bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
 {
 
     #ifdef DDEBUG
@@ -638,7 +638,7 @@ bool uavos::comm::CUavosModulesManager::handleModuleRegistration (const Json& ms
  * @param full_message_length 
  * @param ssock sender module ip & port
  */
-void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_message, const std::size_t full_message_length, const struct sockaddr_in* ssock)
+void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_message, const std::size_t full_message_length, const struct sockaddr_in* ssock)
 {
 
     Json jsonMessage;
@@ -858,7 +858,7 @@ void uavos::comm::CUavosModulesManager::parseIntermoduleMessage (const char * fu
  * 
  * @param ms 
  */
-void uavos::comm::CUavosModulesManager::processModuleRemoteExecute (const Json ms)
+void de::comm::CUavosModulesManager::processModuleRemoteExecute (const Json ms)
 {
     if (!validateField(ms, "C", Json::value_t::number_unsigned)) return ;
     const int cmd = ms["C"].get<int>();
@@ -884,7 +884,7 @@ void uavos::comm::CUavosModulesManager::processModuleRemoteExecute (const Json m
  * @param jsonMessage 
  * @param sender_module_key when message is forwarded from another module then it is necessary not to send message back to the sender module. e.g. messages such as TYPE_AndruavMessage_RemoteExecute
  */
-void uavos::comm::CUavosModulesManager::processIncommingServerMessage (const std::string& sender_party_id, const int& message_type, const char * message, const std::size_t datalength, const std::string& sender_module_key)
+void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::string& sender_party_id, const int& message_type, const char * message, const std::size_t datalength, const std::string& sender_module_key)
 {
     const std::lock_guard<std::mutex> lock(g_i_mutex_process);
     #ifdef DEBUG
@@ -937,7 +937,7 @@ void uavos::comm::CUavosModulesManager::processIncommingServerMessage (const std
  * @param jsonMessage 
  * @param module_item 
  */
-void uavos::comm::CUavosModulesManager::forwardMessageToModule ( const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item)
+void de::comm::CUavosModulesManager::forwardMessageToModule ( const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item)
 {
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
@@ -961,7 +961,7 @@ void uavos::comm::CUavosModulesManager::forwardMessageToModule ( const char * me
 * @return true found new dead modules.... already dead modules are not counted.
 * @return false no dead modules.
 */
-bool uavos::comm::CUavosModulesManager::handleDeadModules ()
+bool de::comm::CUavosModulesManager::handleDeadModules ()
 {
     
     const std::lock_guard<std::mutex> lock(g_i_mutex);
@@ -1033,7 +1033,7 @@ bool uavos::comm::CUavosModulesManager::handleDeadModules ()
  * 
  * @param status 
  */
-void uavos::comm::CUavosModulesManager::handleOnAndruavServerConnection (const int status)
+void de::comm::CUavosModulesManager::handleOnAndruavServerConnection (const int status)
 {
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
@@ -1057,7 +1057,7 @@ void uavos::comm::CUavosModulesManager::handleOnAndruavServerConnection (const i
 }
 
 
-Json uavos::comm::CUavosModulesManager::getModuleListAsJSON ()
+Json de::comm::CUavosModulesManager::getModuleListAsJSON ()
 {
     Json modules = Json::array();
     

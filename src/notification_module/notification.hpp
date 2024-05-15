@@ -54,7 +54,7 @@ class CNotification
 
         std::vector<PORT_STATUS> m_port_pins;
 
-        uavos::STATUS &m_status = uavos::STATUS::getInstance();
+        de::STATUS &m_status = de::STATUS::getInstance();
 
 };
 

@@ -14,15 +14,15 @@
 #include "../version.h"
 #include "../messages.hpp"
 #include "../configFile.hpp"
-#include "../uavos/uavos_modules_manager.hpp"
+#include "../de_broker/de_modules_manager.hpp"
 #include "../status.hpp"
 
 #include "andruav_comm_server.hpp"
 #include "andruav_facade.hpp"
 
-using namespace uavos::andruav_servers;
+using namespace de::andruav_servers;
 
-void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& target_party_id) const  
+void de::andruav_servers::CAndruavFacade::API_requestID (const std::string& target_party_id) const  
 {
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -30,7 +30,7 @@ void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& t
 
     Json_de jMsg = {{"C", TYPE_AndruavMessage_ID}};
     
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_RemoteExecute, jMsg);
+    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_RemoteExecute, jMsg);
 }
 
 
@@ -39,10 +39,10 @@ void uavos::andruav_servers::CAndruavFacade::API_requestID (const std::string& t
  * 
  * @param target_party_id 
  */
-void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_party_id) const 
+void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_party_id) const 
 {
-    uavos::CAndruavUnitMe& andruavMe = uavos::CAndruavUnitMe::getInstance();
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
+    de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
+    de::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
    
 
     Json_de jMsg = 
@@ -59,7 +59,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         {"DS", unit_info.description},                      // unit Description
         {"p",  unit_info.permission},                       // permissions
         {"dv", version_string},                             // de version
-        {"m1", uavos::comm::CUavosModulesManager::getInstance().getModuleListAsJSON()},
+        {"m1", de::comm::CUavosModulesManager::getInstance().getModuleListAsJSON()},
         {"T", get_time_usec()}                              // This is a time sync so that any time difference sent by this module can be compared.    
     };
  
@@ -121,17 +121,17 @@ void uavos::andruav_servers::CAndruavFacade::API_sendID (const std::string& targ
         std::cout << "API_sendID:" <<  jMsg.dump() << std::endl;
     #endif
 
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
+    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
 }
 
 
-void uavos::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, const std::string& target_party_id) const 
+void de::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, const std::string& target_party_id) const 
 {
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    uavos::comm::CUavosModulesManager& module_manager = uavos::comm::CUavosModulesManager::getInstance();
+    de::comm::CUavosModulesManager& module_manager = de::comm::CUavosModulesManager::getInstance();
     
     Json_de camera_list = module_manager.getCameraList();
 
@@ -141,13 +141,13 @@ void uavos::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply
         {"T", camera_list}
     };
         
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_CameraList, jMsg);
+    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_CameraList, jMsg);
 }
 
 
 
 
-void uavos::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::string& target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const 
+void de::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::string& target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const 
 {
     /*
         EN : error number  "not currently processed".
@@ -164,7 +164,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::st
         };
 
     
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Error, message);
+    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Error, message);
 
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
     
@@ -173,7 +173,7 @@ void uavos::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::st
     return ;
 }
 
-void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScope(const ENUM_TASK_SCOPE scope, const int task_type) const
+void de::andruav_servers::CAndruavFacade::API_loadTasksByScope(const ENUM_TASK_SCOPE scope, const int task_type) const
 {
     
     PLOG(plog::info) << "LoadTasksByScope called"; 
@@ -197,7 +197,7 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScope(const ENUM_TAS
 }
     
 
-void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGlobal(const int task_type) const
+void de::andruav_servers::CAndruavFacade::API_loadTasksByScopeGlobal(const int task_type) const
 {
     PLOG(plog::info) << "API_loadTasksByScopeGlobal called"; 
     
@@ -213,13 +213,13 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGlobal(const in
 }
 
 
-void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeAccount(const int task_type) const
+void de::andruav_servers::CAndruavFacade::API_loadTasksByScopeAccount(const int task_type) const
 {
     
     PLOG(plog::info) << "API_loadTasksByScopeAccount called"; 
     
     API_loadTask(0,
-        uavos::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
+        de::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
         SPECIAL_NAME_ANY,
         SPECIAL_NAME_ANY,
         std::string(),
@@ -230,14 +230,14 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeAccount(const i
 }
 
 
-void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGroup(const int task_type) const
+void de::andruav_servers::CAndruavFacade::API_loadTasksByScopeGroup(const int task_type) const
 {
     PLOG(plog::info) << "API_loadTasksByScopeGroup called"; 
     
     API_loadTask(0,
-        uavos::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
+        de::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
         SPECIAL_NAME_ANY,
-        uavos::CAndruavUnitMe::getInstance().getUnitInfo().group_name,
+        de::CAndruavUnitMe::getInstance().getUnitInfo().group_name,
         std::string(),
         SPECIAL_NAME_VEHICLE_RECEIVERS,
         task_type,
@@ -246,14 +246,14 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopeGroup(const int
 }
 
 
-void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopePartyID(const int task_type) const
+void de::andruav_servers::CAndruavFacade::API_loadTasksByScopePartyID(const int task_type) const
 {
     PLOG(plog::info) << "API_loadTasksByScopePartyID called"; 
     
     API_loadTask(0,
-        uavos::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
-        uavos::CAndruavUnitMe::getInstance().getUnitInfo().party_id,
-        uavos::CAndruavUnitMe::getInstance().getUnitInfo().group_name,
+        de::CAndruavUnitMe::getInstance().getUnitInfo().unit_name,
+        de::CAndruavUnitMe::getInstance().getUnitInfo().party_id,
+        de::CAndruavUnitMe::getInstance().getUnitInfo().group_name,
         std::string(),
         SPECIAL_NAME_VEHICLE_RECEIVERS,
         task_type,
@@ -262,7 +262,7 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTasksByScopePartyID(const i
 }
 
 
-void uavos::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_SID, const std::string& account_id, const std::string& party_sid, const std::string& group_name, const std::string& sender, const std::string& receiver, const int msg_type, bool is_permanent ) const
+void de::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_SID, const std::string& account_id, const std::string& party_sid, const std::string& group_name, const std::string& sender, const std::string& receiver, const int msg_type, bool is_permanent ) const
 {
 
     PLOG(plog::info) << "API_loadTask called"; 
@@ -280,7 +280,7 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_
         };
 
     
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendSystemMessage (TYPE_AndruavSystem_LoadTasks, message);
+    de::andruav_servers::CAndruavCommServer::getInstance().API_sendSystemMessage (TYPE_AndruavSystem_LoadTasks, message);
 
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "API_sendSystemMessage " << _NORMAL_CONSOLE_TEXT_ << message.dump() << std::endl;
     
@@ -288,14 +288,14 @@ void uavos::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_
 }
 
 
-void uavos::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string& target_party_id) const 
+void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string& target_party_id) const 
 {
     
 
-    uavos::CAndruavUnitMe& andruavMe = uavos::CAndruavUnitMe::getInstance();
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
+    de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
+    de::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
    
-    //uavos::STATUS& status = uavos::STATUS::getInstance();
+    //de::STATUS& status = de::STATUS::getInstance();
 
     Json_de jMsg = {  };
  
@@ -342,5 +342,5 @@ void uavos::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::stri
         jMsg["q"] = unit_info.swarm_leader_I_am_following;    
     }
     
-    uavos::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Prepherials, jMsg);
+    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Prepherials, jMsg);
 }

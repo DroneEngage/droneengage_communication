@@ -321,7 +321,7 @@
 
 
 #define GPS_MODE_AUTO                           0
-// .a.k.a mobile... i.e. gps info used bu uavos comm is not from the board
+// .a.k.a mobile... i.e. gps info used bu de comm is not from the board
 #define GPS_MODE_EXTERNAL                       1
 #define GPS_MODE_FCB                            2
 

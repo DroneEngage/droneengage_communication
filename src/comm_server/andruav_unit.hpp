@@ -15,7 +15,7 @@
 using Json_de = nlohmann::json;
 
 
-namespace uavos
+namespace de
 {
     
 #define VEHICLE_UNKNOWN     0
@@ -83,7 +83,7 @@ typedef struct {
 
   int manual_TX_blocked_mode;
   bool is_tracking_mode;
-  int is_video_recording;  // 0 - no recording 1  - one recording .. can be used in uavos cam for multiple recording... 
+  int is_video_recording;  // 0 - no recording 1  - one recording .. can be used in de cam for multiple recording... 
   int vehicle_type;
   int flying_mode;
   int gps_mode;
@@ -170,7 +170,7 @@ class CAndruavUnit
 
 
 
-class CAndruavUnitMe : public uavos::CAndruavUnit
+class CAndruavUnitMe : public de::CAndruavUnit
 {
 
     public:
@@ -234,19 +234,19 @@ class CAndruavUnits
     private:
         
         // static std::unique_ptr<
-        //                 std::map<std::string, std::unique_ptr<uavos::CAndruavUnit>
+        //                 std::map<std::string, std::unique_ptr<de::CAndruavUnit>
         //                 > 
         //                 m_AndruavUnits 
         //     = std::unique_ptr<
-        //                 std::map<std::string, std::unique_ptr<uavos::CAndruavUnit>>>
-        //                     (new std::map<std::string, std::unique_ptr<uavos::CAndruavUnit>>);
+        //                 std::map<std::string, std::unique_ptr<de::CAndruavUnit>>>
+        //                     (new std::map<std::string, std::unique_ptr<de::CAndruavUnit>>);
 
-        std::map<std::string, std::unique_ptr<uavos::CAndruavUnit>> m_AndruavUnits;
+        std::map<std::string, std::unique_ptr<de::CAndruavUnit>> m_AndruavUnits;
 
 };
 
 
-}; // namespace uavos
+}; // namespace de
 
 
 

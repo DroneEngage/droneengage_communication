@@ -5,7 +5,7 @@
 
 
 
-uavos::CAndruavUnitMe::CAndruavUnitMe():uavos::CAndruavUnit(true)
+de::CAndruavUnitMe::CAndruavUnitMe():de::CAndruavUnit(true)
 {
     m_unit_info.is_gcs                  = false;
     m_unit_info.is_shutdown             = false;
@@ -33,9 +33,9 @@ uavos::CAndruavUnitMe::CAndruavUnitMe():uavos::CAndruavUnit(true)
  * @brief find or create new entry for CAndruavUnit
  * 
  * @param party_id 
- * @return uavos::CAndruavUnit* 
+ * @return de::CAndruavUnit* 
  */
-uavos::CAndruavUnit* uavos::CAndruavUnits::getUnitByName (const std::string& party_id)
+de::CAndruavUnit* de::CAndruavUnits::getUnitByName (const std::string& party_id)
 {
     auto unit = m_AndruavUnits.find(party_id);
     if (unit== m_AndruavUnits.end())
@@ -43,8 +43,8 @@ uavos::CAndruavUnit* uavos::CAndruavUnits::getUnitByName (const std::string& par
         #ifdef DDEBUG
             std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "getUnitByName " << party_id << " NOT found"<< _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
-        uavos::CAndruavUnit * pAndruavUnit= new CAndruavUnit(party_id);
-        m_AndruavUnits.insert(std::make_pair(party_id, std::unique_ptr<uavos::CAndruavUnit>(pAndruavUnit)));
+        de::CAndruavUnit * pAndruavUnit= new CAndruavUnit(party_id);
+        m_AndruavUnits.insert(std::make_pair(party_id, std::unique_ptr<de::CAndruavUnit>(pAndruavUnit)));
                 
         auto unit = m_AndruavUnits.find(party_id);
         return unit->second.get();

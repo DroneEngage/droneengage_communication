@@ -26,7 +26,7 @@ using Json_de = nlohmann::json;
 #define SOCKET_STATUS_UNREGISTERED 		7   // connected but not registred
 #define SOCKET_STATUS_ERROR 		    8   // Error
 
-namespace uavos
+namespace de
 {
   
     
@@ -114,9 +114,9 @@ namespace andruav_servers
             Json_de generateJSONSystemMessage (const int messageType, const Json_de& message) const;
             
         private:
-            //std::shared_ptr<uavos::andruav_servers::CWSSession> _cwssession;  
-            uavos::andruav_servers::CWSAProxy& _cwsa_proxy = uavos::andruav_servers::CWSAProxy::getInstance();
-            std::unique_ptr<uavos::andruav_servers::CWSASession> _cwsa_session;
+            //std::shared_ptr<de::andruav_servers::CWSSession> _cwssession;  
+            de::andruav_servers::CWSAProxy& _cwsa_proxy = de::andruav_servers::CWSAProxy::getInstance();
+            std::unique_ptr<de::andruav_servers::CWSASession> _cwsa_session;
 
             std::string m_url_param;
             std::string m_host;

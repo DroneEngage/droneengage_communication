@@ -12,7 +12,7 @@
 typedef void (*ONRECEIVE_CALLBACK)(const char *, int len, struct sockaddr_in *  sock);
 
 
-namespace uavos
+namespace de
 {
 namespace comm
 {

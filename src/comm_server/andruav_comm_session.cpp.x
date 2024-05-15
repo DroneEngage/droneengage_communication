@@ -28,13 +28,13 @@ static std::mutex g_i_mutex_writeText, g_i_mutex_on_read;
 static int wait_time = 30;
 
 // Report a failure
-void uavos::andruav_servers::CWSSession::fail(beast::error_code ec, char const* what)
+void de::andruav_servers::CWSSession::fail(beast::error_code ec, char const* what)
 {
     std::cerr << what << ": " << ec.message() << "\n";
 }
 
 // Sends a WebSocket message and prints the response
-void uavos::andruav_servers::CWSSession::run( char const* host, char const* port, char const* url_param)
+void de::andruav_servers::CWSSession::run( char const* host, char const* port, char const* url_param)
 {
         
         // Save these for later
@@ -50,7 +50,7 @@ void uavos::andruav_servers::CWSSession::run( char const* host, char const* port
                 shared_from_this()));
 }
 
-void uavos::andruav_servers::CWSSession::on_resolve(
+void de::andruav_servers::CWSSession::on_resolve(
         beast::error_code ec,
         tcp::resolver::results_type results)
 {
@@ -68,7 +68,7 @@ void uavos::andruav_servers::CWSSession::on_resolve(
                 shared_from_this()));
 }
 
-void uavos::andruav_servers::CWSSession::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
+void de::andruav_servers::CWSSession::on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type ep)
 {
     if(ec)
     {
@@ -106,7 +106,7 @@ void uavos::andruav_servers::CWSSession::on_connect(beast::error_code ec, tcp::r
             shared_from_this()));
 }
 
-void uavos::andruav_servers::CWSSession::on_ssl_handshake(beast::error_code ec)
+void de::andruav_servers::CWSSession::on_ssl_handshake(beast::error_code ec)
 {
     if(ec)
         return fail(ec, "ssl_handshake");
@@ -136,7 +136,7 @@ void uavos::andruav_servers::CWSSession::on_ssl_handshake(beast::error_code ec)
         shared_from_this()));
 }
 
-void uavos::andruav_servers::CWSSession::on_handshake(beast::error_code ec)
+void de::andruav_servers::CWSSession::on_handshake(beast::error_code ec)
 {
     if(ec)
         return fail(ec, "handshake");
@@ -153,7 +153,7 @@ void uavos::andruav_servers::CWSSession::on_handshake(beast::error_code ec)
        
 }
 
-void uavos::andruav_servers::CWSSession::on_write(beast::error_code ec, std::size_t bytes_transferred)
+void de::andruav_servers::CWSSession::on_write(beast::error_code ec, std::size_t bytes_transferred)
 {
     boost::ignore_unused(bytes_transferred);
 
@@ -164,7 +164,7 @@ void uavos::andruav_servers::CWSSession::on_write(beast::error_code ec, std::siz
     }
 }
 
-void uavos::andruav_servers::CWSSession::on_read(
+void de::andruav_servers::CWSSession::on_read(
         beast::error_code ec,
         std::size_t bytes_transferred)
 {
@@ -230,7 +230,7 @@ void uavos::andruav_servers::CWSSession::on_read(
 }
 
 
-void uavos::andruav_servers::CWSSession::writeText (const std::string message)
+void de::andruav_servers::CWSSession::writeText (const std::string message)
 {
     #ifdef DEBUG_GENERATE_FAILURE
         static int errr =0;
@@ -272,7 +272,7 @@ void uavos::andruav_servers::CWSSession::writeText (const std::string message)
 }
 
 
-void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const int& length)
+void de::andruav_servers::CWSSession::writeBinary (const char * bmsg, const int& length)
 {
 
     #ifdef DEBUG_2
@@ -296,7 +296,7 @@ void uavos::andruav_servers::CWSSession::writeBinary (const char * bmsg, const i
 }
 
 
-void uavos::andruav_servers::CWSSession::close ()
+void de::andruav_servers::CWSSession::close ()
 {
     if (!m_connected) return ;
     try

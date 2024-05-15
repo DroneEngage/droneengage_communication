@@ -24,7 +24,7 @@ namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 
-namespace uavos
+namespace de
 {
 namespace andruav_servers
 {
@@ -81,7 +81,7 @@ class CWSASession
             ssl::context ssl_ctx_{ssl::context::tlsv12_client};
             websocket::stream<beast::ssl_stream<tcp::socket>> ws_;
             std::thread m_thread_receiver;
-            uavos::andruav_servers::CCallBack_WSASession &m_callback;
+            de::andruav_servers::CCallBack_WSASession &m_callback;
 };
 
 class CWSAProxy
@@ -111,7 +111,7 @@ class CWSAProxy
         ~CWSAProxy (){};
 
     public:
-        std::unique_ptr<uavos::andruav_servers::CWSASession> run(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback);
+        std::unique_ptr<de::andruav_servers::CWSASession> run(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback);
         boost::asio::io_context io_context_;
     
 };

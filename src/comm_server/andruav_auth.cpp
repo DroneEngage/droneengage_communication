@@ -5,7 +5,7 @@
 #include "../version.h"
 #include "../helpers/colors.hpp"
 #include "../helpers/helpers.hpp"
-#include "../uavos/uavos_modules_manager.hpp"
+#include "../de_broker/de_modules_manager.hpp"
 #include "../configFile.hpp"
 #include "andruav_auth.hpp"
 
@@ -27,9 +27,9 @@ size_t _WriteCallback(char *contents, size_t size, size_t nmemb, void *userp)
  * @return true 
  * @return false 
  */
-bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
+bool de::andruav_servers::CAndruavAuthenticator::doAuthentication()
 {
-    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+    de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
 
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     
@@ -55,9 +55,9 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
     std::string param =  AUTH_ACCOUNT_NAME_PARAMETER + jsonConfig["userName"].get<std::string>()
                 + AUTH_ACCESS_CODE_PARAMETER + jsonConfig["accessCode"].get<std::string>() 
                 + AUTH_GROUP_PARAMETER + "1"   // GROUP ID is Hardcoded ONE
-                + AUTH_APP_NAME_PARAMETER + "uavos"
+                + AUTH_APP_NAME_PARAMETER + "de"
                 + AUTH_APP_VER_PARAMETER  + version_string 
-                + AUTH_EXTRA_PARAMETER + "uavos"
+                + AUTH_EXTRA_PARAMETER + "de"
                 + AUTH_ACTOR_TYPE_PARAMETER + AUTH_ACTOR_DRONE;
 
     std::cout << _LOG_CONSOLE_BOLD_TEXT << "Auth Server " << _TEXT_BOLD_HIGHTLITED_ << " Connecting to server " << _INFO_CONSOLE_TEXT << jsonConfig["auth_ip"].get<std::string>() << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -93,12 +93,12 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doAuthentication()
  * @return true 
  * @return false 
  */
-bool uavos::andruav_servers::CAndruavAuthenticator::doValidateHardware(const std::string hardware_id, const int hardware_type)
+bool de::andruav_servers::CAndruavAuthenticator::doValidateHardware(const std::string hardware_id, const int hardware_type)
 {
 
     if (hardware_id == std::string("")) return false;
 
-    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+    de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
 
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     
@@ -161,7 +161,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::doValidateHardware(const std
  * @param response 
  * @return bool 
  */
-bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, std::string param, std::string& response)
+bool de::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, std::string param, std::string& response)
 {
     CURL *easyhandle = curl_easy_init();
 
@@ -180,7 +180,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
     ssl_verify = false;
 #endif
 
-    const Json_de& jsonConfig = uavos::CConfigFile::getInstance().GetConfigJSON();
+    const Json_de& jsonConfig = de::CConfigFile::getInstance().GetConfigJSON();
     if (validateField(jsonConfig,"auth_verify_ssl", Json_de::value_t::boolean)==true)
     {
         ssl_verify = jsonConfig["auth_verify_ssl"].get<bool>();
@@ -242,7 +242,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, st
  * @return true 
  * @return false 
  */
-bool uavos::andruav_servers::CAndruavAuthenticator::getAuth_doAuthentication (std::string url, std::string param)
+bool de::andruav_servers::CAndruavAuthenticator::getAuth_doAuthentication (std::string url, std::string param)
 {
     std::string response;
     if (getAuth (url, param, response))
@@ -255,7 +255,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth_doAuthentication (st
 }
 
 
-bool uavos::andruav_servers::CAndruavAuthenticator::getAuth_doValidateHardware (std::string url, std::string param)
+bool de::andruav_servers::CAndruavAuthenticator::getAuth_doValidateHardware (std::string url, std::string param)
 {
     std::string response;
     if (getAuth (url, param, response))
@@ -273,7 +273,7 @@ bool uavos::andruav_servers::CAndruavAuthenticator::getAuth_doValidateHardware (
  * 
  * @param response 
  */
-void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthentication (const std::string& response)
+void de::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthentication (const std::string& response)
 {
     
     #ifdef DEBUG
@@ -356,7 +356,7 @@ void uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doAuthenti
 
 
 
-bool uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidateHardware (const std::string& response)
+bool de::andruav_servers::CAndruavAuthenticator::translateResponse_doValidateHardware (const std::string& response)
 {
     #ifdef DDEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line: " << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -404,13 +404,13 @@ bool uavos::andruav_servers::CAndruavAuthenticator::translateResponse_doValidate
  * @param error_number 
  * @return std::string 
  */
-std::string uavos::andruav_servers::CAndruavAuthenticator::stringifyError (const int& error_number)
+std::string de::andruav_servers::CAndruavAuthenticator::stringifyError (const int& error_number)
 {
     return (std::string(curl_easy_strerror((CURLcode)error_number)));
 }
 
 
-void uavos::andruav_servers::CAndruavAuthenticator::uninit()
+void de::andruav_servers::CAndruavAuthenticator::uninit()
 {
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;

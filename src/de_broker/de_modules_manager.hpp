@@ -1,5 +1,5 @@
-#ifndef UAVOS_MODULES_MANAGER_H_
-#define UAVOS_MODULES_MANAGER_H_
+#ifndef de_modules_manager_H_
+#define de_modules_manager_H_
 
 #include <iostream>
 #include <sys/socket.h> 
@@ -88,12 +88,12 @@ typedef std::map <std::string, std::unique_ptr<std::map
                               <std::string,std::unique_ptr
                               <MODULE_CAMERA_ENTRY>>>> MODULE_CAMERA_LIST;
 
-namespace uavos
+namespace de
 {
 namespace comm
 {
     /**
-     * @brief Handles different uavos modules registration, updating, message forwarding and calling back.
+     * @brief Handles different de modules registration, updating, message forwarding and calling back.
      * 
      */
     class CUavosModulesManager : public CCallBack_UDPCommunicator
@@ -250,7 +250,7 @@ namespace comm
             MODULE_CAMERA_LIST m_camera_list;
 
             
-            uavos::STATUS &m_status = uavos::STATUS::getInstance();
+            de::STATUS &m_status = de::STATUS::getInstance();
             
             CUDPCommunicator cUDPClient; 
             

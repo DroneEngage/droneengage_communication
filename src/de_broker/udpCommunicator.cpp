@@ -21,7 +21,7 @@ using Json_de = nlohmann::json;
 char buffer[MAXLINE]; 
 
 
-uavos::comm::CUDPCommunicator::~CUDPCommunicator ()
+de::comm::CUDPCommunicator::~CUDPCommunicator ()
 {
     
     #ifdef DEBUG
@@ -56,7 +56,7 @@ uavos::comm::CUDPCommunicator::~CUDPCommunicator ()
  * @param host address of Communicator
  * @param listenningPort port of communicator
  */
-void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort, int chunkSize)
+void de::comm::CUDPCommunicator::init (const char * host, int listenningPort, int chunkSize)
 {
     
     if (m_chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
@@ -105,7 +105,7 @@ void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort,
 
 }
 
-void uavos::comm::CUDPCommunicator::start()
+void de::comm::CUDPCommunicator::start()
 {
     #ifdef DEBUG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: start" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -121,12 +121,12 @@ void uavos::comm::CUDPCommunicator::start()
 }
 
 
-void uavos::comm::CUDPCommunicator::startReceiver ()
+void de::comm::CUDPCommunicator::startReceiver ()
 {
     m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
 };
 
-void uavos::comm::CUDPCommunicator::stop()
+void de::comm::CUDPCommunicator::stop()
 {
     #ifdef DEBUG
 	std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -162,7 +162,7 @@ void uavos::comm::CUDPCommunicator::stop()
 }
 
 
-void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
+void de::comm::CUDPCommunicator::InternalReceiverEntry()
 {
     #ifdef DDEBUG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -247,7 +247,7 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
 /**
  * Sends JMSG to Communicator
  **/
-void uavos::comm::CUDPCommunicator::SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address)
+void de::comm::CUDPCommunicator::SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address)
 {
     std::lock_guard<std::mutex> lock(m_lock);
 

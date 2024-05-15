@@ -11,7 +11,7 @@
 
 static std::mutex g_i_mutex_writeText, g_i_mutex_on_read; 
 
-void uavos::andruav_servers::CWSASession::run()
+void de::andruav_servers::CWSASession::run()
 {
     try
     {
@@ -66,7 +66,7 @@ void uavos::andruav_servers::CWSASession::run()
     }
 }
 
-void uavos::andruav_servers::CWSASession::receive_message()
+void de::andruav_servers::CWSASession::receive_message()
 {
     // This buffer will hold the incoming message
     beast::flat_buffer buffer;
@@ -155,7 +155,7 @@ void uavos::andruav_servers::CWSASession::receive_message()
 
 
 
-void uavos::andruav_servers::CWSASession::close(beast::websocket::close_code code)
+void de::andruav_servers::CWSASession::close(beast::websocket::close_code code)
 {
     if (!m_connected) return ;
 
@@ -197,12 +197,12 @@ void uavos::andruav_servers::CWSASession::close(beast::websocket::close_code cod
     }
 }
 
-void uavos::andruav_servers::CWSASession::close()
+void de::andruav_servers::CWSASession::close()
 {
     close(websocket::close_code::normal);
 }
 
-void uavos::andruav_servers::CWSASession::writeText (const std::string& message)
+void de::andruav_servers::CWSASession::writeText (const std::string& message)
 {
     
     const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
@@ -240,7 +240,7 @@ void uavos::andruav_servers::CWSASession::writeText (const std::string& message)
     }
 }
 
-void uavos::andruav_servers::CWSASession::writeBinary (const char * bmsg, const int& length)
+void de::andruav_servers::CWSASession::writeBinary (const char * bmsg, const int& length)
 {
     const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     
@@ -278,17 +278,17 @@ void uavos::andruav_servers::CWSASession::writeBinary (const char * bmsg, const 
 
 }
 
-void uavos::andruav_servers::CWSASession::shutdown ()
+void de::andruav_servers::CWSASession::shutdown ()
 {
     //const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     close();
 }
 
 
-std::unique_ptr<uavos::andruav_servers::CWSASession> uavos::andruav_servers::CWSAProxy::run(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback)
+std::unique_ptr<de::andruav_servers::CWSASession> de::andruav_servers::CWSAProxy::run(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback)
 {
     // Create a WebSocket client and connect to the server
-    std::unique_ptr<uavos::andruav_servers::CWSASession> ptr = std::make_unique<uavos::andruav_servers::CWSASession>(io_context_, std::string(host), std::string(port), std::string(url_param),callback);
+    std::unique_ptr<de::andruav_servers::CWSASession> ptr = std::make_unique<de::andruav_servers::CWSASession>(io_context_, std::string(host), std::string(port), std::string(url_param),callback);
     ptr.get()->run();
     return std::move(ptr);
 }

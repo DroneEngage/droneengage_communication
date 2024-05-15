@@ -37,7 +37,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
-namespace uavos
+namespace de
 {
 namespace andruav_servers
 {
@@ -110,7 +110,7 @@ class CWSSession : public std::enable_shared_from_this<CWSSession>
         std::string url_param_;
 
         bool m_connected = false;
-        uavos::andruav_servers::CCallBack_WSSession &m_callback;
+        de::andruav_servers::CCallBack_WSSession &m_callback;
 };
 
 };

@@ -19,7 +19,7 @@
 #include "../localConfigFile.hpp"
 #include "andruav_auth.hpp"
 #include "andruav_unit.hpp"
-#include "../uavos/uavos_modules_manager.hpp"
+#include "../de_broker/de_modules_manager.hpp"
 #include "andruav_comm_server.hpp"
 #include "andruav_facade.hpp"
 
@@ -32,14 +32,14 @@
 // ------------------------------------------------------------------------------
 
 
-using namespace uavos::andruav_servers;
+using namespace de::andruav_servers;
 
 
-void uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
+void de::andruav_servers::CAndruavCommServer::startWatchDogThread()
 {
     static uint32_t off_count = 0;
 
-	uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+	de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
     
     uint64_t ping_server_rate_in_us = DEFAULT_PING_RATE_US; 
@@ -101,7 +101,7 @@ void uavos::andruav_servers::CAndruavCommServer::startWatchDogThread()
  * @brief Entry function for Connection.
  * 
  */
-void uavos::andruav_servers::CAndruavCommServer::start ()
+void de::andruav_servers::CAndruavCommServer::start ()
 {
     
     if (m_exit) return ;
@@ -118,7 +118,7 @@ void uavos::andruav_servers::CAndruavCommServer::start ()
  * @brief Main function that connects to Andruav Authentication
  * 
  */
-void uavos::andruav_servers::CAndruavCommServer::connect ()
+void de::andruav_servers::CAndruavCommServer::connect ()
 {
     try
     {
@@ -146,14 +146,14 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
 
         m_next_connect_time = now_time + MIN_RECONNECT_RATE_US; // retry after 10 sec.
 
-        uavos::andruav_servers::CAndruavAuthenticator& andruav_auth = uavos::andruav_servers::CAndruavAuthenticator::getInstance();
+        de::andruav_servers::CAndruavAuthenticator& andruav_auth = de::andruav_servers::CAndruavAuthenticator::getInstance();
         
         m_status = SOCKET_STATUS_CONNECTING;
         if (!andruav_auth.doAuthentication() || !andruav_auth.isAuthenticationOK())   
         {
             m_status = SOCKET_STATUS_ERROR;
             PLOG(plog::error) << "Communicator Server Connection Status: SOCKET_STATUS_ERROR"; 
-            uavos::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
+            de::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
             return ;
         }
     
@@ -165,7 +165,7 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
         }
         serial.append(get_linux_machine_id());
 
-        uavos::ANDRUAV_UNIT_INFO&  unit_info = uavos::CAndruavUnitMe::getInstance().getUnitInfo();
+        de::ANDRUAV_UNIT_INFO&  unit_info = de::CAndruavUnitMe::getInstance().getUnitInfo();
     
         connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, unit_info.party_id);
 
@@ -188,7 +188,7 @@ void uavos::andruav_servers::CAndruavCommServer::connect ()
  * @param key 
  * @param party_id 
  */
-void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id)
+void de::andruav_servers::CAndruavCommServer::connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id)
 {
     try
     {
@@ -223,7 +223,7 @@ void uavos::andruav_servers::CAndruavCommServer::connectToCommServer (const std:
 }
 
 
-void uavos::andruav_servers::CAndruavCommServer::onSocketError()
+void de::andruav_servers::CAndruavCommServer::onSocketError()
 {
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -242,7 +242,7 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
         PLOG(plog::error) << "Communicator Server: Socket Status Error"; 
     }
 
-    uavos::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
+    de::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
 
 }
 
@@ -252,7 +252,7 @@ void uavos::andruav_servers::CAndruavCommServer::onSocketError()
  * @param message first part until byte of value'0' should be XML header.
  * @param datalength 
  */
-void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const char * message, const std::size_t datalength)
+void de::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const char * message, const std::size_t datalength)
 {
     m_lasttime_access = get_time_usec();
 
@@ -305,7 +305,7 @@ void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const 
             break;
         }
 
-        uavos::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  message, datalength, std::string());
+        de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  message, datalength, std::string());
     }
     
 }
@@ -316,7 +316,7 @@ void uavos::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const 
  * 
  * @param jsonMessage string message in JSON format.
  */
-void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std::string& jsonMessage)
+void de::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std::string& jsonMessage)
 {
     m_lasttime_access = get_time_usec();
 
@@ -346,7 +346,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
         std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Communication Server ReConnected: Success "  << _NORMAL_CONSOLE_TEXT_ << std::endl;
         m_status = SOCKET_STATUS_REGISTERED;
         m_lasttime_access = get_time_usec();
-        uavos::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
+        de::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
     }
 
 
@@ -367,7 +367,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
                     
                     m_status = SOCKET_STATUS_REGISTERED;
                     m_lasttime_access = get_time_usec();
-                    uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID(std::string());
+                    de::andruav_servers::CAndruavFacade::getInstance().API_requestID(std::string());
                 }
                 else
                 {
@@ -376,7 +376,7 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
 
                     m_status = SOCKET_STATUS_ERROR;
                 }
-                uavos::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
+                de::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
             }
             break;
 
@@ -411,19 +411,19 @@ void uavos::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std
             break;
         }
 
-        uavos::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  jsonMessage.c_str(), jsonMessage.length(), std::string());
+        de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  jsonMessage.c_str(), jsonMessage.length(), std::string());
     }
 }
 
 
-void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string& sender_party_id, const int& command_type, const Json_de& jsonMessage)
+void de::andruav_servers::CAndruavCommServer::parseCommand (const std::string& sender_party_id, const int& command_type, const Json_de& jsonMessage)
 {
     #ifdef DDEBUG_PARSER
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: parseCommand " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     // retreive unit or create a new one
-    uavos::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);
+    de::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);
     ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
 
     uint32_t permission = 0;
@@ -446,7 +446,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
     // if unit is new then ask for details.
     if ((command_type!=TYPE_AndruavMessage_ID) && (unit_info.is_new == true))  
     {
-        uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    
+        de::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    
         
         /*
             DONOT add return here unless system requires more security.
@@ -537,13 +537,13 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
             if (!validateField(command,"UN", Json_de::value_t::string)) return ;
             if (!validateField(command,"DS", Json_de::value_t::string)) return ;
 
-            uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
-            uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+            de::CAndruavUnitMe& m_andruavMe = de::CAndruavUnitMe::getInstance();
+            de::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
 
             unit_info.unit_name   = command["UN"].get<std::string>();
             unit_info.description = command["DS"].get<std::string>();
 
-            uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+            de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
             cLocalConfigFile.addStringField("unitID",unit_info.unit_name.c_str());
             cLocalConfigFile.apply();
             cLocalConfigFile.addStringField("unitDescription",unit_info.description.c_str());
@@ -561,7 +561,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
                 */
                 //unit_info.party_id = party_id;   << do not uncomment.
             }
-            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendID(sender_party_id);
+            de::andruav_servers::CAndruavFacade::getInstance().API_sendID(sender_party_id);
    
         }
         break;
@@ -570,7 +570,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseCommand (const std::string
 }
 
 
-void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (const std::string& sender_party_id, const Json_de& jsonMessage)
+void de::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (const std::string& sender_party_id, const Json_de& jsonMessage)
 {
     #ifdef DDEBUG_PARSER
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: parseRemoteExecuteCommand " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -595,14 +595,14 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
 
     int remote_execute_command = msg_cmd["C"];
 
-    uavos::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);
+    de::CAndruavUnit* unit = m_andruav_units.getUnitByName(sender_party_id);
     ANDRUAV_UNIT_INFO& unit_info = unit->getUnitInfo();
     
     if ((unit_info.is_new == true) &&(remote_execute_command!=TYPE_AndruavMessage_ID)) 
     {
         // the sender is a new unit so we ask for identification. ... 
         
-        uavos::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    // ask for identification in return.      
+        de::andruav_servers::CAndruavFacade::getInstance().API_requestID (sender_party_id);    // ask for identification in return.      
         // !IF YOU ADD RETURN HERE THEN API_requestID will MAKE PING PONG
 
         /*
@@ -622,13 +622,13 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
     {
         case TYPE_AndruavMessage_ID:
         {
-            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendID(sender_party_id);
+            de::andruav_servers::CAndruavFacade::getInstance().API_sendID(sender_party_id);
         }
         break;
 
         case TYPE_AndruavMessage_CameraList:
         {
-            uavos::andruav_servers::CAndruavFacade::getInstance().API_sendCameraList (true, sender_party_id);
+            de::andruav_servers::CAndruavFacade::getInstance().API_sendCameraList (true, sender_party_id);
         }
         break;
 
@@ -641,7 +641,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
             }
             if (msg_cmd["Act"].get<bool>()==true)
             {
-                uavos::andruav_servers::CAndruavFacade::getInstance().API_sendCameraList (true, sender_party_id);
+                de::andruav_servers::CAndruavFacade::getInstance().API_sendCameraList (true, sender_party_id);
             }
         }
 		break;
@@ -663,7 +663,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
                 return ;
             }
             streaming_level = msg_cmd["LVL"].get<int>();
-            uavos::STATUS& status = uavos::STATUS::getInstance();
+            de::STATUS& status = de::STATUS::getInstance();
             status.streaming_level(streaming_level);
         }
         break;
@@ -672,7 +672,7 @@ void uavos::andruav_servers::CAndruavCommServer::parseRemoteExecuteCommand (cons
 }
             
 
-void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
+void de::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
 {
     
     #ifdef DEBUG
@@ -725,7 +725,7 @@ void uavos::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
 }
 
 
-void uavos::andruav_servers::CAndruavCommServer::API_pingServer()
+void de::andruav_servers::CAndruavCommServer::API_pingServer()
 {
     Json_de message =  { 
         {"t", get_time_usec()}
@@ -735,7 +735,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_pingServer()
     API_sendSystemMessage(TYPE_AndruavSystem_Ping, message);
 }
 
-void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int command_type, const Json_de& msg) const 
+void de::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int command_type, const Json_de& msg) const 
 {
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
@@ -754,7 +754,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int
 /// @param target_name party_id of a target or can be null or _GD_, _AGN_, _GCS_
 /// @param command_type 
 /// @param msg 
-void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string& target_name, const int command_type, const Json_de& msg)
+void de::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string& target_name, const int command_type, const Json_de& msg)
 {
     static std::mutex g_i_mutex; 
 
@@ -790,7 +790,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string&
  * @param bmsg 
  * @param bmsg_length
  */
-void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const uint64_t bmsg_length, const Json_de& message_cmd)
+void de::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const uint64_t bmsg_length, const Json_de& message_cmd)
 {
     static std::mutex g_i_mutex; 
 
@@ -839,7 +839,7 @@ void uavos::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::s
 * @param msg_type : i.e. Message ID
 * @param msg_cmd : Message ID Parameters... i.e. JSOM command of the message
 */
-void uavos::andruav_servers::CAndruavCommServer::sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd )
+void de::andruav_servers::CAndruavCommServer::sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd )
 {
     if (is_binary)
     {
@@ -874,7 +874,7 @@ void uavos::andruav_servers::CAndruavCommServer::sendMessageToCommunicationServe
 /// @param messageType 
 /// @param message 
 /// @return Json_de 
-Json_de uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json_de& message) const
+Json_de de::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json_de& message) const
 {
 
     #ifdef DDEBUG_MSG        
@@ -905,7 +905,7 @@ Json_de uavos::andruav_servers::CAndruavCommServer::generateJSONMessage (const s
 /// @param messageType 
 /// @param message 
 /// @return Json_de object of the message.
-Json_de uavos::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (const int messageType, const Json_de& message) const
+Json_de de::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (const int messageType, const Json_de& message) const
 {
     #ifdef DDEBUG_MSG        
     

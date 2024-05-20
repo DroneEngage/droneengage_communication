@@ -43,10 +43,9 @@ de::CAndruavUnit* de::CAndruavUnits::getUnitByName (const std::string& party_id)
         #ifdef DDEBUG
             std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "getUnitByName " << party_id << " NOT found"<< _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
+        
         de::CAndruavUnit * pAndruavUnit= new CAndruavUnit(party_id);
-        m_AndruavUnits.insert(std::make_pair(party_id, std::unique_ptr<de::CAndruavUnit>(pAndruavUnit)));
-                
-        auto unit = m_AndruavUnits.find(party_id);
+        auto unit = m_AndruavUnits.emplace(party_id, std::unique_ptr<de::CAndruavUnit>(pAndruavUnit)).first;
         return unit->second.get();
     }
     else

@@ -120,7 +120,10 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
     #ifdef DDEBUG
         std::cout << "API_sendID:" <<  jMsg.dump() << std::endl;
     #endif
-
+    // !TODO Enhance logic here
+    std::string data = de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMDDummy(target_party_id, TYPE_AndruavMessage_ID, jMsg);
+    de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(unit_info.party_id, TYPE_AndruavMessage_ID,  data.c_str(), data.length(), std::string());
+    
     de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
 }
 

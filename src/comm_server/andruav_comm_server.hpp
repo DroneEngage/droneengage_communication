@@ -82,10 +82,10 @@ namespace andruav_servers
         
             void API_pingServer();
             void API_sendSystemMessage(const int command_type, const Json_de& msg) const;
-            void API_sendCMD (const std::string& target_party_id, const int command_type, const Json_de& msg);
+            void API_sendCMD (const std::string& target_name, const int command_type, const Json_de& msg);
+            std::string API_sendCMDDummy (const std::string& target_name, const int command_type, const Json_de& msg);
             void API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const uint64_t bmsg_length, const Json_de& message_cmd);
             void sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd );
-
             int getStatus ()
             {
                 return m_status;

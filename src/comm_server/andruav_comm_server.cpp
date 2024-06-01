@@ -66,7 +66,7 @@ void de::andruav_servers::CAndruavCommServer::startWatchDogThread()
         if (m_status == SOCKET_STATUS_REGISTERED)
         {
             off_count = 0;
-            #ifdef DEBUG
+            #ifdef DDEBUG
                 std::cout << "you are ok" << std::endl;
             #endif
             API_pingServer();
@@ -777,6 +777,30 @@ void de::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string& ta
     } 
 }
 
+std::string de::andruav_servers::CAndruavCommServer::API_sendCMDDummy (const std::string& target_name, const int command_type, const Json_de& msg)
+{
+
+    static std::mutex g_i_mutex; 
+    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    
+    std::string message_routing;
+    if (target_name.empty() == false)
+    {  // BUG HERE PLease ensure that it sends ind.
+        message_routing = CMD_COMM_INDIVIDUAL;
+    }
+    else
+    {
+        message_routing = CMD_COMM_GROUP;
+    }
+
+    if (m_status == SOCKET_STATUS_REGISTERED)  
+    {
+        Json_de json_msg  = this->generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
+        return json_msg.dump();
+    } 
+
+    return "";
+}       
 
 
 /**

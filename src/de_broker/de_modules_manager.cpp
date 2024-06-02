@@ -714,7 +714,14 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         if it is marked intermodule_msg=true as it should be processed by other modules only.
         
         the other default section forwards the message normally to andruav communication server.
-    */            
+    */    
+    std::string module_key = "";
+    
+    if (jsonMessage.contains(INTERMODULE_MODULE_KEY))
+    {
+        module_key = jsonMessage[INTERMODULE_MODULE_KEY];
+    }
+                        
     switch (mt)
     {
         case TYPE_AndruavModule_ID:
@@ -757,7 +764,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         
             if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
             {
-                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
+                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
             }
         }
         break;
@@ -820,10 +827,26 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
         case TYPE_AndruavMessage_SWARM_MAVLINK:
         {
+            // !BUG HERE WILL NOT WORK
+            // forward SWARM_MAVLINK traffic to P2P by default.
+            // if there is no connection then use Communication Server.
+            de::andruav_servers::CP2P& cP2P = de::andruav_servers::CP2P::getInstance();
+            if (cP2P.isDisabled())
+            {
+                std::cout << jsonMessage.dump() << std::endl;
+                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
+                break;
+            }
+            bool res = cP2P.processForwardSwarmMessage(target_id, full_message, actual_useful_size);
+            UNUSED(res);
+            if (!res)
+            {
+                // forward the messages normally through the server.
+                andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
+                andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, ms);
+            }
+
             
-            // forward the messages normally through the server.
-            andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-            andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, ms);
             
         }
         break;
@@ -834,7 +857,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             
             if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
             {
-                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, jsonMessage[INTERMODULE_MODULE_KEY].get<std::string>());
+                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
             }
 
             if (!intermodule_msg)
@@ -970,7 +993,7 @@ bool de::comm::CUavosModulesManager::handleDeadModules ()
     
     bool dead_found = false;
 
-    const uint64_t &now = get_time_usec();
+    const uint64_t now = get_time_usec();
     
     MODULE_ITEM_LIST::iterator it;
     

@@ -604,16 +604,26 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     if (module_class.find("camera")==0)
     {
         // update camera list
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Camera" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
         updateCameraList(module_id, msg_cmd);
         m_status.is_camera_module_connected (true);
     }
-    else if (module_class.find("fcb")==0)
+    else if ((!m_status.is_fcb_module_connected()) && (module_class.find("fcb")==0))
     {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "FCB" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
         CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
         ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
         andruav_unit_info.use_fcb = true;
         m_status.is_fcb_module_connected (true); 
     } 
+    else if ((!m_status.is_p2p_connected()) && (module_class.find("p2p")==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "P2P" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_p2p_connected(true);
+    }
 
     updated |= updateUavosPermission(module_item->modules_features); 
 
@@ -1027,6 +1037,10 @@ bool de::comm::CUavosModulesManager::handleDeadModules ()
                 else if (module_item->module_class.find("camera")==0)
                 {
                     m_status.is_camera_module_connected (false); //TODO: fix when offline
+                }
+                else if (module_item->module_class.find("p2p")==0)
+                {
+                    m_status.is_p2p_connected(false);
                 }
             }
         }

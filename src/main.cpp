@@ -261,8 +261,8 @@ void defineMe()
     }
 
     
-    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "party_id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
-    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "module_key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Party Id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
     
     
     unit_info.party_id = party_id;

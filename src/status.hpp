@@ -45,12 +45,16 @@ class STATUS {
 
             inline const bool is_p2p_connected() const
             {
-                return false;
+                de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
+                de::DE_UNIT_P2P_INFO& andruav_unit_p2p_me = andruavMe.getUnitP2PInfo();
+                return andruav_unit_p2p_me.is_p2p_connected;
             }
 
             inline void is_p2p_connected(const bool is_p2p_connected) 
             {
-                return ;
+                de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
+                de::DE_UNIT_P2P_INFO& andruav_unit_p2p_me = andruavMe.getUnitP2PInfo();
+                andruav_unit_p2p_me.is_p2p_connected = is_p2p_connected;
             }
 
             inline bool is_fcb_module_connected() const

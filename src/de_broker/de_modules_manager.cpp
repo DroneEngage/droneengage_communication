@@ -345,7 +345,7 @@ void de::comm::CUavosModulesManager::updateCameraList(const std::string& module_
             camera_entry->is_camera_avail = jcamera_entry["v"].get<bool>();
             camera_entry->is_camera_streaming = jcamera_entry["active"].get<int>();
             camera_entry->camera_type = jcamera_entry["p"].get<int>();
-            
+            camera_entry->camera_specification = jcamera_entry["s"].get<int>();
             camera_entry->module_last_access_time = now_time;
             camera_entry->updates = true;
             camera_entry_list->insert(std::make_pair(camera_entry_id, std::unique_ptr<MODULE_CAMERA_ENTRY> (camera_entry) ));
@@ -363,6 +363,7 @@ void de::comm::CUavosModulesManager::updateCameraList(const std::string& module_
             camera_entry->is_camera_avail = jcamera_entry["v"].get<bool>();
             camera_entry->is_camera_streaming = jcamera_entry["active"].get<int>();
             camera_entry->camera_type = jcamera_entry["p"].get<int>();
+            camera_entry->camera_specification = jcamera_entry["s"].get<int>();
             
             camera_entry->module_last_access_time = now_time;
             camera_entry->updates = true;
@@ -400,7 +401,8 @@ Json de::comm::CUavosModulesManager::getCameraList()
                 {"id", camera_entry->global_index},
                 {"active", camera_entry->is_camera_streaming},
                 {"r", camera_entry->is_recording},
-                {"p", camera_entry->camera_type}
+                {"p", camera_entry->camera_type},
+                {"s", camera_entry->camera_specification}
 
             };
             camera_list.push_back(json_camera_entry);

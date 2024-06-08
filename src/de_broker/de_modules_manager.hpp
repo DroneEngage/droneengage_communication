@@ -72,6 +72,7 @@ typedef struct
     bool is_camera_avail;
     int is_camera_streaming;
     int camera_type; // Internal & External.... legacy ... always external now.
+    uint64_t camera_specification =0; 
     uint64_t module_last_access_time = 0;
     bool updates;
 

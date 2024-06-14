@@ -853,6 +853,9 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
                 // forward the messages normally through the server.
                 andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
                 andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, ms);
+
+                // TODO: IMPORTANT: There is no gurantee that P2P is working fine.... so we need a confirmation from P2P
+                // or P2P can resend SWARM_MAVLINK again and request forward to server directly.
             }
         }
         break;

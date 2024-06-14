@@ -45,16 +45,12 @@ class STATUS {
 
             inline const bool is_p2p_connected() const
             {
-                de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
-                de::DE_UNIT_P2P_INFO& andruav_unit_p2p_me = andruavMe.getUnitP2PInfo();
-                return andruav_unit_p2p_me.is_p2p_connected;
+                return m_p2p_module_connected;
             }
 
             inline void is_p2p_connected(const bool is_p2p_connected) 
             {
-                de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
-                de::DE_UNIT_P2P_INFO& andruav_unit_p2p_me = andruavMe.getUnitP2PInfo();
-                andruav_unit_p2p_me.is_p2p_connected = is_p2p_connected;
+                m_p2p_module_connected = is_p2p_connected;
             }
 
             inline bool is_fcb_module_connected() const
@@ -148,6 +144,7 @@ class STATUS {
             bool m_online = false;
             bool m_fcb_module_connected = false;
             bool m_camera_module_connected = false;
+            bool m_p2p_module_connected = false;
             bool m_buzzer = false;
             bool m_light = false;
 

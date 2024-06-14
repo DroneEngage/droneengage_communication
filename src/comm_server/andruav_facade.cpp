@@ -117,8 +117,8 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
         jMsg["a"] = unit_info.flying_total_duration;    // is whisling
     }
     
-    de::DE_UNIT_P2P_INFO& andruav_unit_p2p_me = andruavMe.getUnitP2PInfo();
-    if (andruav_unit_p2p_me.is_p2p_connected)
+    de::STATUS& status = de::STATUS::getInstance();
+    if (status.is_p2p_connected())
     {
         jMsg["p2"] = true;
     }
@@ -134,37 +134,6 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
     de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
 }
 
-
-void de::andruav_servers::CAndruavFacade::API_P2PInfo (const std::string& target_party_id) const 
-{
-    de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
-    de::DE_UNIT_P2P_INFO& p2p_connection_type = andruavMe.getUnitP2PInfo();
-
-    if (p2p_connection_type.p2p_connection_type == ANDRUAV_UNIT_P2P_TYPE::unknown) return ;
-    
-    de::andruav_servers::CP2P& cP2P = de::andruav_servers::CP2P::getInstance();
-    
-    
-    Json_de jMsg = 
-        {
-            {"c",  p2p_connection_type.p2p_connection_type},
-            {"a1", p2p_connection_type.address_1},
-            {"a2", p2p_connection_type.address_ap},
-            {"wc", p2p_connection_type.wifi_channel},
-            {"wp", p2p_connection_type.wifi_password},
-
-            {"pa", p2p_connection_type.parent_address},
-            {"pc", p2p_connection_type.parent_connection_status},
-            {"f",  p2p_connection_type.firmware_version},
-            {"lp", cP2P.getExpectedParentMac()},
-            
-            {"a", p2p_connection_type.driver_connected},
-            {"o", p2p_connection_type.is_p2p_connected}
-
-        };
-    
-    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_P2P_INFO, jMsg);
-}
 
 void de::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, const std::string& target_party_id) const 
 {

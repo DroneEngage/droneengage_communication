@@ -840,11 +840,11 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             // !BUG HERE WILL NOT WORK
             // forward SWARM_MAVLINK traffic to P2P by default.
             // if there is no connection then use Communication Server.
-            
+            //      Intermodule_msg is used here because p2p module may fail to forward the message 
+            //      so it resends it with internal_flag=false
             de::STATUS &m_status = de::STATUS::getInstance();
-            if (m_status.is_p2p_connected())
+            if ((!intermodule_msg)||(m_status.is_p2p_connected()))
             {
-                std::cout << jsonMessage.dump() << std::endl;
                 processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
                 break;
             }
@@ -853,9 +853,6 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
                 // forward the messages normally through the server.
                 andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
                 andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, ms);
-
-                // TODO: IMPORTANT: There is no gurantee that P2P is working fine.... so we need a confirmation from P2P
-                // or P2P can resend SWARM_MAVLINK again and request forward to server directly.
             }
         }
         break;

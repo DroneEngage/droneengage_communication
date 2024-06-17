@@ -281,7 +281,7 @@ void defineMe()
  * @brief Initialize UDP connection with other modules.
  * 
  */
-void initSockets()
+void initModuleManager()
 {
     de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
@@ -438,7 +438,7 @@ void init (int argc, char *argv[])
 
     initScheduler();
 
-    initSockets();
+    initModuleManager();
 
 }
 

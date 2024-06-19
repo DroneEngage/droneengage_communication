@@ -173,22 +173,22 @@
  *      [a]: sender_party_id : drone_engage party id. case: #1
  *      [k]: 1 - request ack.                         case: #2
  */
-#define TYPE_AndruavMessage_Ping_Unit               1073
+#define TYPE_AndruavMessage_Ping_Unit                   1073
 
-#define TYPE_AndruavMessage_P2P_INFO                1074
+#define TYPE_AndruavMessage_P2P_INFO                    1074
 
 //Binary Starts with 2000
 
 //deprecated telemetry technology
-#define TYPE_AndruavMessage_LightTelemetry          2022
+#define TYPE_AndruavMessage_LightTelemetry              2022
 
-// New JSON Messages 
-#define TYPE_AndruavMessage_ServoChannel            6001
+/**********************************************************************
+                        New Andruav Messages 2019
+**********************************************************************/
+#define TYPE_AndruavMessage_ServoChannel                6001
 
-
-// New Binary Messages
-#define TYPE_AndruavMessage_MAVLINK                 6502
-#define TYPE_AndruavMessage_SWARM_MAVLINK           6503
+#define TYPE_AndruavMessage_MAVLINK                     6502
+#define TYPE_AndruavMessage_SWARM_MAVLINK               6503
 
 /**
  * Used by other modules to exchange mavlink information
@@ -204,6 +204,26 @@
 
 #define TYPE_AndruavMessage_P2P_InRange_BSSID           6507
 #define TYPE_AndruavMessage_P2P_InRange_Node            6508
+
+
+/**
+ * @brief used to set communication channels on/off
+ * current fields are:
+ * [p2p]: for turning p2p on/off or leave as is.
+ * [ws]: for turning communication server websocket on/off or leave as is.
+ * 
+ */
+#define TYPE_AndruavMessage_Set_Communication_Line      6509
+
+/**********************************************************************
+                        EOF Andruav Messages 2019
+**********************************************************************/
+
+
+
+/**********************************************************************
+                        EOF Binary Messages
+**********************************************************************/
 
 
 #define TYPE_AndruavMessage_DUMMY                       9999
@@ -255,11 +275,11 @@
 
 
 // Remote Control Sub Actions
-#define RC_SUB_ACTION_RELEASED                      0
-#define RC_SUB_ACTION_CENTER_CHANNELS               1
-#define RC_SUB_ACTION_FREEZE_CHANNELS               2
-#define RC_SUB_ACTION_JOYSTICK_CHANNELS             4
-#define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED      8
+#define RC_SUB_ACTION_RELEASED                              0
+#define RC_SUB_ACTION_CENTER_CHANNELS                       1
+#define RC_SUB_ACTION_FREEZE_CHANNELS                       2
+#define RC_SUB_ACTION_JOYSTICK_CHANNELS                     4
+#define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED              8
 
 // Remote Execute Commands
 #define RemoteCommand_GET_WAY_POINTS             500 // get from andruav not FCB but you can still read from fcb and refresh all   

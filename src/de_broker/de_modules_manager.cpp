@@ -37,7 +37,7 @@ static std::mutex g_i_mutex_process;
 
 void de::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in *  sock)
 {
-    #ifdef DDEBUG
+    #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
@@ -491,8 +491,8 @@ void de::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * modu
 bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
 {
 
-    #ifdef DDEBUG
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DEBUG
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration: " << msg_cmd.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     const std::lock_guard<std::mutex> lock(g_i_mutex);
@@ -618,11 +618,11 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
         andruav_unit_info.use_fcb = true;
         m_status.is_fcb_module_connected (true); 
     } 
-    else if ((!m_status.is_p2p_connected()) && (module_class.find("p2p")==0))
+    else if ((!m_status.is_p2p_module_connected()) && (module_class.find("p2p")==0))
     {
         std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "P2P" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
-        m_status.is_p2p_connected(true);
+        m_status.is_p2p_module_connected(true);
     }
 
     updated |= updateUavosPermission(module_item->modules_features); 
@@ -685,6 +685,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
     if ((!validateField(jsonMessage, INTERMODULE_ROUTING_TYPE, Json::value_t::string))
         || (!validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
+        || !jsonMessage.contains(ANDRUAV_PROTOCOL_MESSAGE_CMD)
         )
     {
         #ifdef DEBUG
@@ -843,7 +844,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             //      Intermodule_msg is used here because p2p module may fail to forward the message 
             //      so it resends it with internal_flag=false
             de::STATUS &m_status = de::STATUS::getInstance();
-            if ((!intermodule_msg)||(m_status.is_p2p_connected()))
+            if ((intermodule_msg)&&(m_status.is_p2p_module_connected()))
             {
                 processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
                 break;
@@ -1033,13 +1034,17 @@ bool de::comm::CUavosModulesManager::handleDeadModules ()
                     andruav_unit_info.use_fcb = false;
                     m_status.is_fcb_module_connected (false); //TODO: fix when offline
                 }
-                else if (module_item->module_class.find("camera")==0)
+                else if (module_item->module_class.find(MODULE_CLASS_VIDEO)==0)
                 {
                     m_status.is_camera_module_connected (false); //TODO: fix when offline
                 }
-                else if (module_item->module_class.find("p2p")==0)
+                else if (module_item->module_class.find(MODULE_CLASS_P2P)==0)
                 {
-                    m_status.is_p2p_connected(false);
+                    m_status.is_p2p_module_connected(false);
+                }
+                else if (module_item->module_class.find(MODULE_CLASS_SOUND)==0)
+                {
+                    m_status.is_p2p_module_connected(false);
                 }
             }
         }

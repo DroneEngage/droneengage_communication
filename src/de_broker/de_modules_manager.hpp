@@ -23,6 +23,9 @@ using Json = nlohmann::json;
 #define MODULE_CLASS_COMM                       "comm"
 #define MODULE_CLASS_FCB                        "fcb"
 #define MODULE_CLASS_VIDEO                      "camera"
+#define MODULE_CLASS_P2P                        "p2p"
+#define MODULE_CLASS_SOUND                      "snd"
+#define MODULE_CLASS_GPIO                       "gpio"
 #define MODULE_CLASS_GENERIC                    "gen"
 
 

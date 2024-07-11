@@ -23,7 +23,7 @@
 #include "andruav_comm_server.hpp"
 #include "andruav_facade.hpp"
 
-
+std::thread g;
 // Based on Below Model
 // https://www.boost.org/doc/libs/develop/libs/beast/example/websocket/client/async-ssl/websocket_client_async_ssl.cpp
 
@@ -85,7 +85,7 @@ void de::andruav_servers::CAndruavCommServer::startWatchDogThread()
             off_count++;
             m_lasttime_access = get_time_usec();
             std::cout << "BOFT:" << diff << std::endl;
-            if (_cwsa_session!= nullptr) 
+            if (_cwsa_session) 
             {
                 _cwsa_session.get()->shutdown();
                 onSocketError();    
@@ -106,7 +106,7 @@ void de::andruav_servers::CAndruavCommServer::start ()
     
     if (m_exit) return ;
 
-    if (m_watch_dog==nullptr)
+    if (!m_watch_dog)
     {
         m_watch_dog = std::make_unique<std::thread>([&](){ startWatchDogThread(); });
     }
@@ -178,6 +178,76 @@ void de::andruav_servers::CAndruavCommServer::connect ()
         return ;
     }
 }
+
+
+
+/**
+ * @brief Disconnect websocket for a time duration
+ * 
+ * @param on_off 
+ * @param duration in seconds
+ */
+void de::andruav_servers::CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_seconds)
+{
+    m_on_off_delay  = duration_seconds;
+    if (on_off)
+    {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "WS Module:" << _LOG_CONSOLE_TEXT << " Set Communication Line " << _SUCCESS_CONSOLE_BOLD_TEXT_ <<  " Switched Online" << _LOG_CONSOLE_TEXT <<  " duration (sec): "  << _SUCCESS_CONSOLE_BOLD_TEXT_ << std::to_string(duration_seconds) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+        g = std::thread {[&](){ 
+            try
+            {
+                m_exit = false;
+                if (m_on_off_delay!=0)
+                {
+                    std::this_thread::sleep_for(std::chrono::seconds(m_on_off_delay));
+                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Switched Offline" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    uninit(true);
+                }
+                
+                g.detach();
+            }
+            catch (...)
+            {
+               std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+            }
+        }};
+    
+    }
+    else
+    {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Switched Offline" << _LOG_CONSOLE_TEXT <<  " duration (sec): " << _SUCCESS_CONSOLE_BOLD_TEXT_ << std::to_string(duration_seconds) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        de::andruav_servers::CAndruavFacade::getInstance().API_sendCommunicationLineStatus(std::string(), false);
+    
+        g = std::thread {[&](){ 
+            try
+            {
+                std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for message to be sent.
+                        
+                uninit(true);
+                    
+                if (m_on_off_delay!=0)
+                {
+                    std::this_thread::sleep_for(std::chrono::seconds(m_on_off_delay));
+                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Restart" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                        
+                    // re-enable.
+                    m_exit = false;
+                }
+                    
+                g.detach();
+            }
+            catch (...)
+            {
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+            }
+        }};
+    }
+                    
+                
+}
+
 
 /**
  * @brief Connects to Andruav Communication Server. 
@@ -565,6 +635,33 @@ void de::andruav_servers::CAndruavCommServer::parseCommand (const std::string& s
    
         }
         break;
+
+        case TYPE_AndruavMessage_Communication_Line_Set:
+        {
+            /**
+             * @brief used to set communication channels on/off
+             * current fields are:
+             * [p2p]: for turning p2p on/off or leave as is.
+             * [ws]: for turning communication server websocket on/off or leave as is.
+             * 
+            */
+
+            const Json_de command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            
+            if (validateField(command,"ws", Json_de::value_t::boolean))
+            {
+                bool ws_on_off = command["ws"].get<bool>();
+                uint32_t ws_duration = 0;
+                if (validateField(command,"wsd", Json_de::value_t::number_unsigned))
+                {
+                    ws_duration = command["wsd"].get<int>();  
+                }
+                turnOnOff(ws_on_off, ws_duration);
+            }
+
+            // Message can be handled by other modules.
+        }
+        break;
     }
 
 }
@@ -687,6 +784,8 @@ void de::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
     {
         _cwsa_session.get()->shutdown();
         _cwsa_session.reset();
+        _cwsa_session.release();
+        _cwsa_session = nullptr;
     }
     
     struct timespec ts;
@@ -698,7 +797,7 @@ void de::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
     ts.tv_sec += 10;
 
     m_watch_dog->join(); // Wait for the thread to exit
-
+    m_watch_dog.release();
     #ifdef DEBUG
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
@@ -709,12 +808,13 @@ void de::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
 
     s = pthread_timedjoin_np(m_watch_dog2, NULL, &ts);
     if (s != 0) {
-        exit(0);
+        //exit(0);
     }
     #ifdef DEBUG
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 2" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
+    m_status = SOCKET_STATUS_FREASH;
 	
     PLOG(plog::info) << "uninit finished."; 
     
@@ -739,6 +839,8 @@ void de::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int co
 {
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
+        if (!_cwsa_session) return;
+
         Json_de json_msg  = this->generateJSONSystemMessage (command_type, msg);
         _cwsa_session.get()->writeText(json_msg.dump());
     } 
@@ -772,6 +874,8 @@ void de::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string& ta
 
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
+        if (!_cwsa_session)  return ;
+
         Json_de json_msg  = this->generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
         _cwsa_session.get()->writeText(json_msg.dump());
     } 
@@ -843,8 +947,10 @@ void de::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::stri
         strcpy(msg_ptr,json_msg.c_str());
         msg_ptr[json_msg.length()] = 0;
         memcpy(&msg_ptr[json_msg.length()+1], bmsg, bmsg_length);
-    
-        _cwsa_session.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
+        if (_cwsa_session) 
+        {
+            _cwsa_session.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
+        }
 
         delete[] msg_ptr;
     } 

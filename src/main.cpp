@@ -96,7 +96,7 @@ void _usage(void)
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--bconfig:         -b ./bconfig.json  default [./de_comm.local]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--version:         -v" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
-
+int test_counter =0;
 
 /**
  * @brief main loop function.
@@ -125,7 +125,17 @@ void scheduler ()
         
         if (hz_10 % every_sec_1 == 0)
         {
-            
+            if (test_counter % 10)
+            {
+                if (status.is_online())
+                {
+
+                }
+                else
+                {
+                    
+                }
+            }
         }
 
         if (hz_10 % every_sec_5 == 0)

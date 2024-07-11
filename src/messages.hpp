@@ -213,7 +213,14 @@
  * [ws]: for turning communication server websocket on/off or leave as is.
  * 
  */
-#define TYPE_AndruavMessage_Set_Communication_Line      6509
+#define TYPE_AndruavMessage_Communication_Line_Set          6509
+
+#define TYPE_AndruavMessage_Communication_Line_Status       6510
+
+
+#define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH            6511
+#define TYPE_AndruavMessage_SOUND_PLAY_FILE                 6512
+
 
 /**********************************************************************
                         EOF Andruav Messages 2019

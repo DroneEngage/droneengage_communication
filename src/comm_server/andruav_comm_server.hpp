@@ -70,6 +70,7 @@ namespace andruav_servers
             void start();
             void connect();
             void uninit(const bool exit);
+            void turnOnOff(const bool on_off, const uint32_t duration_seconds);
 
 
             void onSocketError () override;
@@ -127,6 +128,7 @@ namespace andruav_servers
 
             u_int64_t m_next_connect_time,  m_lasttime_access =0;
 
+            u_int64_t m_on_off_delay = 0;
 
             std::unique_ptr<std::thread> m_watch_dog;
             pthread_t m_watch_dog2;

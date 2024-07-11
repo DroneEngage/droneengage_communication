@@ -43,14 +43,14 @@ class STATUS {
                 m_online = online; 
             }
 
-            inline const bool is_p2p_connected() const
+            inline const bool is_p2p_module_connected() const
             {
                 return m_p2p_module_connected;
             }
 
-            inline void is_p2p_connected(const bool is_p2p_connected) 
+            inline void is_p2p_module_connected(const bool is_p2p_module_connected) 
             {
-                m_p2p_module_connected = is_p2p_connected;
+                m_p2p_module_connected = is_p2p_module_connected;
             }
 
             inline bool is_fcb_module_connected() const

@@ -270,6 +270,14 @@ void defineMe()
         cLocalConfigFile.apply();
     }
 
+    if (validateField(jsonConfig, "unit_type",Json_de::value_t::string))
+    {
+        std::string vehicle_type  = jsonConfig["unit_type"].get<std::string>();
+        if (str_tolower(vehicle_type)=="control_unit")
+        {
+            unit_info.vehicle_type = de::ANDRUAV_UNIT_TYPE::CONTROL_UNIT;
+        }
+    }
     
     std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Party Id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
     std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;

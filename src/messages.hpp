@@ -221,6 +221,10 @@
 #define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH            6511
 #define TYPE_AndruavMessage_SOUND_PLAY_FILE                 6512
 
+#define TYPE_AndruavMessage_SDR_INFO                        6513
+#define TYPE_AndruavMessage_SDR_ACTION                      6514
+#define TYPE_AndruavMessage_SDR_STATUS                      6515
+
 
 /**********************************************************************
                         EOF Andruav Messages 2019
@@ -276,6 +280,7 @@
  * or specifies who is parent to whom.
  */
 #define P2P_ACTION_ACCESS_TO_MAC                            4
+#define P2P_ACTION_SEND_STATUS                              5
 
 #define P2P_STATUS_CONNECTED_TO_MAC                         0
 #define P2P_STATUS_DISCONNECTED_FROM_MAC                    1

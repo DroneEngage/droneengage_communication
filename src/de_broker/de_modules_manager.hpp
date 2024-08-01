@@ -27,6 +27,7 @@ using Json = nlohmann::json;
 #define MODULE_CLASS_SOUND                      "snd"
 #define MODULE_CLASS_GPIO                       "gpio"
 #define MODULE_CLASS_GENERIC                    "gen"
+#define MODULE_CLASS_SDR                        "sdr"
 
 
 // 5 seconds

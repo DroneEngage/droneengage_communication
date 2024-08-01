@@ -601,28 +601,41 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     updated |= updateModuleSubscribedMessages(module_id, message_array);
 
     const std::string module_class = module_item->module_class; //msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>(); 
-    if (module_class.find("camera")==0)
+    if (module_class.find(MODULE_CLASS_VIDEO)==0)
     {
         // update camera list
-        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Camera" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_VIDEO << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         updateCameraList(module_id, msg_cmd);
         m_status.is_camera_module_connected (true);
     }
-    else if ((!m_status.is_fcb_module_connected()) && (module_class.find("fcb")==0))
+    else if ((!m_status.is_fcb_module_connected()) && (module_class.find(MODULE_CLASS_FCB)==0))
     {
-        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "FCB" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_FCB << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
         ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
         andruav_unit_info.use_fcb = true;
         m_status.is_fcb_module_connected (true); 
     } 
-    else if ((!m_status.is_p2p_module_connected()) && (module_class.find("p2p")==0))
+    else if ((!m_status.is_p2p_module_connected()) && (module_class.find(MODULE_CLASS_P2P)==0))
     {
-        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "P2P" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_P2P << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         m_status.is_p2p_module_connected(true);
+    }
+    else if ((!m_status.is_sdr_module_connected()) && (module_class.find(MODULE_CLASS_SDR)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_SDR << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_sdr_module_connected(true);
+    }
+
+    else if ((!m_status.is_sound_module_connected()) && (module_class.find(MODULE_CLASS_SOUND)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_SOUND << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_sound_module_connected(true);
     }
 
     updated |= updateUavosPermission(module_item->modules_features); 
@@ -1027,7 +1040,7 @@ bool de::comm::CUavosModulesManager::handleDeadModules ()
                     PLOG(plog::error)<< log_msg ;
                 }
 
-                if (module_item->module_class.find("fcb")==0)
+                if (module_item->module_class.find(MODULE_CLASS_FCB)==0)
                 {
                     CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
                     ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
@@ -1042,9 +1055,13 @@ bool de::comm::CUavosModulesManager::handleDeadModules ()
                 {
                     m_status.is_p2p_module_connected(false);
                 }
+                else if (module_item->module_class.find(MODULE_CLASS_SDR)==0)
+                {
+                    m_status.is_sdr_module_connected(false);
+                }
                 else if (module_item->module_class.find(MODULE_CLASS_SOUND)==0)
                 {
-                    m_status.is_p2p_module_connected(false);
+                    m_status.is_sound_module_connected(false);
                 }
             }
         }

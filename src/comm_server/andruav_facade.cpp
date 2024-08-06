@@ -117,12 +117,6 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
         jMsg["a"] = unit_info.flying_total_duration;    // is whisling
     }
     
-    de::STATUS& status = de::STATUS::getInstance();
-    if (status.is_p2p_module_connected())
-    {
-        jMsg["p2"] = true;
-    }
-    
     
     #ifdef DDEBUG
         std::cout << "API_sendID:" <<  jMsg.dump() << std::endl;
@@ -305,7 +299,6 @@ void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string&
     de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
     de::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
    
-    //de::STATUS& status = de::STATUS::getInstance();
 
     Json_de jMsg = {  };
  

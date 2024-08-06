@@ -769,6 +769,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         case TYPE_AndruavModule_Location_Info:
         {
             /*
+              IMPORTANT
               This is an inter-module message to make communicator-module aware of vehicle location.
               This message can be sent from any module who owns any information about location and motion.
             */
@@ -778,10 +779,10 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
             location_info.latitude                      = ms["la"].get<int>();
             location_info.longitude                     = ms["ln"].get<int>();
-            location_info.altitude                      = ms["a"].get<int>();
-            location_info.altitude_relative             = ms["r"].get<int>();
-            location_info.h_acc                         = ms["ha"].get<int>();
-            location_info.yaw                           = ms["y"].get<int>();
+            location_info.altitude                      = ms.contains("a")?ms["a"].get<int>():0;
+            location_info.altitude_relative             = ms.contains("r")?ms["r"].get<int>():0;
+            location_info.h_acc                         = ms.contains("ha")?ms["ha"].get<int>():0;
+            location_info.yaw                           = ms.contains("y")?ms["y"].get<int>():0;
             location_info.last_access_time              = get_time_usec();
             location_info.is_new                        = true;
             location_info.is_valid                      = true;

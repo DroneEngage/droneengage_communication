@@ -5,7 +5,7 @@
     
     // A name and GUID for this module
     "module_id"                 : "MT_1",
-    
+    "unit_type"                 : "control_unit",
     // IP & Port Communication Module is listening to.
     "s2s_udp_listening_ip"      : "127.0.0.1",
     "s2s_udp_listening_port"    : "60000",  
@@ -53,18 +53,5 @@
 
     //"allow_temp":               cat /sys/class/thermal/thermal_zone0
  
-    
-
-    /*****
-    NEW FIELDS
-    *****/
-
-    "p2p_communication": {
-        "enabled"           : false,
-        "driver_ip"         : "127.0.0.1",
-        "driver_port"       : 12340,
-        "channel"           : 4,
-        "password"          : "PWD_WRD1"
-    }
-
+   
 }

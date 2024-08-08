@@ -224,7 +224,7 @@
 #define TYPE_AndruavMessage_SDR_INFO                        6513
 #define TYPE_AndruavMessage_SDR_ACTION                      6514
 #define TYPE_AndruavMessage_SDR_STATUS                      6515
-
+#define TYPE_AndruavMessage_SDR_SPECTRUM                    6516
 
 /**********************************************************************
                         EOF Andruav Messages 2019

@@ -175,7 +175,14 @@
  */
 #define TYPE_AndruavMessage_Ping_Unit                   1073
 
-#define TYPE_AndruavMessage_P2P_INFO                    1074
+/**
+ * @brief used to upload DroneEngage Mission File.
+ * 
+ * params:
+ *      [a]: p_textMission,
+ *      [e]: p_eraseFirst
+ */
+#define TYPE_AndruavMessage_Upload_DE_Mission           1075
 
 //Binary Starts with 2000
 
@@ -226,6 +233,8 @@
 #define TYPE_AndruavMessage_SDR_STATUS                      6515
 #define TYPE_AndruavMessage_SDR_SPECTRUM                    6516
 
+
+#define TYPE_AndruavMessage_P2P_INFO                        6517
 /**********************************************************************
                         EOF Andruav Messages 2019
 **********************************************************************/

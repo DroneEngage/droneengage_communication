@@ -25,6 +25,7 @@
 #include "../comm_server/andruav_facade.hpp"
 #include "../comm_server/andruav_auth.hpp"
 #include "../de_broker/de_modules_manager.hpp"
+#include "../de_general_mission_planner/mission_manager_base.hpp"
 
 
 
@@ -37,7 +38,7 @@ static std::mutex g_i_mutex_process;
 
 void de::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in *  sock)
 {
-    #ifdef DEBUG
+    #ifdef DDEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
@@ -283,7 +284,7 @@ void de::comm::CUavosModulesManager::cleanOrphanCameraEntries (const std::string
 *            ],
 *        "z" : false
 *        },
-*    "mt" : 9100,
+*    "message_type" : 9100,
 *    "ty" : "uv"
 * }
 * @param msg_cmd 
@@ -723,7 +724,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
     // Intermodule Message
     const bool intermodule_msg = (jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>().find(CMD_TYPE_INTERMODULE) != std::string::npos);
 
-    const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+    const int message_type = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
 
     /*
@@ -735,7 +736,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
 
         The default section uses the concept of [intermodule_msg] where messages are not forwarded to server
-        if it is marked intermodule_msg=true as it should be processed by other modules only.
+        if it is marked intermodule_msg=true as it should be processed by other modules ONLY.
         
         the other default section forwards the message normally to andruav communication server.
     */    
@@ -746,7 +747,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         module_key = jsonMessage[INTERMODULE_MODULE_KEY];
     }
                         
-    switch (mt)
+    switch (message_type)
     {
         case TYPE_AndruavModule_ID:
         {
@@ -757,6 +758,43 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
                 andruav_servers::CAndruavFacade::getInstance().API_sendID(target_id);
             }
             
+        }
+        break;
+
+        case TYPE_AndruavMessage_Sync_EventFire:
+        {
+            /**
+             * @brief Logic:
+             *  This message is sent from other modules.
+             * An event can be internal only and processed by comm module and other modules in the unit.
+             * or can be non-internal nad needs to be sent to other units.
+             * 
+             */
+
+            // events received from other modules.
+            const Json cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+
+
+            if (validateField(cmd, "a", Json_de::value_t::number_unsigned)) 
+            {
+                // this must called from INTERNAL event only and not external. because mission-id are not unique between units.
+                mission::CMissionManagerBase::getInstance().mavlinkMissionItemStartedEvent(cmd["a"].get<int>());
+            }
+
+            if (!validateField(cmd, "d", Json_de::value_t::string))
+            {
+                // string droneengage event format.
+                mission::CMissionManagerBase::getInstance().fireEvent(cmd["d"].get<std::string>());
+            }
+            
+            processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
+                    
+            if (!intermodule_msg)
+            {
+                // broadcast to other units on the system.
+                andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
+                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
+            }
         }
         break;
 
@@ -789,7 +827,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         
             if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
             {
-                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
+                processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
             }
         }
         break;
@@ -827,6 +865,8 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
         case TYPE_AndruavMessage_IMG:
         { 
+            andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
+                
             /**
              * @brief The message could be internal or not.
              * if it is not internal then forward it directly to server.
@@ -836,16 +876,14 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
              */
             if (!intermodule_msg)
             {
-                andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, mt, ms);
+                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
         
                 break;
             }
             
             Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
-            andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-            andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, msg_cmd);
+            andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, msg_cmd);
         }
         break;
 
@@ -860,14 +898,14 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             de::STATUS &m_status = de::STATUS::getInstance();
             if ((intermodule_msg)&&(m_status.is_p2p_module_connected()))
             {
-                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
+                processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
                 break;
             }
             else
             {
                 // forward the messages normally through the server.
                 andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, ms);
+                andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
 
                 // TODO: IMPORTANT: There is no gurantee that P2P is working fine.... so we need a confirmation from P2P
                 // or P2P can resend SWARM_MAVLINK again and request forward to server directly.
@@ -878,21 +916,28 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
         default:
         {
+            /**
+             * @brief 
+             *      The default section uses the concept of [intermodule_msg] where messages are not forwarded to server
+             *  if it is marked intermodule_msg=true as it should be processed by other modules only.
+             * 
+             */
             
+
             if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
             {
-                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
+                processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
             }
 
             if (!intermodule_msg)
             {   
                 andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, mt, ms);
+                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
             }
             else
             {
                 #ifdef DDEBUG_PARSER
-                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR:" << _TEXT_BOLD_HIGHTLITED_ << "Unhandeled internal event:" << std::to_string(mt) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR:" << _TEXT_BOLD_HIGHTLITED_ << "Unhandeled internal event:" << std::to_string(message_type) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
                 #endif
 
             }
@@ -966,7 +1011,7 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
             if  (module_item->licence_status == LICENSE_VERIFIED_BAD)
             {
                 andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
-                break;
+                continue; //skip this module.
             } else if ((module_item->is_dead == false) && ((sender_module_key.empty()) || (module_item->module_key.find(sender_module_key)==std::string::npos)))
             {
                 // clear to send

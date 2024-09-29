@@ -81,6 +81,9 @@
 #define ANDRUAV_PROTOCOL_MESSAGE_PERMISSION     "p"
 #define INTERMODULE_ROUTING_TYPE                "ty"
 #define INTERMODULE_MODULE_KEY                  "GU"
+#define WAITING_EVENT                           "ew"
+#define FIRE_EVENT                              "ef"
+#define LINKED_TO_STEP                          "ls"
 
 // System Messages
 #define TYPE_AndruavSystem_LoadTasks		    9001
@@ -152,6 +155,7 @@
 #define TYPE_AndruavMessage_FollowMe_Guided         1055
 #define TYPE_AndruavMessage_MAKE_SWARM              1056
 #define TYPE_AndruavMessage_UpdateSwarm             1058
+#define TYPE_AndruavMessage_Sync_EventFire          1061
 #define TYPE_AndruavMessage_Prepherials             1070
 #define TYPE_AndruavMessage_UDPProxy_Info           1071
 /**

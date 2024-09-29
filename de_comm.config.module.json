@@ -7,7 +7,7 @@
     "module_id"                 : "MT_1",
     "unit_type"                 : "control_unit",
     // IP & Port Communication Module is listening to.
-    "s2s_udp_listening_ip"      : "127.0.0.1",
+    "s2s_udp_listening_ip"      : "0.0.0.0",
     "s2s_udp_listening_port"    : "60000",  
     "s2s_udp_packet_size"       : "8192",
 

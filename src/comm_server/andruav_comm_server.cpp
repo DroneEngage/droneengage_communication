@@ -22,6 +22,7 @@
 #include "../de_broker/de_modules_manager.hpp"
 #include "andruav_comm_server.hpp"
 #include "andruav_facade.hpp"
+#include "../de_general_mission_planner/mission_manager_base.hpp"
 
 std::thread g;
 // Based on Below Model
@@ -636,6 +637,21 @@ void de::andruav_servers::CAndruavCommServer::parseCommand (const std::string& s
         }
         break;
 
+        case TYPE_AndruavMessage_Sync_EventFire:
+        {
+            // Events received form another units.
+
+            const Json_de cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            
+            if (validateField(cmd, "d", Json_de::value_t::string)) 
+            {
+                // string droneengage event format.
+                mission::CMissionManagerBase::getInstance().fireEvent(cmd["d"].get<std::string>());
+            }
+
+        }
+        break;
+
         case TYPE_AndruavMessage_Communication_Line_Set:
         {
             /**
@@ -662,8 +678,60 @@ void de::andruav_servers::CAndruavCommServer::parseCommand (const std::string& s
             // Message can be handled by other modules.
         }
         break;
-    }
 
+        case TYPE_AndruavMessage_Upload_DE_Mission:
+        {
+            /**
+             * @brief This is an important function that handles DE Mission.
+             * TYPE_AndruavMessage_Upload_DE_Mission is handled by mavlink amd 
+             * can be handled by any module that wants to execute missions.
+             * 
+             */
+
+            de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
+            de::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
+  
+            if (unit_info.is_gcs_blocked) break ;
+
+            const Json_de command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            
+            if (unit_info.is_gcs_blocked) break ;
+                
+            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) != PERMISSION_ALLOW_GCS_WP_CONTROL)) \
+            {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "DroneEngage Mission-Upload: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                break;
+            }
+                
+                
+                
+            /*
+                a : std::string serialized mission file
+            */
+            if (!validateField(command, "j", Json_de::value_t::object)) 
+            {
+                andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "Bad input plan file");
+
+                break ;
+            }
+
+            if (validateField(command, "e", Json_de::value_t::boolean))
+            {
+                //de::mission::CMissionManagerBase::getInstance().clearModuleMissionItems();
+            }
+
+                
+
+            const Json_de plan_object = command ["j"];
+
+            de::mission::CMissionManagerBase::getInstance().extractPlanModule(plan_object);
+                    
+            #ifdef DDEBUG
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "DroneEngage Mission-Upload: "  << plan_object.dump() << std::endl;
+            #endif
+        }
+        break; 
+    }
 }
 
 

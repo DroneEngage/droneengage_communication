@@ -84,8 +84,8 @@ typedef struct {
   bool is_whisling;
   
 
- // fcb_module
-  bool use_fcb;
+ 
+  bool use_fcb; // flight controller is connected to mavlink module.
   bool is_gcs_blocked;
   bool is_armed;
   bool is_flying;

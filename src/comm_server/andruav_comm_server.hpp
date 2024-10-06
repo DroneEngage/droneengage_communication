@@ -108,8 +108,6 @@ namespace andruav_servers
             void startWatchDogThread();
 
             void connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
-            void parseCommand (const std::string& sender_party_id, const int& command_type, const Json_de& jsonMessage);
-            void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json_de& jsonMessage);
             
             Json_de generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json_de& message) const;
             Json_de generateJSONSystemMessage (const int messageType, const Json_de& message) const;

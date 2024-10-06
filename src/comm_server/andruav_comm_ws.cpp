@@ -108,11 +108,7 @@ void de::andruav_servers::CWSASession::receive_message()
             std::cerr << "Boost system error: " << e.what() << "\n";
             // Handle the error here
             return ;
-        } catch (const boost::beast::system_error& e) {
-            std::cerr << "Boost Beast system error: " << e.what() << "\n";
-            // Handle the error here
-            return ;
-        } 
+        }
         catch (const std::exception& ex)
         {
             return ;
@@ -213,7 +209,7 @@ void de::andruav_servers::CWSASession::writeText (const std::string& message)
     {
         boost::system::error_code ec;
         ws_.binary(false);
-        ws_.write(boost::asio::buffer(message), ec);
+        ws_.write(net::buffer(std::string(message)));
         if (ec)
         {
             std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeBinary: " << ec.message() << _NORMAL_CONSOLE_TEXT_ << std::endl;

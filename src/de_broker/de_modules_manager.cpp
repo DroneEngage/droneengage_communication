@@ -34,6 +34,7 @@ std::thread t;
 
 static std::mutex g_i_mutex; 
 static std::mutex g_i_mutex_process; 
+static std::mutex g_i_mutex_process2; 
 
 
 void de::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in *  sock)
@@ -771,6 +772,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
              * 
              */
 
+            std::cout << jsonMessage.dump() << std::endl;
             // events received from other modules.
             const Json cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
 
@@ -781,10 +783,10 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
                 mission::CMissionManagerBase::getInstance().mavlinkMissionItemStartedEvent(cmd["a"].get<int>());
             }
 
-            if (!validateField(cmd, "d", Json_de::value_t::string))
+            if (validateField(cmd, "d", Json_de::value_t::string))
             {
                 // string droneengage event format.
-                mission::CMissionManagerBase::getInstance().fireEvent(cmd["d"].get<std::string>());
+                mission::CMissionManagerBase::getInstance().deEventStartedEvent(cmd["d"].get<std::string>());
             }
             
             processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
@@ -973,7 +975,7 @@ void de::comm::CUavosModulesManager::processModuleRemoteExecute (const Json ms)
 /**
  * @brief Process messages comming from Communcation Server or other modules and forward it to subscribed modules.
  * 
- * @param sender_party_id 
+ * @param sender_party_id  // not used
  * @param command_type 
  * @param jsonMessage 
  * @param sender_module_key when message is forwarded from another module then it is necessary not to send message back to the sender module. e.g. messages such as TYPE_AndruavMessage_RemoteExecute
@@ -1014,6 +1016,13 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
                 continue; //skip this module.
             } else if ((module_item->is_dead == false) && ((sender_module_key.empty()) || (module_item->module_key.find(sender_module_key)==std::string::npos)))
             {
+                // !BUG: if sender_module_key is empty message can be sent back to sender module.
+                //#ifdef DEBUG
+                //#ifdef DEBUG_MSG        
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Module " << *it  << " for message " << message_type << " is Available" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                //#endif
+                //#endif 
+
                 // clear to send
                 forwardMessageToModule (message, datalength, module_item);
             }
@@ -1033,6 +1042,8 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
  */
 void de::comm::CUavosModulesManager::forwardMessageToModule ( const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item)
 {
+    const std::lock_guard<std::mutex> lock(g_i_mutex_process2);
+    
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: forwardMessageToModule: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;

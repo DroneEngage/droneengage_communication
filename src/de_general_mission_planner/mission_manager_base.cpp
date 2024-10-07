@@ -4,7 +4,8 @@
 #include "../global.hpp"
 #include "../messages.hpp"
 #include "mission_manager_base.hpp"
-
+#include "../de_broker/de_modules_manager.hpp"
+#include "../comm_server/andruav_parser.hpp"
 
 using namespace de::mission;
 
@@ -39,13 +40,18 @@ try
                             // check if I am waiting for event.
                             if (validateField(module_mission_item,WAITING_EVENT,Json_de::value_t::string))
                             {
-                                module_mission_item_single_command[WAITING_EVENT] = module_mission_item[WAITING_EVENT].get<std::string>();
+                                std::string de_event_id = module_mission_item[WAITING_EVENT].get<std::string>();
+                                module_mission_item_single_command[WAITING_EVENT] = de_event_id;
+                                addModuleMissionItemByEvent (de_event_id, module_mission_item_single_command);
                             }
                             std::cout << "module_mission_item_single_command:" << module_mission_item_single_command.dump() << std::endl; 
 
-                            addModuleMissionItem(module_linked, std::make_unique<Json_de> (module_mission_item_single_command)); 
+                            addModuleMissionItem(module_linked, module_mission_item_single_command); 
                         }   
                     }
+
+
+                    std::cout << "m_module_missions:" << m_module_missions.size() << "  m_module_missions_by_de_events:" << m_module_missions_by_de_events.size() << std::endl;
                 }
             }
         }
@@ -58,12 +64,43 @@ try
 
 }
 
-void CMissionManagerBase::fireEvent (const std::string fire_event)
+void CMissionManagerBase::deEventStartedEvent (const std::string de_event_sid)
 {
+    if (m_module_missions_by_de_events.find(de_event_sid) != m_module_missions_by_de_events.end()) 
+    {
+        Json_de cmd = m_module_missions_by_de_events[de_event_sid];
+        
+        
+        const int command_type = cmd[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+        
+        // Internal Module Message.
+        cmd[INTERMODULE_ROUTING_TYPE] = CMD_TYPE_INTERMODULE; 
+        
+        const std::string sender = de::CAndruavUnitMe::getInstance().getUnitInfo().party_id;
+        
+        
+        #ifdef DEBUG
+        std::cout << _LOG_CONSOLE_TEXT << "deEventStartedEvent:" << cmd.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
 
+        const std::string cmd_text = cmd.dump();
+        de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type, cmd_text.c_str(), cmd_text.length(), std::string());
+        de::andruav_servers::CAndruavParser::getInstance().parseCommand(sender, command_type, cmd);
+    }
+
+    return ; 
 }
 
 void CMissionManagerBase::mavlinkMissionItemStartedEvent (const int mission_id)
 {
-    
+    std::string str_mission_id = std::to_string(mission_id);
+
+    if (m_module_missions.find(str_mission_id) != m_module_missions.end()) 
+    {
+        const Json_de cmd = m_module_missions[str_mission_id];
+        
+        //std::cout << "mavlinkMissionItemStartedEvent:" << cmd.dump() << std::endl;
+    }
+
+    return ; 
 }

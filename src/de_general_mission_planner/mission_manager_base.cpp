@@ -6,6 +6,7 @@
 #include "mission_manager_base.hpp"
 #include "../de_broker/de_modules_manager.hpp"
 #include "../comm_server/andruav_parser.hpp"
+#include "../comm_server/andruav_comm_server.hpp"
 
 using namespace de::mission;
 
@@ -31,22 +32,38 @@ try
                     for (const auto& module_mission_item : modules) {
                         std::cout << "module_mission_item:" << module_mission_item << std::endl; 
                         Json_de module_mission_item_commands = module_mission_item["c"];
-                        const std::string module_linked = module_mission_item["ls"];
+                        
+                        std::string module_linked = "";
+                        
+                        
+                        const bool skip_ls = !validateField(module_mission_item, "ls", Json_de::value_t::string);
+                        
+                        if (!skip_ls)
+                        {
+                            module_linked = module_mission_item["ls"];
+                        }
+
                         for (auto& module_mission_item_single_command : module_mission_item_commands) {
 
-                            // link me to mission
-                            module_mission_item_single_command[LINKED_TO_STEP] = module_linked;
-                            
+                            // // link me to mission by adding a new field called ls in the command.
+                            // // this is the mission_seq that I an attached to.
+                            // // if the mission executed then I need to be executed as well 
+                            // // even if the waiting event has not been received.
+                            // module_mission_item_single_command[LINKED_TO_STEP] = module_linked;
+                            module_mission_item_single_command[INTERMODULE_ROUTING_TYPE] = CMD_TYPE_INTERMODULE; 
                             // check if I am waiting for event.
                             if (validateField(module_mission_item,WAITING_EVENT,Json_de::value_t::string))
                             {
                                 std::string de_event_id = module_mission_item[WAITING_EVENT].get<std::string>();
-                                module_mission_item_single_command[WAITING_EVENT] = de_event_id;
+                                //module_mission_item_single_command[WAITING_EVENT] = de_event_id;
                                 addModuleMissionItemByEvent (de_event_id, module_mission_item_single_command);
                             }
                             std::cout << "module_mission_item_single_command:" << module_mission_item_single_command.dump() << std::endl; 
 
-                            addModuleMissionItem(module_linked, module_mission_item_single_command); 
+                            if (!skip_ls)
+                            {
+                                addModuleMissionItem(module_linked, module_mission_item_single_command); 
+                            }
                         }   
                     }
 
@@ -64,43 +81,116 @@ try
 
 }
 
-void CMissionManagerBase::deEventStartedEvent (const std::string de_event_sid)
+void CMissionManagerBase::fireWaitingCommands (const std::string de_event_sid)
 {
+    // get list of commands std::vector that are attached to this event if exists
     if (m_module_missions_by_de_events.find(de_event_sid) != m_module_missions_by_de_events.end()) 
     {
-        Json_de cmd = m_module_missions_by_de_events[de_event_sid];
+        std::vector<Json_de> cmds = m_module_missions_by_de_events[de_event_sid];
         
-        
-        const int command_type = cmd[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
-        
-        // Internal Module Message.
-        cmd[INTERMODULE_ROUTING_TYPE] = CMD_TYPE_INTERMODULE; 
-        
-        const std::string sender = de::CAndruavUnitMe::getInstance().getUnitInfo().party_id;
-        
-        
-        #ifdef DEBUG
-        std::cout << _LOG_CONSOLE_TEXT << "deEventStartedEvent:" << cmd.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        #endif
+        // execute each command by sending it to comm-parser and other modules.
+        for (const auto cmd : cmds)
+        {
+            const int command_type = cmd[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+            
+            
+            const std::string sender = de::CAndruavUnitMe::getInstance().getUnitInfo().party_id;
+            
+            
+            #ifdef DEBUG
+            std::cout << _LOG_CONSOLE_TEXT << "fireWaitingCommands:" << cmd.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            #endif
 
-        const std::string cmd_text = cmd.dump();
-        de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type, cmd_text.c_str(), cmd_text.length(), std::string());
-        de::andruav_servers::CAndruavParser::getInstance().parseCommand(sender, command_type, cmd);
+            const std::string cmd_text = cmd.dump();
+
+            
+            // here we process the internal commands waiting for the fired event.
+            // not the fired event itself.
+            // the fired event is forwarded to module in the andruav_parser... not here.
+            switch (command_type)
+            {
+                case TYPE_AndruavMessage_RemoteExecute:
+                {
+                    de::andruav_servers::CAndruavParser::getInstance().parseRemoteExecuteCommand(sender, cmd);
+                }
+                break;
+
+                default:
+                {
+                    de::andruav_servers::CAndruavParser::getInstance().parseCommand(sender, command_type, cmd);
+                }
+                break;
+            }
+            
+            // here we forward the internal commands waiting for the fired event.
+            // not the fired event itself.
+            // the fired event is forwarded to module in the andruav_parser... not here.
+            de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type, cmd_text.c_str(), cmd_text.length(), std::string());
+        }
     }
 
     return ; 
 }
 
-void CMissionManagerBase::mavlinkMissionItemStartedEvent (const int mission_id)
+void CMissionManagerBase::getCommandsAttachedToMavlinkMission(const std::string mission_i)
 {
-    std::string str_mission_id = std::to_string(mission_id);
+    
+    if (mission_i == m_last_executed_mission_id) return ;
 
-    if (m_module_missions.find(str_mission_id) != m_module_missions.end()) 
+    // get list of commands std::vector that are attached to this event if exists
+    if (m_module_missions.find(mission_i) != m_module_missions.end()) 
     {
-        const Json_de cmd = m_module_missions[str_mission_id];
+        m_last_executed_mission_id = mission_i;
+        std::vector<Json_de> cmds = m_module_missions[mission_i];
         
-        //std::cout << "mavlinkMissionItemStartedEvent:" << cmd.dump() << std::endl;
+        // execute each command by sending it to comm-parser and other modules.
+        for (const auto cmd : cmds)
+        {
+            const int command_type = cmd[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+            
+            
+            const std::string sender = de::CAndruavUnitMe::getInstance().getUnitInfo().party_id;
+            
+            
+            #ifdef DEBUG
+            std::cout << _LOG_CONSOLE_TEXT << "fireWaitingCommands:" << cmd.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            #endif
+
+            const std::string cmd_text = cmd.dump();
+
+            
+            
+            
+            // here we process the internal commands waiting for the fired event.
+            // not the fired event itself.
+            // the fired event is forwarded to module in the andruav_parser... not here.
+            switch (command_type)
+            {
+                case TYPE_AndruavMessage_RemoteExecute:
+                {
+                    de::andruav_servers::CAndruavParser::getInstance().parseRemoteExecuteCommand(sender, cmd);
+                }
+                break;
+
+                default:
+                {
+                    de::andruav_servers::CAndruavParser::getInstance().parseCommand(sender, command_type, cmd);
+                }
+                break;
+            }
+            
+            
+            // here we forward the internal commands waiting for the fired event.
+            // not the fired event itself.
+            // the fired event is forwarded to module in the andruav_parser... not here.
+            de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type, cmd_text.c_str(), cmd_text.length(), std::string());
+        }
     }
 
     return ; 
 }
+
+
+
+
+

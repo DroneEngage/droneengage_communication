@@ -188,6 +188,7 @@
  */
 #define TYPE_AndruavMessage_Upload_DE_Mission           1075
 
+
 //Binary Starts with 2000
 
 //deprecated telemetry technology
@@ -239,6 +240,9 @@
 
 
 #define TYPE_AndruavMessage_P2P_INFO                        6517
+
+
+#define TYPE_AndruavMessage_Mission_Item_Sequence           6518
 /**********************************************************************
                         EOF Andruav Messages 2019
 **********************************************************************/
@@ -363,6 +367,7 @@
 #define CONST_TELEMETRY_REQUEST_END			2
 #define CONST_TELEMETRY_REQUEST_RESUME		3
 #define CONST_TELEMETRY_ADJUST_RATE		    4
+#define CONST_TELEMETRY_REQUEST_PAUSE       5
 
 
 
@@ -370,6 +375,7 @@
 // .a.k.a mobile... i.e. gps info used bu de comm is not from the board
 #define GPS_MODE_EXTERNAL                       1
 #define GPS_MODE_FCB                            2
+
 
 
 

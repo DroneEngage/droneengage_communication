@@ -170,16 +170,10 @@ void de::andruav_servers::CAndruavParser::parseCommand (const std::string& sende
 
             const Json_de cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
-            if (validateField(cmd, "a", Json_de::value_t::number_unsigned)) 
-            {
-                // this must called from internal event not external. because mission-id are not unique between units.
-                mission::CMissionManagerBase::getInstance().mavlinkMissionItemStartedEvent(cmd["a"].get<int>());
-            }
-
             if (validateField(cmd, "d",Json_de::value_t::string)) 
             {
                 // string droneengage event format.
-                mission::CMissionManagerBase::getInstance().deEventStartedEvent(cmd["d"].get<std::string>());
+                mission::CMissionManagerBase::getInstance().fireWaitingCommands(cmd["d"].get<std::string>());
             }
         }
         break;

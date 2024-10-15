@@ -51,31 +51,32 @@ namespace mission
             virtual void extractPlanModule (const Json_de& plan); 
         
             
-            virtual void mavlinkMissionItemStartedEvent (const int mission_id);
-            virtual void deEventStartedEvent (const std::string de_event_sid);
-        
+            //virtual void mavlinkMissionItemStartedEvent (const int mission_id);
+            virtual void fireWaitingCommands (const std::string de_event_sid);
+            virtual void getCommandsAttachedToMavlinkMission(const std::string mission_i);
+
         protected:
 
             inline void addModuleMissionItem(std::string id, Json_de item) {
                 // Move the unique_ptr into the map
-                m_module_missions[id] = item;
+                m_module_missions[id].push_back(item);
                 
             }
 
             
             inline void addModuleMissionItemByEvent(std::string de_event_sid, Json_de item) {
                 // Move the unique_ptr into the map
-                m_module_missions_by_de_events[de_event_sid] = item;
+                m_module_missions_by_de_events[de_event_sid].push_back(item);
                 
             }
             
-            virtual std::vector<Json_de> getCommandsAttachedToMavlinkMission(const int mission_i){};
-
+            
 
         public:
             
                 inline void clearModuleMissionItems ()
                 {
+                    m_last_executed_mission_id = "";
                     m_module_missions.clear();
                     m_module_missions_by_de_events.clear();
                 }
@@ -84,8 +85,10 @@ namespace mission
 
         protected:
 
-            std::map <std::string, Json_de> m_module_missions; // = std::map <int, std::unique_ptr<Json_de>> (new std::map <int, std::unique_ptr<Json_de>>);
-            std::map <std::string, Json_de> m_module_missions_by_de_events;
+            std::map <std::string, std::vector<Json_de>> m_module_missions; // = std::map <int, std::unique_ptr<Json_de>> (new std::map <int, std::unique_ptr<Json_de>>);
+            std::map <std::string, std::vector<Json_de>> m_module_missions_by_de_events;
+
+            std::string m_last_executed_mission_id = "";
     };
 
 }

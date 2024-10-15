@@ -762,35 +762,42 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         }
         break;
 
+        case TYPE_AndruavMessage_Mission_Item_Sequence:
+        {
+
+            // events received from other modules.
+            const Json cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+
+
+            if (validateField(cmd, "s", Json_de::value_t::string))
+            {
+                // string droneengage event format.
+                mission::CMissionManagerBase::getInstance().getCommandsAttachedToMavlinkMission(cmd["s"].get<std::string>());
+            }
+        }
+        break;
+
         case TYPE_AndruavMessage_Sync_EventFire:
         {
             /**
              * @brief Logic:
              *  This message is sent from other modules.
              * An event can be internal only and processed by comm module and other modules in the unit.
-             * or can be non-internal nad needs to be sent to other units.
+             * or can be non-internal and needs to be sent to other units.
              * 
              */
 
-            std::cout << jsonMessage.dump() << std::endl;
+            
             // events received from other modules.
             const Json cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
 
 
-            if (validateField(cmd, "a", Json_de::value_t::number_unsigned)) 
-            {
-                // this must called from INTERNAL event only and not external. because mission-id are not unique between units.
-                mission::CMissionManagerBase::getInstance().mavlinkMissionItemStartedEvent(cmd["a"].get<int>());
-            }
-
             if (validateField(cmd, "d", Json_de::value_t::string))
             {
                 // string droneengage event format.
-                mission::CMissionManagerBase::getInstance().deEventStartedEvent(cmd["d"].get<std::string>());
+                mission::CMissionManagerBase::getInstance().fireWaitingCommands(cmd["d"].get<std::string>());
             }
             
-            processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
-                    
             if (!intermodule_msg)
             {
                 // broadcast to other units on the system.

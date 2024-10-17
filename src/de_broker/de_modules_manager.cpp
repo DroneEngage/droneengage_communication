@@ -802,7 +802,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             {
                 // broadcast to other units on the system.
                 andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
+                andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
             }
         }
         break;
@@ -1021,7 +1021,11 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
             {
                 andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
                 continue; //skip this module.
-            } else if ((module_item->is_dead == false) && ((sender_module_key.empty()) || (module_item->module_key.find(sender_module_key)==std::string::npos)))
+            } else if ((module_item->is_dead == false) 
+                  && ((sender_module_key.empty()) 
+                    // Dont send message back to its sender module [INTERMODULE_MODULE_KEY]
+                    || (module_item->module_key.find(sender_module_key)==std::string::npos))
+                    )
             {
                 // !BUG: if sender_module_key is empty message can be sent back to sender module.
                 //#ifdef DEBUG

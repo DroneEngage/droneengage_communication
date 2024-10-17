@@ -317,6 +317,20 @@ void de::andruav_servers::CAndruavParser::parseRemoteExecuteCommand (const std::
         }
         break;
 
+        case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
+            
+            if (unit_info.is_gcs_blocked) break ;
+            
+            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) != PERMISSION_ALLOW_GCS_WP_CONTROL))
+            {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "CLEAR_WAY_POINTS_FROM_FCB: "  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                break;
+            }
+                
+            de::mission::CMissionManagerBase::getInstance().clearModuleMissionItems();
+        break;
+        
+
         case TYPE_AndruavMessage_CameraList:
         {
             de::andruav_servers::CAndruavFacade::getInstance().API_sendCameraList (true, sender_party_id);

@@ -136,7 +136,8 @@ void CMissionManagerBase::getCommandsAttachedToMavlinkMission(const std::string 
 {
     
     if (mission_i == m_last_executed_mission_id) return ;
-
+    
+    m_last_executed_mission_id = ""; // reset so that if we are back to previous mission attached module missions will be re-triggered. 
     // get list of commands std::vector that are attached to this event if exists
     if (m_module_missions.find(mission_i) != m_module_missions.end()) 
     {

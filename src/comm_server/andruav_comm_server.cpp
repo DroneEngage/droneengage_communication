@@ -197,10 +197,12 @@ void de::andruav_servers::CAndruavCommServer::turnOnOff(const bool on_off, const
         g = std::thread {[&](){ 
             try
             {
+                // Switch online
                 m_exit = false;
                 if (m_on_off_delay!=0)
                 {
                     std::this_thread::sleep_for(std::chrono::seconds(m_on_off_delay));
+                    // Switch offline again after delay
                     std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Switched Offline" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
                     uninit(true);
                 }
@@ -489,8 +491,10 @@ void de::andruav_servers::CAndruavCommServer::onTextMessageRecieved(const std::s
 
 void de::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
 {
-    
-    #ifdef DEBUG
+    try
+    {
+        /* code */
+   #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
@@ -539,6 +543,14 @@ void de::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit OUT " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
+     }
+    catch(const std::exception& e)
+    {
+        #ifdef DEBUG
+            std::cerr << "Unint ERROR " << e.what() << '\n';
+        #endif
+    }
+    
     
 }
 
@@ -769,3 +781,12 @@ Json_de de::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (cons
     return jMsg;
 }
 
+void de::andruav_servers::CAndruavCommServer::switchOnline()
+{
+    m_exit = false;
+}
+
+void de::andruav_servers::CAndruavCommServer::switchOffline()
+{
+    uninit(true);
+}

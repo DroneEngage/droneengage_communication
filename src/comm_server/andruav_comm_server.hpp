@@ -103,6 +103,11 @@ namespace andruav_servers
                 return m_lasttime_access;
             }
 
+
+        private:
+            void switchOnline();
+            void switchOffline();
+
             
         private:
             void startWatchDogThread();

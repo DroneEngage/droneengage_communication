@@ -76,9 +76,9 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
     {
         jMsg["FL"] = unit_info.is_flying;   // is flying or sinking
     }
-    if (unit_info.is_armed)
+    if (unit_info.armed_status)
     {
-        jMsg["AR"] = unit_info.is_armed;    // is armed
+        jMsg["AR"] = unit_info.armed_status;    // is armed - ready to arm
     }
     if (unit_info.is_shutdown)
     {
@@ -314,9 +314,9 @@ void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string&
     {
         jMsg["FL"] = unit_info.is_flying;   // is flying or sinking
     }
-    if (unit_info.is_armed)
+    if (unit_info.armed_status)
     {
-        jMsg["AR"] = unit_info.is_armed;    // is armed
+        jMsg["AR"] = unit_info.armed_status;    // is armed
     }
     if (unit_info.is_shutdown)
     {

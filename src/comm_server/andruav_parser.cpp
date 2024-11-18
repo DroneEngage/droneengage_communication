@@ -89,7 +89,7 @@ void de::andruav_servers::CAndruavParser::parseCommand (const std::string& sende
             if (command.contains("FI") == true) unit_info.use_fcb = command["FI"].get<bool>();
             if (command.contains("SD") == true) unit_info.is_shutdown = command["SD"].get<bool>();
             if (command.contains("GM") == true) unit_info.gps_mode = command["GM"].get<int>();
-            if (command.contains("AR") == true) unit_info.is_armed = command["AR"].get<bool>();
+            if (command.contains("AR") == true) unit_info.armed_status = command["AR"].get<int>();
             if (command.contains("FL") == true) unit_info.is_flying = command["FL"].get<bool>();
             if (command.contains("AP") == true) unit_info.autopilot = command["AP"].get<int>();
             if (command.contains("FM") == true) unit_info.flying_mode = command["FM"].get<int>();

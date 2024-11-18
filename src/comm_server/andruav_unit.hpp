@@ -87,7 +87,7 @@ typedef struct {
  
   bool use_fcb; // flight controller is connected to mavlink module.
   bool is_gcs_blocked;
-  bool is_armed;
+  uint8_t armed_status;    // bit 0 (ready to arm)  bit 1 (armed)
   bool is_flying;
   uint8_t autopilot; // valid if use_fcb = true
 
@@ -133,7 +133,7 @@ class CAndruavUnit
             m_unit_info.is_video_recording      = false;
             m_unit_info.use_fcb                 = false;
             m_unit_info.is_gcs_blocked          = false;
-            m_unit_info.is_armed                = false;
+            m_unit_info.armed_status                = 0;
             m_unit_info.is_flying               = false;
             m_unit_info.manual_TX_blocked_mode  = false;
 

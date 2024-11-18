@@ -856,7 +856,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             unit_info.gps_mode                      = ms["GM"].get<int>();
             unit_info.use_fcb                       = ms["FI"].get<bool>();
             unit_info.autopilot                     = ms["AP"].get<int>();
-            unit_info.is_armed                      = ms["AR"].get<bool>();
+            unit_info.armed_status                  = ms["AR"].get<int>();
             unit_info.is_flying                     = ms["FL"].get<bool>();
             unit_info.telemetry_protocol            = ms["TP"].get<int>();
             unit_info.flying_last_start_time        = ms["z"].get<long long>();

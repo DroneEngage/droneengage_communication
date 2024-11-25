@@ -102,6 +102,18 @@
 
 
 // Andruav Messages
+
+/**
+ * @brief
+ * la: getLatitude() * 1e-7
+ * ln: getLongitude() * 1e-7
+ * a: absolute altitude in meter
+ * r: relative altitude in meter
+        {"y", 0},                                       // yaw in cdeg
+        {"3D",0},
+        {"SC",0},
+        {"p",0}
+ */
 #define TYPE_AndruavMessage_GPS                     1002
 #define TYPE_AndruavMessage_POWER                   1003
 #define TYPE_AndruavMessage_ID 	                    1004
@@ -152,11 +164,45 @@
 #define TYPE_AndruavMessage_CameraFlash		        1051
 #define TYPE_AndruavMessage_RemoteControl2		    1052
 #define TYPE_AndruavMessage_FollowHim_Request       1054
+/**
+ * @brief This message is sent from Leader drone to a follower. It guides it to the destination point that it wants it to go to.
+ * @details
+ * There is nothing called a Follower Drone
+ * All Drones Obey AndruavResala_FollowMe_Guided EVEN if they are Leaders.<br>
+ * If a Drone wants to IGNORE these messages that is OK for whatever reason.<br>
+ * If a Drone wants to Stop others from sending such messages it can send ANdruavResala_UpdateSwarm with remove action.
+ */
 #define TYPE_AndruavMessage_FollowMe_Guided         1055
+/**
+ * @brief This command is sent to instruct a drone to be a leader with a swarm-formation.
+ * A Formation FORMATION_SERB_NO_SWARM means there is no swarm mode anymore. 
+ */
 #define TYPE_AndruavMessage_MAKE_SWARM              1056
+/**
+ * @brief This message is sent to Leader Drone to add a slave drone in a swarm and in an index.
+ * given index may contradict with other indices. It is upto Leader Drone to handle this conflict.
+ */
 #define TYPE_AndruavMessage_UpdateSwarm             1058
-#define TYPE_AndruavMessage_Sync_EventFire          1061
+/**
+ * d: event-id
+ * [c]: sender module class type
+ * [s]: sender module class id
+ * [m]: JSON sender-module specific data.
+ * 
+ * [bin]: binary conntent maybe attached to the command.
+ */
+#define TYPE_AndruavMessage_Sync_EventFire          1061 
+
+//! NOT USED YET
 #define TYPE_AndruavMessage_Prepherials             1070
+/**
+ * @brief: sends information about UDP Proxy of the unit.
+ * a:  string - udp_ip_other
+ * p:  int - udp_port_other
+ * o:  int - optimization_level
+ * en: bool - enabled
+ * z: bool - paused
+ */
 #define TYPE_AndruavMessage_UDPProxy_Info           1071
 /**
  * @brief used to set unit name and description.
@@ -233,7 +279,31 @@
 #define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH            6511
 #define TYPE_AndruavMessage_SOUND_PLAY_FILE                 6512
 
-#define TYPE_AndruavMessage_SDR_INFO                        6513
+
+/**
+ * @brief MODULE_ACTION is a generic module message. 
+ * In SDR it is used to configure the module.
+ * current fields are:
+ * 
+ * CMD#1
+ * [a]: SDR_ACTION_SDR_INFO                                 6
+ * [fc]: center frequency
+ * [g]: gain
+ * [r]: sample rate
+ * [m]: demodulation mode -NOT IMPLEMENTED-
+ * [i]: driver index, based on TYPE_AndruavMessage_SDR_INFO
+ * [t]: rate of reading signals. - 0 means once
+ * [r]: display bars... i.e. # of merged output readings.
+ * [l]: trigger level... signal level after which a trigger event is sent.
+ * 
+ * **********************************************************************
+ * CMD#2
+ * [a]:  SDR_ACTION_LIST_SDR_DEVICES                        2
+ * [dr]: drivers list
+ * 
+ * CMD#3
+ * [a]: SDR_ACTION_TRIGGER                                  7
+ */
 #define TYPE_AndruavMessage_SDR_ACTION                      6514
 #define TYPE_AndruavMessage_SDR_STATUS                      6515
 #define TYPE_AndruavMessage_SDR_SPECTRUM                    6516

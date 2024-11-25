@@ -10,6 +10,11 @@
 
 using namespace de::mission;
 
+/**
+ * @brief Read plan file as JSON object and extract DE mission items from it.
+ * You need to read DE-Mission and link them with Mavlink Mission Item if exists.
+ * @param plan Plan as JSON object.
+ */
 void CMissionManagerBase::extractPlanModule (const Json_de& plan)
 {
 
@@ -30,37 +35,34 @@ try
                     const Json_de modules = de_mission["modules"];
                     
                     for (const auto& module_mission_item : modules) {
+                        
                         std::cout << "module_mission_item:" << module_mission_item << std::endl; 
+                        
                         Json_de module_mission_item_commands = module_mission_item["c"];
                         
                         std::string module_linked = "";
                         
                         
-                        const bool skip_ls = !validateField(module_mission_item, "ls", Json_de::value_t::string);
+                        const bool ls_avail = validateField(module_mission_item, "ls", Json_de::value_t::string);
                         
-                        if (!skip_ls)
+                        if (ls_avail)
                         {
                             module_linked = module_mission_item["ls"];
                         }
 
                         for (auto& module_mission_item_single_command : module_mission_item_commands) {
 
-                            // // link me to mission by adding a new field called ls in the command.
-                            // // this is the mission_seq that I an attached to.
-                            // // if the mission executed then I need to be executed as well 
-                            // // even if the waiting event has not been received.
-                            // module_mission_item_single_command[LINKED_TO_STEP] = module_linked;
+                            /// module_mission_item_single_command[LINKED_TO_STEP] = module_linked;
                             module_mission_item_single_command[INTERMODULE_ROUTING_TYPE] = CMD_TYPE_INTERMODULE; 
                             // check if I am waiting for event.
                             if (validateField(module_mission_item,WAITING_EVENT,Json_de::value_t::string))
                             {
                                 std::string de_event_id = module_mission_item[WAITING_EVENT].get<std::string>();
-                                //module_mission_item_single_command[WAITING_EVENT] = de_event_id;
                                 addModuleMissionItemByEvent (de_event_id, module_mission_item_single_command);
                             }
                             std::cout << "module_mission_item_single_command:" << module_mission_item_single_command.dump() << std::endl; 
 
-                            if (!skip_ls)
+                            if (ls_avail)
                             {
                                 addModuleMissionItem(module_linked, module_mission_item_single_command); 
                             }

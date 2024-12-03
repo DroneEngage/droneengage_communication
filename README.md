@@ -1,5 +1,11 @@
 [![Ardupilot Cloud EcoSystem](https://cloud.ardupilot.org/_static/ardupilot_logo.png "Ardupilot Cloud EcoSystem")](https://cloud.ardupilot.org "Ardupilot Cloud EcoSystem") **Drone Engage** is part of Ardupilot Cloud Eco System
 
+------------
+
+![Drone Engage Communicator Module](https://raw.githubusercontent.com/DroneEngage/droneengage_communication/master/resources/de_logo_title.png) 
+
+#Drone Engage Communicator Module
+
 # What is Drone-Engage ?
 
 Drone-Engage (D.E.) is a distibuted system that allows monitoring & controlling drones via Internet. Drone-Engage objective is to provide a Linux-based alternative for [Andruav](http://https://play.google.com/store/apps/details?id=arudpilot.andruav&hl=en&gl=US "Andruav") on Android mobiles.

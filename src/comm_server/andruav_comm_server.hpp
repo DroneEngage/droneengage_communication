@@ -70,6 +70,7 @@ namespace andruav_servers
             void start();
             void connect();
             void uninit(const bool exit);
+            void turnOnOff(const bool on_off, const uint32_t duration_seconds);
 
 
             void onSocketError () override;
@@ -102,13 +103,16 @@ namespace andruav_servers
                 return m_lasttime_access;
             }
 
+
+        private:
+            void switchOnline();
+            void switchOffline();
+
             
         private:
             void startWatchDogThread();
 
             void connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
-            void parseCommand (const std::string& sender_party_id, const int& command_type, const Json_de& jsonMessage);
-            void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json_de& jsonMessage);
             
             Json_de generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json_de& message) const;
             Json_de generateJSONSystemMessage (const int messageType, const Json_de& message) const;
@@ -127,6 +131,7 @@ namespace andruav_servers
 
             u_int64_t m_next_connect_time,  m_lasttime_access =0;
 
+            u_int64_t m_on_off_delay = 0;
 
             std::unique_ptr<std::thread> m_watch_dog;
             pthread_t m_watch_dog2;

@@ -96,7 +96,7 @@ void _usage(void)
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--bconfig:         -b ./bconfig.json  default [./de_comm.local]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--version:         -v" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
-
+int test_counter =0;
 
 /**
  * @brief main loop function.
@@ -125,7 +125,17 @@ void scheduler ()
         
         if (hz_10 % every_sec_1 == 0)
         {
-            
+            if (test_counter % 10)
+            {
+                if (status.is_online())
+                {
+
+                }
+                else
+                {
+                    
+                }
+            }
         }
 
         if (hz_10 % every_sec_5 == 0)
@@ -260,6 +270,14 @@ void defineMe()
         cLocalConfigFile.apply();
     }
 
+    if (validateField(jsonConfig, "unit_type",Json_de::value_t::string))
+    {
+        std::string vehicle_type  = jsonConfig["unit_type"].get<std::string>();
+        if (str_tolower(vehicle_type)=="control_unit")
+        {
+            unit_info.vehicle_type = de::ANDRUAV_UNIT_TYPE::CONTROL_UNIT;
+        }
+    }
     
     std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Party Id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
     std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
@@ -281,7 +299,7 @@ void defineMe()
  * @brief Initialize UDP connection with other modules.
  * 
  */
-void initSockets()
+void initModuleManager()
 {
     de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
@@ -438,7 +456,7 @@ void init (int argc, char *argv[])
 
     initScheduler();
 
-    initSockets();
+    initModuleManager();
 
 }
 

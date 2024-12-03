@@ -81,6 +81,9 @@
 #define ANDRUAV_PROTOCOL_MESSAGE_PERMISSION     "p"
 #define INTERMODULE_ROUTING_TYPE                "ty"
 #define INTERMODULE_MODULE_KEY                  "GU"
+#define WAITING_EVENT                           "ew"
+#define FIRE_EVENT                              "ef"
+#define LINKED_TO_STEP                          "ls"
 
 // System Messages
 #define TYPE_AndruavSystem_LoadTasks		    9001
@@ -99,6 +102,18 @@
 
 
 // Andruav Messages
+
+/**
+ * @brief
+ * la: getLatitude() * 1e-7
+ * ln: getLongitude() * 1e-7
+ * a: absolute altitude in meter
+ * r: relative altitude in meter
+        {"y", 0},                                       // yaw in cdeg
+        {"3D",0},
+        {"SC",0},
+        {"p",0}
+ */
 #define TYPE_AndruavMessage_GPS                     1002
 #define TYPE_AndruavMessage_POWER                   1003
 #define TYPE_AndruavMessage_ID 	                    1004
@@ -149,10 +164,45 @@
 #define TYPE_AndruavMessage_CameraFlash		        1051
 #define TYPE_AndruavMessage_RemoteControl2		    1052
 #define TYPE_AndruavMessage_FollowHim_Request       1054
+/**
+ * @brief This message is sent from Leader drone to a follower. It guides it to the destination point that it wants it to go to.
+ * @details
+ * There is nothing called a Follower Drone
+ * All Drones Obey AndruavResala_FollowMe_Guided EVEN if they are Leaders.<br>
+ * If a Drone wants to IGNORE these messages that is OK for whatever reason.<br>
+ * If a Drone wants to Stop others from sending such messages it can send ANdruavResala_UpdateSwarm with remove action.
+ */
 #define TYPE_AndruavMessage_FollowMe_Guided         1055
+/**
+ * @brief This command is sent to instruct a drone to be a leader with a swarm-formation.
+ * A Formation FORMATION_SERB_NO_SWARM means there is no swarm mode anymore. 
+ */
 #define TYPE_AndruavMessage_MAKE_SWARM              1056
+/**
+ * @brief This message is sent to Leader Drone to add a slave drone in a swarm and in an index.
+ * given index may contradict with other indices. It is upto Leader Drone to handle this conflict.
+ */
 #define TYPE_AndruavMessage_UpdateSwarm             1058
+/**
+ * d: event-id
+ * [c]: sender module class type
+ * [s]: sender module class id
+ * [m]: JSON sender-module specific data.
+ * 
+ * [bin]: binary conntent maybe attached to the command.
+ */
+#define TYPE_AndruavMessage_Sync_EventFire          1061 
+
+//! NOT USED YET
 #define TYPE_AndruavMessage_Prepherials             1070
+/**
+ * @brief: sends information about UDP Proxy of the unit.
+ * a:  string - udp_ip_other
+ * p:  int - udp_port_other
+ * o:  int - optimization_level
+ * en: bool - enabled
+ * z: bool - paused
+ */
 #define TYPE_AndruavMessage_UDPProxy_Info           1071
 /**
  * @brief used to set unit name and description.
@@ -173,22 +223,30 @@
  *      [a]: sender_party_id : drone_engage party id. case: #1
  *      [k]: 1 - request ack.                         case: #2
  */
-#define TYPE_AndruavMessage_Ping_Unit               1073
+#define TYPE_AndruavMessage_Ping_Unit                   1073
 
-#define TYPE_AndruavMessage_P2P_INFO                1074
+/**
+ * @brief used to upload DroneEngage Mission File.
+ * 
+ * params:
+ *      [a]: p_textMission,
+ *      [e]: p_eraseFirst
+ */
+#define TYPE_AndruavMessage_Upload_DE_Mission           1075
+
 
 //Binary Starts with 2000
 
 //deprecated telemetry technology
-#define TYPE_AndruavMessage_LightTelemetry          2022
+#define TYPE_AndruavMessage_LightTelemetry              2022
 
-// New JSON Messages 
-#define TYPE_AndruavMessage_ServoChannel            6001
+/**********************************************************************
+                        New Andruav Messages 2019
+**********************************************************************/
+#define TYPE_AndruavMessage_ServoChannel                6001
 
-
-// New Binary Messages
-#define TYPE_AndruavMessage_MAVLINK                 6502
-#define TYPE_AndruavMessage_SWARM_MAVLINK           6503
+#define TYPE_AndruavMessage_MAVLINK                     6502
+#define TYPE_AndruavMessage_SWARM_MAVLINK               6503
 
 /**
  * Used by other modules to exchange mavlink information
@@ -204,6 +262,66 @@
 
 #define TYPE_AndruavMessage_P2P_InRange_BSSID           6507
 #define TYPE_AndruavMessage_P2P_InRange_Node            6508
+
+
+/**
+ * @brief used to set communication channels on/off
+ * current fields are:
+ * [p2p]: for turning p2p on/off or leave as is.
+ * [ws]: for turning communication server websocket on/off or leave as is.
+ * 
+ */
+#define TYPE_AndruavMessage_Communication_Line_Set          6509
+
+#define TYPE_AndruavMessage_Communication_Line_Status       6510
+
+
+#define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH            6511
+#define TYPE_AndruavMessage_SOUND_PLAY_FILE                 6512
+
+
+/**
+ * @brief MODULE_ACTION is a generic module message. 
+ * In SDR it is used to configure the module.
+ * current fields are:
+ * 
+ * CMD#1
+ * [a]: SDR_ACTION_SDR_INFO                                 6
+ * [fc]: center frequency
+ * [g]: gain
+ * [r]: sample rate
+ * [m]: demodulation mode -NOT IMPLEMENTED-
+ * [i]: driver index, based on TYPE_AndruavMessage_SDR_INFO
+ * [t]: rate of reading signals. - 0 means once
+ * [r]: display bars... i.e. # of merged output readings.
+ * [l]: trigger level... signal level after which a trigger event is sent.
+ * 
+ * **********************************************************************
+ * CMD#2
+ * [a]:  SDR_ACTION_LIST_SDR_DEVICES                        2
+ * [dr]: drivers list
+ * 
+ * CMD#3
+ * [a]: SDR_ACTION_TRIGGER                                  7
+ */
+#define TYPE_AndruavMessage_SDR_ACTION                      6514
+#define TYPE_AndruavMessage_SDR_STATUS                      6515
+#define TYPE_AndruavMessage_SDR_SPECTRUM                    6516
+
+
+#define TYPE_AndruavMessage_P2P_INFO                        6517
+
+
+#define TYPE_AndruavMessage_Mission_Item_Sequence           6518
+/**********************************************************************
+                        EOF Andruav Messages 2019
+**********************************************************************/
+
+
+
+/**********************************************************************
+                        EOF Binary Messages
+**********************************************************************/
 
 
 #define TYPE_AndruavMessage_DUMMY                       9999
@@ -249,17 +367,18 @@
  * or specifies who is parent to whom.
  */
 #define P2P_ACTION_ACCESS_TO_MAC                            4
+#define P2P_ACTION_SEND_STATUS                              5
 
 #define P2P_STATUS_CONNECTED_TO_MAC                         0
 #define P2P_STATUS_DISCONNECTED_FROM_MAC                    1
 
 
 // Remote Control Sub Actions
-#define RC_SUB_ACTION_RELEASED                      0
-#define RC_SUB_ACTION_CENTER_CHANNELS               1
-#define RC_SUB_ACTION_FREEZE_CHANNELS               2
-#define RC_SUB_ACTION_JOYSTICK_CHANNELS             4
-#define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED      8
+#define RC_SUB_ACTION_RELEASED                              0
+#define RC_SUB_ACTION_CENTER_CHANNELS                       1
+#define RC_SUB_ACTION_FREEZE_CHANNELS                       2
+#define RC_SUB_ACTION_JOYSTICK_CHANNELS                     4
+#define RC_SUB_ACTION_JOYSTICK_CHANNELS_GUIDED              8
 
 // Remote Execute Commands
 #define RemoteCommand_GET_WAY_POINTS             500 // get from andruav not FCB but you can still read from fcb and refresh all   
@@ -290,6 +409,7 @@
 #define ERROR_POWER                             11
 #define ERROR_TYPE_ERROR_MODULE                 13
 #define ERROR_TYPE_ERROR_P2P                    23
+#define ERROR_TYPE_ERROR_SDR                    24
 #define ERROR_GEO_FENCE_ERROR                   100
 
 // 0	MAV_SEVERITY_EMERGENCY	System is unusable. This is a "panic" condition.
@@ -317,6 +437,7 @@
 #define CONST_TELEMETRY_REQUEST_END			2
 #define CONST_TELEMETRY_REQUEST_RESUME		3
 #define CONST_TELEMETRY_ADJUST_RATE		    4
+#define CONST_TELEMETRY_REQUEST_PAUSE       5
 
 
 
@@ -324,6 +445,7 @@
 // .a.k.a mobile... i.e. gps info used bu de comm is not from the board
 #define GPS_MODE_EXTERNAL                       1
 #define GPS_MODE_FCB                            2
+
 
 
 

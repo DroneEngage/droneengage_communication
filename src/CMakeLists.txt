@@ -6,9 +6,10 @@ file(GLOB folder_hal "./hal/*.cpp")
 file(GLOB folder_hal_linux "./hal_linux/*.cpp")
 file(GLOB notification_module "./notification_module/*.cpp")
 file(GLOB folder_uavos "./de_broker/*.cpp")
+file(GLOB folder_general_mission_planner "./de_general_mission_planner/*.cpp")
 
 set(files ${folder_src} ${folder_common} ${folder_helpers}
-${folder_hal} ${folder_hal_linux} ${notification_module} ${folder_uavos} )
+${folder_hal} ${folder_hal_linux} ${notification_module} ${folder_uavos} ${folder_general_mission_planner})
 
 
 add_executable( OUTPUT_BINARY ${files})

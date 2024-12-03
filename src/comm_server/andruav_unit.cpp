@@ -14,11 +14,11 @@ de::CAndruavUnitMe::CAndruavUnitMe():de::CAndruavUnit(true)
     m_unit_info.is_video_recording      = false;
     m_unit_info.use_fcb                 = false;
     m_unit_info.is_gcs_blocked          = false;
-    m_unit_info.is_armed                = false;
+    m_unit_info.armed_status            = 0;
     m_unit_info.is_flying               = false;
     m_unit_info.manual_TX_blocked_mode  = false;
 
-    m_unit_info.vehicle_type            = VEHICLE_UNKNOWN;
+    m_unit_info.vehicle_type            = ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_UNKNOWN;
     m_unit_info.gps_mode                = GPS_MODE_FCB;
     m_unit_info.telemetry_protocol      = TelemetryProtocol_No_Telemetry;
 

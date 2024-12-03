@@ -76,9 +76,9 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
     {
         jMsg["FL"] = unit_info.is_flying;   // is flying or sinking
     }
-    if (unit_info.is_armed)
+    if (unit_info.armed_status)
     {
-        jMsg["AR"] = unit_info.is_armed;    // is armed
+        jMsg["AR"] = unit_info.armed_status;    // is armed - ready to arm
     }
     if (unit_info.is_shutdown)
     {
@@ -115,12 +115,6 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
     if (unit_info.flying_total_duration > 0)
     {
         jMsg["a"] = unit_info.flying_total_duration;    // is whisling
-    }
-    
-    de::STATUS& status = de::STATUS::getInstance();
-    if (status.is_p2p_connected())
-    {
-        jMsg["p2"] = true;
     }
     
     
@@ -297,7 +291,7 @@ void de::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_SID
     return ;
 }
 
-
+// NOT USED .... ENABLE IT
 void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string& target_party_id) const 
 {
     
@@ -305,7 +299,6 @@ void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string&
     de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
     de::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
    
-    //de::STATUS& status = de::STATUS::getInstance();
 
     Json_de jMsg = {  };
  
@@ -321,9 +314,9 @@ void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string&
     {
         jMsg["FL"] = unit_info.is_flying;   // is flying or sinking
     }
-    if (unit_info.is_armed)
+    if (unit_info.armed_status)
     {
-        jMsg["AR"] = unit_info.is_armed;    // is armed
+        jMsg["AR"] = unit_info.armed_status;    // is armed
     }
     if (unit_info.is_shutdown)
     {
@@ -353,4 +346,23 @@ void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string&
     }
     
     de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Prepherials, jMsg);
+}
+
+
+
+void de::andruav_servers::CAndruavFacade::API_sendCommunicationLineStatus(const std::string&  target_party_id, const bool on_off) const
+{
+    /*
+        [ws]: bool
+        [p2p]: bool
+    */
+    
+    Json_de jMsg = {
+        {
+            "ws", on_off
+        }
+      };
+ 
+
+    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Communication_Line_Status, jMsg);
 }

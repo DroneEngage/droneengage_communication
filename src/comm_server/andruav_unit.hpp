@@ -18,13 +18,23 @@ using Json_de = nlohmann::json;
 namespace de
 {
     
-#define VEHICLE_UNKNOWN     0
-#define VEHICLE_TRI         1
-#define VEHICLE_QUAD        2
-#define VEHICLE_PLANE       3
-#define VEHICLE_ROVER       4
-#define VEHICLE_HELI        5
+typedef enum ANDRUAV_UNIT_TYPE
+{
+        VEHICLE_TYPE_UNKNOWN    = 0,
+        VEHICLE_TYPE_TRI        = 1,
+        VEHICLE_TYPE_QUAD       = 2,
+        VEHICLE_TYPE_PLANE      = 3,
+        VEHICLE_TYPE_ROVER      = 4,
+        VEHICLE_TYPE_HELI       = 5,        
+        VEHICLE_TYPE_BOAT       = 6,
+        VEHICLE_TYPE_SUBMARINE  = 12,
+        // no used here ... only for refence
+        VEHICLE_TYPE_GIMBAL     = 15,
+        VEHICLE_TYPE_GCS        = 999,
+        // end of reference
 
+        CONTROL_UNIT            = 10001
+} ANDRUAV_UNIT_TYPE;
 
 #define TelemetryProtocol_No_Telemetry          0
 #define TelemetryProtocol_Andruav_Telemetry     1
@@ -74,10 +84,10 @@ typedef struct {
   bool is_whisling;
   
 
- // fcb_module
-  bool use_fcb;
+ 
+  bool use_fcb; // flight controller is connected to mavlink module.
   bool is_gcs_blocked;
-  bool is_armed;
+  uint8_t armed_status;    // bit 0 (ready to arm)  bit 1 (armed)
   bool is_flying;
   uint8_t autopilot; // valid if use_fcb = true
 
@@ -123,11 +133,11 @@ class CAndruavUnit
             m_unit_info.is_video_recording      = false;
             m_unit_info.use_fcb                 = false;
             m_unit_info.is_gcs_blocked          = false;
-            m_unit_info.is_armed                = false;
+            m_unit_info.armed_status                = 0;
             m_unit_info.is_flying               = false;
             m_unit_info.manual_TX_blocked_mode  = false;
 
-            m_unit_info.vehicle_type            = VEHICLE_UNKNOWN;
+            m_unit_info.vehicle_type            = de::ANDRUAV_UNIT_TYPE::VEHICLE_TYPE_UNKNOWN;
             m_unit_info.gps_mode                = GPS_MODE_AUTO;
             m_unit_info.telemetry_protocol      = TelemetryProtocol_No_Telemetry;
 

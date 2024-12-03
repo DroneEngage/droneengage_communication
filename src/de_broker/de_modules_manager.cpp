@@ -25,6 +25,7 @@
 #include "../comm_server/andruav_facade.hpp"
 #include "../comm_server/andruav_auth.hpp"
 #include "../de_broker/de_modules_manager.hpp"
+#include "../de_general_mission_planner/mission_manager_base.hpp"
 
 
 
@@ -33,6 +34,7 @@ std::thread t;
 
 static std::mutex g_i_mutex; 
 static std::mutex g_i_mutex_process; 
+static std::mutex g_i_mutex_process2; 
 
 
 void de::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in *  sock)
@@ -283,7 +285,7 @@ void de::comm::CUavosModulesManager::cleanOrphanCameraEntries (const std::string
 *            ],
 *        "z" : false
 *        },
-*    "mt" : 9100,
+*    "message_type" : 9100,
 *    "ty" : "uv"
 * }
 * @param msg_cmd 
@@ -491,8 +493,8 @@ void de::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * modu
 bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
 {
 
-    #ifdef DDEBUG
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #ifdef DEBUG
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration: " << msg_cmd.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
     const std::lock_guard<std::mutex> lock(g_i_mutex);
@@ -601,28 +603,41 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     updated |= updateModuleSubscribedMessages(module_id, message_array);
 
     const std::string module_class = module_item->module_class; //msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>(); 
-    if (module_class.find("camera")==0)
+    if (module_class.find(MODULE_CLASS_VIDEO)==0)
     {
         // update camera list
-        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Camera" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_VIDEO << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         updateCameraList(module_id, msg_cmd);
         m_status.is_camera_module_connected (true);
     }
-    else if ((!m_status.is_fcb_module_connected()) && (module_class.find("fcb")==0))
+    else if ((!m_status.is_fcb_module_connected()) && (module_class.find(MODULE_CLASS_FCB)==0))
     {
-        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "FCB" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_FCB << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
         ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
         andruav_unit_info.use_fcb = true;
         m_status.is_fcb_module_connected (true); 
     } 
-    else if ((!m_status.is_p2p_connected()) && (module_class.find("p2p")==0))
+    else if ((!m_status.is_p2p_module_connected()) && (module_class.find(MODULE_CLASS_P2P)==0))
     {
-        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "P2P" << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_P2P << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
-        m_status.is_p2p_connected(true);
+        m_status.is_p2p_module_connected(true);
+    }
+    else if ((!m_status.is_sdr_module_connected()) && (module_class.find(MODULE_CLASS_SDR)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_SDR << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_sdr_module_connected(true);
+    }
+
+    else if ((!m_status.is_sound_module_connected()) && (module_class.find(MODULE_CLASS_SOUND)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_SOUND << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_sound_module_connected(true);
     }
 
     updated |= updateUavosPermission(module_item->modules_features); 
@@ -685,6 +700,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
     if ((!validateField(jsonMessage, INTERMODULE_ROUTING_TYPE, Json::value_t::string))
         || (!validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
+        || !jsonMessage.contains(ANDRUAV_PROTOCOL_MESSAGE_CMD)
         )
     {
         #ifdef DEBUG
@@ -709,7 +725,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
     // Intermodule Message
     const bool intermodule_msg = (jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>().find(CMD_TYPE_INTERMODULE) != std::string::npos);
 
-    const int mt = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+    const int message_type = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
     const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
 
     /*
@@ -721,7 +737,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
 
         The default section uses the concept of [intermodule_msg] where messages are not forwarded to server
-        if it is marked intermodule_msg=true as it should be processed by other modules only.
+        if it is marked intermodule_msg=true as it should be processed by other modules ONLY.
         
         the other default section forwards the message normally to andruav communication server.
     */    
@@ -732,7 +748,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         module_key = jsonMessage[INTERMODULE_MODULE_KEY];
     }
                         
-    switch (mt)
+    switch (message_type)
     {
         case TYPE_AndruavModule_ID:
         {
@@ -746,6 +762,51 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         }
         break;
 
+        case TYPE_AndruavMessage_Mission_Item_Sequence:
+        {
+
+            // events received from other modules.
+            const Json cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+
+
+            if (validateField(cmd, "s", Json_de::value_t::string))
+            {
+                // string droneengage event format.
+                mission::CMissionManagerBase::getInstance().getCommandsAttachedToMavlinkMission(cmd["s"].get<std::string>());
+            }
+        }
+        break;
+
+        case TYPE_AndruavMessage_Sync_EventFire:
+        {
+            /**
+             * @brief Logic:
+             *  This message is sent from other modules.
+             * An event can be internal only and processed by comm module and other modules in the unit.
+             * or can be non-internal and needs to be sent to other units.
+             * 
+             */
+
+            
+            // events received from other modules.
+            const Json cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+
+
+            if (validateField(cmd, "d", Json_de::value_t::string))
+            {
+                // string droneengage event format.
+                mission::CMissionManagerBase::getInstance().fireWaitingCommands(cmd["d"].get<std::string>());
+            }
+            
+            if (!intermodule_msg)
+            {
+                // broadcast to other units on the system.
+                andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
+                andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
+            }
+        }
+        break;
+
         case TYPE_AndruavModule_RemoteExecute:
         {   // this is an inter-module message.
             processModuleRemoteExecute(ms);
@@ -755,6 +816,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         case TYPE_AndruavModule_Location_Info:
         {
             /*
+              IMPORTANT
               This is an inter-module message to make communicator-module aware of vehicle location.
               This message can be sent from any module who owns any information about location and motion.
             */
@@ -764,17 +826,17 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
             location_info.latitude                      = ms["la"].get<int>();
             location_info.longitude                     = ms["ln"].get<int>();
-            location_info.altitude                      = ms["a"].get<int>();
-            location_info.altitude_relative             = ms["r"].get<int>();
-            location_info.h_acc                         = ms["ha"].get<int>();
-            location_info.yaw                           = ms["y"].get<int>();
+            location_info.altitude                      = ms.contains("a")?ms["a"].get<int>():0;
+            location_info.altitude_relative             = ms.contains("r")?ms["r"].get<int>():0;
+            location_info.h_acc                         = ms.contains("ha")?ms["ha"].get<int>():0;
+            location_info.yaw                           = ms.contains("y")?ms["y"].get<int>():0;
             location_info.last_access_time              = get_time_usec();
             location_info.is_new                        = true;
             location_info.is_valid                      = true;
         
             if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
             {
-                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
+                processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
             }
         }
         break;
@@ -794,7 +856,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             unit_info.gps_mode                      = ms["GM"].get<int>();
             unit_info.use_fcb                       = ms["FI"].get<bool>();
             unit_info.autopilot                     = ms["AP"].get<int>();
-            unit_info.is_armed                      = ms["AR"].get<bool>();
+            unit_info.armed_status                  = ms["AR"].get<int>();
             unit_info.is_flying                     = ms["FL"].get<bool>();
             unit_info.telemetry_protocol            = ms["TP"].get<int>();
             unit_info.flying_last_start_time        = ms["z"].get<long long>();
@@ -812,6 +874,8 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
         case TYPE_AndruavMessage_IMG:
         { 
+            andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
+                
             /**
              * @brief The message could be internal or not.
              * if it is not internal then forward it directly to server.
@@ -821,16 +885,14 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
              */
             if (!intermodule_msg)
             {
-                andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, mt, ms);
+                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
         
                 break;
             }
             
             Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
-            andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-            andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, msg_cmd);
+            andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, msg_cmd);
         }
         break;
 
@@ -840,19 +902,19 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             // !BUG HERE WILL NOT WORK
             // forward SWARM_MAVLINK traffic to P2P by default.
             // if there is no connection then use Communication Server.
-            
+            //      Intermodule_msg is used here because p2p module may fail to forward the message 
+            //      so it resends it with internal_flag=false
             de::STATUS &m_status = de::STATUS::getInstance();
-            if (m_status.is_p2p_connected())
+            if ((intermodule_msg)&&(m_status.is_p2p_module_connected()))
             {
-                std::cout << jsonMessage.dump() << std::endl;
-                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
+                processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
                 break;
             }
             else
             {
                 // forward the messages normally through the server.
                 andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, mt, ms);
+                andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
 
                 // TODO: IMPORTANT: There is no gurantee that P2P is working fine.... so we need a confirmation from P2P
                 // or P2P can resend SWARM_MAVLINK again and request forward to server directly.
@@ -863,21 +925,28 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
         default:
         {
+            /**
+             * @brief 
+             *      The default section uses the concept of [intermodule_msg] where messages are not forwarded to server
+             *  if it is marked intermodule_msg=true as it should be processed by other modules only.
+             * 
+             */
             
+
             if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
             {
-                processIncommingServerMessage (target_id, mt, full_message, actual_useful_size, module_key);
+                processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
             }
 
             if (!intermodule_msg)
             {   
                 andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, mt, ms);
+                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
             }
             else
             {
                 #ifdef DDEBUG_PARSER
-                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR:" << _TEXT_BOLD_HIGHTLITED_ << "Unhandeled internal event:" << std::to_string(mt) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR:" << _TEXT_BOLD_HIGHTLITED_ << "Unhandeled internal event:" << std::to_string(message_type) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
                 #endif
 
             }
@@ -913,7 +982,7 @@ void de::comm::CUavosModulesManager::processModuleRemoteExecute (const Json ms)
 /**
  * @brief Process messages comming from Communcation Server or other modules and forward it to subscribed modules.
  * 
- * @param sender_party_id 
+ * @param sender_party_id  // not used
  * @param command_type 
  * @param jsonMessage 
  * @param sender_module_key when message is forwarded from another module then it is necessary not to send message back to the sender module. e.g. messages such as TYPE_AndruavMessage_RemoteExecute
@@ -951,9 +1020,20 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
             if  (module_item->licence_status == LICENSE_VERIFIED_BAD)
             {
                 andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " is not allowed to run."));
-                break;
-            } else if ((module_item->is_dead == false) && ((sender_module_key.empty()) || (module_item->module_key.find(sender_module_key)==std::string::npos)))
+                continue; //skip this module.
+            } else if ((module_item->is_dead == false) 
+                  && ((sender_module_key.empty()) 
+                    // Dont send message back to its sender module [INTERMODULE_MODULE_KEY]
+                    || (module_item->module_key.find(sender_module_key)==std::string::npos))
+                    )
             {
+                // !BUG: if sender_module_key is empty message can be sent back to sender module.
+                //#ifdef DEBUG
+                //#ifdef DEBUG_MSG        
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Module " << *it  << " for message " << message_type << " is Available" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                //#endif
+                //#endif 
+
                 // clear to send
                 forwardMessageToModule (message, datalength, module_item);
             }
@@ -973,6 +1053,8 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
  */
 void de::comm::CUavosModulesManager::forwardMessageToModule ( const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item)
 {
+    const std::lock_guard<std::mutex> lock(g_i_mutex_process2);
+    
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: forwardMessageToModule: " << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -1026,20 +1108,28 @@ bool de::comm::CUavosModulesManager::handleDeadModules ()
                     PLOG(plog::error)<< log_msg ;
                 }
 
-                if (module_item->module_class.find("fcb")==0)
+                if (module_item->module_class.find(MODULE_CLASS_FCB)==0)
                 {
                     CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
                     ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
                     andruav_unit_info.use_fcb = false;
                     m_status.is_fcb_module_connected (false); //TODO: fix when offline
                 }
-                else if (module_item->module_class.find("camera")==0)
+                else if (module_item->module_class.find(MODULE_CLASS_VIDEO)==0)
                 {
                     m_status.is_camera_module_connected (false); //TODO: fix when offline
                 }
-                else if (module_item->module_class.find("p2p")==0)
+                else if (module_item->module_class.find(MODULE_CLASS_P2P)==0)
                 {
-                    m_status.is_p2p_connected(false);
+                    m_status.is_p2p_module_connected(false);
+                }
+                else if (module_item->module_class.find(MODULE_CLASS_SDR)==0)
+                {
+                    m_status.is_sdr_module_connected(false);
+                }
+                else if (module_item->module_class.find(MODULE_CLASS_SOUND)==0)
+                {
+                    m_status.is_sound_module_connected(false);
                 }
             }
         }

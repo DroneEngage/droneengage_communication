@@ -51,7 +51,7 @@ SOFTWARE.
 
 #include <utility>
 
-// #include <nlohmann/detail/conversions/from_json.hpp>
+// #include <nlohmann/detail/conversions/from_json_nlohmann.hpp>
 
 
 #include <algorithm> // transform
@@ -2210,7 +2210,7 @@ JSON_HEDLEY_DIAGNOSTIC_POP
 
 
 // This file contains all internal macro definitions
-// You MUST include macro_unscope.hpp at the end of json.hpp to undef all of them
+// You MUST include macro_unscope.hpp at the end of json_nlohmann.hpp to undef all of them
 
 // exclude unsupported compilers
 #if !defined(JSON_SKIP_UNSUPPORTED_COMPILER_CHECK)
@@ -4087,7 +4087,7 @@ constexpr const auto& from_json = detail::static_const<detail::from_json_fn>::va
 } // namespace
 } // namespace nlohmann
 
-// #include <nlohmann/detail/conversions/to_json.hpp>
+// #include <nlohmann/detail/conversions/to_json_nlohmann.hpp>
 
 
 #include <algorithm> // copy
@@ -4867,9 +4867,9 @@ class byte_container_with_subtype : public BinaryType
 
 }  // namespace nlohmann
 
-// #include <nlohmann/detail/conversions/from_json.hpp>
+// #include <nlohmann/detail/conversions/from_json_nlohmann.hpp>
 
-// #include <nlohmann/detail/conversions/to_json.hpp>
+// #include <nlohmann/detail/conversions/to_json_nlohmann.hpp>
 
 // #include <nlohmann/detail/exceptions.hpp>
 

@@ -12,7 +12,7 @@
 #include "andruav_comm_ws.hpp"
 
 
-#include "../helpers/json.hpp"
+#include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 
@@ -26,7 +26,7 @@ using Json_de = nlohmann::json;
 #define SOCKET_STATUS_UNREGISTERED 		7   // connected but not registred
 #define SOCKET_STATUS_ERROR 		    8   // Error
 
-namespace uavos
+namespace de
 {
   
     
@@ -70,6 +70,7 @@ namespace andruav_servers
             void start();
             void connect();
             void uninit(const bool exit);
+            void turnOnOff(const bool on_off, const uint32_t duration_seconds);
 
 
             void onSocketError () override;
@@ -82,10 +83,10 @@ namespace andruav_servers
         
             void API_pingServer();
             void API_sendSystemMessage(const int command_type, const Json_de& msg) const;
-            void API_sendCMD (const std::string& target_party_id, const int command_type, const Json_de& msg);
+            void API_sendCMD (const std::string& target_name, const int command_type, const Json_de& msg);
+            std::string API_sendCMDDummy (const std::string& target_name, const int command_type, const Json_de& msg);
             void API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const uint64_t bmsg_length, const Json_de& message_cmd);
             void sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd );
-
             int getStatus ()
             {
                 return m_status;
@@ -102,21 +103,24 @@ namespace andruav_servers
                 return m_lasttime_access;
             }
 
+
+        private:
+            void switchOnline();
+            void switchOffline();
+
             
         private:
             void startWatchDogThread();
 
             void connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id);
-            void parseCommand (const std::string& sender_party_id, const int& command_type, const Json_de& jsonMessage);
-            void parseRemoteExecuteCommand (const std::string& sender_party_id, const Json_de& jsonMessage);
             
             Json_de generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json_de& message) const;
             Json_de generateJSONSystemMessage (const int messageType, const Json_de& message) const;
             
         private:
-            //std::shared_ptr<uavos::andruav_servers::CWSSession> _cwssession;  
-            uavos::andruav_servers::CWSAProxy& _cwsa_proxy = uavos::andruav_servers::CWSAProxy::getInstance();
-            std::unique_ptr<uavos::andruav_servers::CWSASession> _cwsa_session;
+            //std::shared_ptr<de::andruav_servers::CWSSession> _cwssession;  
+            de::andruav_servers::CWSAProxy& _cwsa_proxy = de::andruav_servers::CWSAProxy::getInstance();
+            std::unique_ptr<de::andruav_servers::CWSASession> _cwsa_session;
 
             std::string m_url_param;
             std::string m_host;
@@ -127,6 +131,7 @@ namespace andruav_servers
 
             u_int64_t m_next_connect_time,  m_lasttime_access =0;
 
+            u_int64_t m_on_off_delay = 0;
 
             std::unique_ptr<std::thread> m_watch_dog;
             pthread_t m_watch_dog2;

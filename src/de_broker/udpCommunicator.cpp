@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #include "../helpers/colors.hpp"
-#include "../helpers/json.hpp"
+#include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 #include "udpCommunicator.hpp"
@@ -20,12 +20,8 @@ using Json_de = nlohmann::json;
 
 char buffer[MAXLINE]; 
 
-#define MAX_UDP_DATABUS_PACKET_SIZE 8192
 
-const int chunkSize = MAX_UDP_DATABUS_PACKET_SIZE; 
-
-
-uavos::comm::CUDPCommunicator::~CUDPCommunicator ()
+de::comm::CUDPCommunicator::~CUDPCommunicator ()
 {
     
     #ifdef DEBUG
@@ -60,11 +56,18 @@ uavos::comm::CUDPCommunicator::~CUDPCommunicator ()
  * @param host address of Communicator
  * @param listenningPort port of communicator
  */
-void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort)
+void de::comm::CUDPCommunicator::init (const char * host, int listenningPort, int chunkSize)
 {
     
-    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    if (m_chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
+    {
+        perror("invalid udp packet size."); 
+        exit(EXIT_FAILURE); 
+    }
 
+    m_chunkSize = chunkSize;
+
+    
     // pthread initialization
 	m_thread = pthread_self(); // get pthread ID
 	pthread_setschedprio(m_thread, SCHED_FIFO); // setting priority
@@ -95,11 +98,14 @@ void uavos::comm::CUDPCommunicator::init (const char * host, int listenningPort)
         exit(-1) ;
     } 
 
-    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:3" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Comm Server is Listening at " <<  _INFO_CONSOLE_TEXT << host << ":" <<  listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;  
+
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "UDP Max Packet Size " << _INFO_CONSOLE_TEXT << chunkSize <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
 
 }
 
-void uavos::comm::CUDPCommunicator::start()
+void de::comm::CUDPCommunicator::start()
 {
     #ifdef DEBUG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: start" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -115,12 +121,12 @@ void uavos::comm::CUDPCommunicator::start()
 }
 
 
-void uavos::comm::CUDPCommunicator::startReceiver ()
+void de::comm::CUDPCommunicator::startReceiver ()
 {
     m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
 };
 
-void uavos::comm::CUDPCommunicator::stop()
+void de::comm::CUDPCommunicator::stop()
 {
     #ifdef DEBUG
 	std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -156,7 +162,7 @@ void uavos::comm::CUDPCommunicator::stop()
 }
 
 
-void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
+void de::comm::CUDPCommunicator::InternalReceiverEntry()
 {
     #ifdef DDEBUG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: InternalReceiverEntry" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -241,7 +247,7 @@ void uavos::comm::CUDPCommunicator::InternalReceiverEntry()
 /**
  * Sends JMSG to Communicator
  **/
-void uavos::comm::CUDPCommunicator::SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address)
+void de::comm::CUDPCommunicator::SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address)
 {
     std::lock_guard<std::mutex> lock(m_lock);
 
@@ -254,7 +260,7 @@ void uavos::comm::CUDPCommunicator::SendMsg(const char * message, const std::siz
 
         while (remainingLength > 0)
         {
-            int chunkLength = std::min(chunkSize, remainingLength);
+            int chunkLength = std::min(m_chunkSize, remainingLength);
             remainingLength -= chunkLength;
             
             // Create a new message with the chunk size + sizeof(uint8_t)

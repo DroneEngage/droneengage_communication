@@ -4,7 +4,7 @@
 
 #include "./comm_server/andruav_unit.hpp"
 
-namespace uavos 
+namespace de 
 {
 class STATUS {
     
@@ -43,14 +43,34 @@ class STATUS {
                 m_online = online; 
             }
 
-            inline const bool is_p2p_connected() const
+            inline const bool is_p2p_module_connected() const
             {
-                return false;
+                return m_p2p_module_connected;
             }
 
-            inline void is_p2p_connected(const bool is_p2p_connected) 
+            inline void is_p2p_module_connected(const bool is_p2p_module_connected) 
             {
-                return ;
+                m_p2p_module_connected = is_p2p_module_connected;
+            }
+
+            inline const bool is_sound_module_connected() const
+            {
+                return m_sound_module_connected;
+            }
+
+            inline void is_sound_module_connected(const bool is_sound_module_connected) 
+            {
+                m_sound_module_connected = is_sound_module_connected;
+            }
+
+            inline const bool is_sdr_module_connected() const
+            {
+                return m_sdr_module_connected;
+            }
+
+            inline void is_sdr_module_connected(const bool is_sdr_module_connected) 
+            {
+                m_sdr_module_connected = is_sdr_module_connected;
             }
 
             inline bool is_fcb_module_connected() const
@@ -144,6 +164,9 @@ class STATUS {
             bool m_online = false;
             bool m_fcb_module_connected = false;
             bool m_camera_module_connected = false;
+            bool m_p2p_module_connected = false;
+            bool m_sound_module_connected = false;
+            bool m_sdr_module_connected = false;
             bool m_buzzer = false;
             bool m_light = false;
 

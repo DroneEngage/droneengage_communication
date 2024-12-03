@@ -33,7 +33,7 @@
 #include "./comm_server/andruav_unit.hpp"
 #include "./comm_server/andruav_comm_server.hpp"
 #include "./comm_server/andruav_facade.hpp"
-#include "./uavos/uavos_modules_manager.hpp"
+#include "./de_broker/de_modules_manager.hpp"
 #include "./hal/gpio.hpp"
 #include "./notification_module/leds.hpp"
 #include "./notification_module/buzzer.hpp"
@@ -45,10 +45,10 @@
 using namespace std;
 
 
-uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
-uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
+de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
 
-uavos::comm::CUavosModulesManager& cUavosModulesManager = uavos::comm::CUavosModulesManager::getInstance();  
+de::comm::CUavosModulesManager& cUavosModulesManager = de::comm::CUavosModulesManager::getInstance();  
 //hal_linux::CRPI_GPIO &cGPIO = hal_linux::CRPI_GPIO::getInstance();
 notification::CLEDs &cLeds = notification::CLEDs::getInstance();
 notification::CBuzzer &cBuzzer = notification::CBuzzer::getInstance();
@@ -75,7 +75,7 @@ void _version (void)
 {
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage Communicator Server version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #ifdef DEBUG
-    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_TEXT_BOLD_ << __DATE__ << " --- " << __TIME__ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_BOLD_TEXT << __DATE__ << " --- " << __TIME__ << std::endl;
     #endif
 }
 
@@ -96,7 +96,7 @@ void _usage(void)
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--bconfig:         -b ./bconfig.json  default [./de_comm.local]" << _NORMAL_CONSOLE_TEXT_ << std::ends;
     std::cout << std::endl << _INFO_CONSOLE_TEXT "\t--version:         -v" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 }
-
+int test_counter =0;
 
 /**
  * @brief main loop function.
@@ -109,23 +109,33 @@ void scheduler ()
     const int every_sec_10 = 100;
     const int every_sec_15 = 150;
 
-    uavos::andruav_servers::CAndruavFacade& andruav_facade = uavos::andruav_servers::CAndruavFacade::getInstance();
+    de::andruav_servers::CAndruavFacade& andruav_facade = de::andruav_servers::CAndruavFacade::getInstance();
     
     uint64_t hz_10 = 0;
-    uavos::STATUS &status = uavos::STATUS::getInstance();
+    de::STATUS &status = de::STATUS::getInstance();
 
     while (!exit_scheduler)
     {
         hz_10++;
         
-        status.is_online(uavos::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED);
+        status.is_online(de::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED);
 
         cLeds.update();
         cBuzzer.update();
         
         if (hz_10 % every_sec_1 == 0)
         {
-            
+            if (test_counter % 10)
+            {
+                if (status.is_online())
+                {
+
+                }
+                else
+                {
+                    
+                }
+            }
         }
 
         if (hz_10 % every_sec_5 == 0)
@@ -192,7 +202,7 @@ void initLogger()
     
     if ((jsonConfig.contains("logger_enabled") == false) || (jsonConfig["logger_enabled"].get<bool>()==false))
     {
-        std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Logging " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         return ;
     }
@@ -204,7 +214,7 @@ void initLogger()
         debug_log = jsonConfig["logger_debug"].get<bool>();
     }
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Logging " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "ENABLED" << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
 
         
 
@@ -214,7 +224,7 @@ void initLogger()
     log_filename_final <<  "./logs/log_" << std::put_time(&tm, "%d-%m-%Y_%H-%M-%S") << ".log";
     mkdir("./logs/",0777);
 
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_TEXT_BOLD_ << " detailed:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Logging to " << _INFO_CONSOLE_TEXT << log_filename << _LOG_CONSOLE_BOLD_TEXT << " detailed:" << _INFO_CONSOLE_TEXT << log_filename_final.str() <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
     auto log_level = debug_log==true?plog::debug:plog::info;
 
     plog::init(log_level, log_filename_final.str().c_str()); 
@@ -225,8 +235,8 @@ void initLogger()
 void defineMe()
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
-    uavos::CAndruavUnitMe& m_andruavMe = uavos::CAndruavUnitMe::getInstance();
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+    de::CAndruavUnitMe& m_andruavMe = de::CAndruavUnitMe::getInstance();
+    de::ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
     
     std::string party_id = cLocalConfigFile.getStringField("party_id");
     if (party_id=="")
@@ -260,9 +270,17 @@ void defineMe()
         cLocalConfigFile.apply();
     }
 
+    if (validateField(jsonConfig, "unit_type",Json_de::value_t::string))
+    {
+        std::string vehicle_type  = jsonConfig["unit_type"].get<std::string>();
+        if (str_tolower(vehicle_type)=="control_unit")
+        {
+            unit_info.vehicle_type = de::ANDRUAV_UNIT_TYPE::CONTROL_UNIT;
+        }
+    }
     
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "party_id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
-    std::cout  << _LOG_CONSOLE_TEXT_BOLD_ << "module_key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Party Id " << _INFO_CONSOLE_TEXT << party_id << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
+    std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Key " << _INFO_CONSOLE_TEXT << module_key << _NORMAL_CONSOLE_TEXT_ <<  std::endl;
     
     
     unit_info.party_id = party_id;
@@ -281,15 +299,26 @@ void defineMe()
  * @brief Initialize UDP connection with other modules.
  * 
  */
-void initSockets()
+void initModuleManager()
 {
-    uavos::CConfigFile& cConfigFile = uavos::CConfigFile::getInstance();
+    de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
-    uavos::CLocalConfigFile& cLocalConfigFile = uavos::CLocalConfigFile::getInstance();
+    de::CLocalConfigFile& cLocalConfigFile = de::CLocalConfigFile::getInstance();
     std::string module_key = cLocalConfigFile.getStringField("module_key");
-    uavos::ANDRUAV_UNIT_INFO&  unit_info = uavos::CAndruavUnitMe::getInstance().getUnitInfo();
+    de::ANDRUAV_UNIT_INFO&  unit_info = de::CAndruavUnitMe::getInstance().getUnitInfo();
     
         
+    int udp_chunk_size = DEFAULT_UDP_DATABUS_PACKET_SIZE;
+    
+    if (validateField(jsonConfig, "s2s_udp_packet_size",Json_de::value_t::string)) 
+    {
+        udp_chunk_size = std::stoi(jsonConfig["s2s_udp_packet_size"].get<std::string>());
+    }
+    else
+    {
+        std::cout << _LOG_CONSOLE_BOLD_TEXT << "WARNING:" << _INFO_CONSOLE_TEXT << " MISSING FIELD " << _ERROR_CONSOLE_BOLD_TEXT_ << "s2s_udp_packet_size " <<  _INFO_CONSOLE_TEXT << "is missing in config file. default value " << _ERROR_CONSOLE_BOLD_TEXT_  << "8160 " <<  _INFO_CONSOLE_TEXT <<  "is used." << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+    }
+
     cUavosModulesManager.defineModule( MODULE_CLASS_COMM, 
                         jsonConfig["module_id"],
                         cLocalConfigFile.getStringField("module_key"),
@@ -298,7 +327,8 @@ void initSockets()
                         jsonConfig["groupID"].get<std::string>());
 
     cUavosModulesManager.init(jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
-                    std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()));
+                    std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()),
+                    udp_chunk_size);
     
 }
 
@@ -401,7 +431,7 @@ void init (int argc, char *argv[])
     initArguments (argc, argv);
 
     // Reading Configuration
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING UAVOS COMMUNICATOR ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "=================== " << "STARTING DroneEngage COMMUNICATOR ===================" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
     signal(SIGINT,quit_handler);
     signal(SIGTERM,quit_handler);
@@ -413,10 +443,10 @@ void init (int argc, char *argv[])
     _version();
     
     #ifdef DEBUG
-    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_TEXT_BOLD_ << __DATE__ << " --- " << __TIME__ << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_BOLD_TEXT << __DATE__ << " --- " << __TIME__ << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_TEXT_BOLD_ << " seconds since the Epoch" << _NORMAL_CONSOLE_TEXT_  << std::endl;
+    std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_BOLD_TEXT << " seconds since the Epoch" << _NORMAL_CONSOLE_TEXT_  << std::endl;
 
     initLogger();
 
@@ -426,17 +456,17 @@ void init (int argc, char *argv[])
 
     initScheduler();
 
-    initSockets();
+    initModuleManager();
 
 }
 
 
 void loop () 
 {
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    de::andruav_servers::CAndruavCommServer& andruav_server = de::andruav_servers::CAndruavCommServer::getInstance();
     
     
-    while (!uavos::STATUS::getInstance().m_exit_me)
+    while (!de::STATUS::getInstance().m_exit_me)
     {
        andruav_server.start();
        std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -447,9 +477,9 @@ void loop ()
 void uninit ()
 {
 
-    uavos::andruav_servers::CAndruavCommServer& andruav_server = uavos::andruav_servers::CAndruavCommServer::getInstance();
+    de::andruav_servers::CAndruavCommServer& andruav_server = de::andruav_servers::CAndruavCommServer::getInstance();
 
-    uavos::STATUS::getInstance().m_exit_me = true;
+    de::STATUS::getInstance().m_exit_me = true;
     exit_scheduler = true;
     // wait for exit
     m_scheduler.join();

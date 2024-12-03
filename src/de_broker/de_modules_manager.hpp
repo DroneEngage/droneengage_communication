@@ -1,5 +1,5 @@
-#ifndef UAVOS_MODULES_MANAGER_H_
-#define UAVOS_MODULES_MANAGER_H_
+#ifndef de_modules_manager_H_
+#define de_modules_manager_H_
 
 #include <iostream>
 #include <sys/socket.h> 
@@ -12,7 +12,7 @@
 #include <sys/socket.h>
 
 
-#include "../helpers/json.hpp"
+#include "../helpers/json_nlohmann.hpp"
 using Json = nlohmann::json;
 
 #include "../global.hpp"
@@ -23,7 +23,11 @@ using Json = nlohmann::json;
 #define MODULE_CLASS_COMM                       "comm"
 #define MODULE_CLASS_FCB                        "fcb"
 #define MODULE_CLASS_VIDEO                      "camera"
+#define MODULE_CLASS_P2P                        "p2p"
+#define MODULE_CLASS_SOUND                      "snd"
+#define MODULE_CLASS_GPIO                       "gpio"
 #define MODULE_CLASS_GENERIC                    "gen"
+#define MODULE_CLASS_SDR                        "sdr"
 
 
 // 5 seconds
@@ -72,6 +76,7 @@ typedef struct
     bool is_camera_avail;
     int is_camera_streaming;
     int camera_type; // Internal & External.... legacy ... always external now.
+    uint64_t camera_specification =0; 
     uint64_t module_last_access_time = 0;
     bool updates;
 
@@ -88,12 +93,12 @@ typedef std::map <std::string, std::unique_ptr<std::map
                               <std::string,std::unique_ptr
                               <MODULE_CAMERA_ENTRY>>>> MODULE_CAMERA_LIST;
 
-namespace uavos
+namespace de
 {
 namespace comm
 {
     /**
-     * @brief Handles different uavos modules registration, updating, message forwarding and calling back.
+     * @brief Handles different de modules registration, updating, message forwarding and calling back.
      * 
      */
     class CUavosModulesManager : public CCallBack_UDPCommunicator
@@ -132,7 +137,7 @@ namespace comm
                             std::string group_id
                         );
             
-            bool init (const std::string host, int listenningPort);
+            bool init (const std::string host, int listenningPort, int chunkSize);
             void uninit();
          
             void parseIntermoduleMessage (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_in* ssock);
@@ -250,7 +255,7 @@ namespace comm
             MODULE_CAMERA_LIST m_camera_list;
 
             
-            uavos::STATUS &m_status = uavos::STATUS::getInstance();
+            de::STATUS &m_status = de::STATUS::getInstance();
             
             CUDPCommunicator cUDPClient; 
             

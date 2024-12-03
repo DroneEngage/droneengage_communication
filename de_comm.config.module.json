@@ -5,16 +5,17 @@
     
     // A name and GUID for this module
     "module_id"                 : "MT_1",
-    
+    "unit_type"                 : "control_unit",
     // IP & Port Communication Module is listening to.
     "s2s_udp_listening_ip"      : "0.0.0.0",
-    "s2s_udp_listening_port"    : "60000",
+    "s2s_udp_listening_port"    : "60000",  
+    "s2s_udp_packet_size"       : "8192",
 
     
     // Drone-Engage Communication Server Connection
-    "auth_ip"                   : "cloud.ardupilot.org",
+    "auth_ip"                   : "127.0.0.1",
     "auth_port"                 : 19408,
-    "auth_verify_ssl"           : true,
+    "auth_verify_ssl"           : false,
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
     "root_certificate_path"     : "./root.crt",
 
@@ -48,14 +49,9 @@
     "buzzer_pins"               :[
                                     {"name":"status", "gpio":13},
                                     {"name":"LoudBuzzer", "gpio":6}
-                                ],
+                                ]
 
     //"allow_temp":               cat /sys/class/thermal/thermal_zone0
  
-    
-
-    "images": {
-        "save_images":  true,
-        "media_folder": "./media"
-    }
+   
 }

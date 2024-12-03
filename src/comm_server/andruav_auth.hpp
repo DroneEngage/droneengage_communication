@@ -10,7 +10,7 @@
 
 
 
-#include "../helpers/json.hpp"
+#include "../helpers/json_nlohmann.hpp"
 
 using Json_de = nlohmann::json;
 
@@ -50,7 +50,7 @@ using Json_de = nlohmann::json;
 #define AUTH_REPLY_PERMISSION                     "per"
 
 
-namespace uavos
+namespace de
 {
 namespace andruav_servers
 {

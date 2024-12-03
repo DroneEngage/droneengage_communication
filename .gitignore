@@ -1,5 +1,5 @@
 .vscode/
-
+CMakeFiles
 bin/
 build/
 logs/

@@ -6,10 +6,13 @@
 #include <mutex>          // std::mutex, std::unique_lock
 
 
- typedef void (*ONRECEIVE_CALLBACK)(const char *, int len, struct sockaddr_in *  sock);
+#define MAX_UDP_DATABUS_PACKET_SIZE 0xffff
+#define DEFAULT_UDP_DATABUS_PACKET_SIZE 8160
+
+typedef void (*ONRECEIVE_CALLBACK)(const char *, int len, struct sockaddr_in *  sock);
 
 
-namespace uavos
+namespace de
 {
 namespace comm
 {
@@ -37,7 +40,7 @@ class CUDPCommunicator
         ~CUDPCommunicator ();
     
     public:
-        void init(const char * host, int listenningPort);
+        void init(const char * host, int listenningPort, int chunkSize);
         void start();
         void stop();
         void SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address);
@@ -58,6 +61,8 @@ class CUDPCommunicator
         std::mutex m_lock;  
         
         CCallBack_UDPCommunicator *m_callback = nullptr;
+
+        int m_chunkSize;
 };
 }
 }

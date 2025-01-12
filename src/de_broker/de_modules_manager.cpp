@@ -24,9 +24,9 @@
 #include "../comm_server/andruav_comm_server.hpp"
 #include "../comm_server/andruav_facade.hpp"
 #include "../comm_server/andruav_auth.hpp"
-#include "../comm_server/andruav_message.hpp"
 #include "../de_broker/de_modules_manager.hpp"
 #include "../de_general_mission_planner/mission_manager_base.hpp"
+#include "andruav_message.hpp"
 
 
 
@@ -1061,7 +1061,7 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
 */
 void de::comm::CUavosModulesManager::forwardCommandsToModules(const int& message_type, const char * message, const std::size_t datalength)
 {
-    Json_de json_msg  = de::andruav_servers::CAndruavMessage::getInstance().generateJSONMessage(CMD_COMM_INDIVIDUAL, std::string(""), std::string(""), TYPE_AndruavMessage_GPIO_ACTION, message);
+    Json_de json_msg  = CAndruavMessage::getInstance().generateJSONMessage(CMD_COMM_INDIVIDUAL, std::string(""), std::string(""), TYPE_AndruavMessage_GPIO_ACTION, message);
         
     std::string cmd = json_msg.dump();
     std::cout << "cmd:" << cmd.c_str() << " ::: len:" << cmd.length() << std::endl;

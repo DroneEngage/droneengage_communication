@@ -8,10 +8,9 @@ using Json_de = nlohmann::json;
 
 namespace de
 {
-  
-    
-namespace andruav_servers
+namespace comm
 {
+
 
 class CAndruavMessage 
     {

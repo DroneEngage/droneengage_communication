@@ -104,27 +104,6 @@ class STATUS {
                 m_camera_module_connected = camera_module_connected;
             }
 
-            inline bool is_light_connected() const
-            {
-                return m_light;
-            }
-
-            inline void is_light_connected(const bool light)
-            {
-                m_light = light;
-            }
-
-            inline bool is_buzzer_connected() const
-            {
-                return m_buzzer;
-            }
-
-            inline void is_buzzer_connected(const bool buzzer)
-            {
-                m_buzzer = buzzer;
-            }
-
-
             inline void cpu_temp (const uint32_t cpu_temprature)
             {
                 m_cpu_temprature = cpu_temprature;

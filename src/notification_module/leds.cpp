@@ -24,9 +24,6 @@ using namespace notification;
 bool CLEDs::init ()
 {
     
-    
-    m_status.is_light_connected(true);
-
     m_error = ENUM_Module_Error_Code::ERR_NON;
 
     return true;

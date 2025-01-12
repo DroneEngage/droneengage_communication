@@ -23,8 +23,6 @@ bool CBuzzer::init ()
 {
     m_error = ENUM_Module_Error_Code::ERR_NON;
 
-    m_status.is_buzzer_connected(true);
-   
     return true;
 }
 

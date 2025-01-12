@@ -8,12 +8,12 @@
 
 #include "../helpers/colors.hpp"
 #include "../helpers/util_rpi.hpp"
-
+#include "../messages.hpp"
 #include "../hal_linux/rpi_gpio.hpp"
 #include "leds.hpp"
 
 
-
+#include "../de_broker/de_modules_manager.hpp"
 
 
 
@@ -21,38 +21,13 @@ using namespace notification;
 
 
     
-bool CLEDs::init (const std::vector<PORT_STATUS>& led_pins)
+bool CLEDs::init ()
 {
-    if (led_pins.size() == 0) 
-    {
-        std::cout << _LOG_CONSOLE_TEXT << "LEDs " << _INFO_CONSOLE_TEXT << "Disabled" << std::endl; 
-        
-        m_error = ENUM_Module_Error_Code::ERR_NO_HW_AVAILABLE;
-        return false;
-    }
-
-    m_port_pins = led_pins;
-
-    if (!hal_linux::CRPI_GPIO::getInstance().init())
-    {
-        std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Could not initialize LED GPIO pins." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-        m_error = ENUM_Module_Error_Code::ERR_INIT_FAILED;
-
-        return false;
-    }
-
-    m_error = ENUM_Module_Error_Code::ERR_NON;
-
-    for (auto pin : m_port_pins)
-    {
-        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Initalize LED at GPIO " << _INFO_CONSOLE_TEXT << std::to_string(pin.gpio_pin) << std::endl; 
-        hal_linux::CRPI_GPIO::getInstance().pinMode(pin.gpio_pin, HAL_GPIO_OUTPUT);
-        hal_linux::CRPI_GPIO::getInstance().write(pin.gpio_pin, GPIO_OFF);
-        m_port_pins[pin.gpio_pin].status = GPIO_OFF;
-    }
+    
     
     m_status.is_light_connected(true);
+
+    m_error = ENUM_Module_Error_Code::ERR_NON;
 
     return true;
 }
@@ -98,23 +73,41 @@ void CLEDs::switchLED(const uint8_t led_index, const bool onOff)
  */
 void CLEDs::update() 
 {
-    if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
-    if (m_status.m_exit_me) return ;
+    if ((m_error != ENUM_Module_Error_Code::ERR_NON) ||(m_status.m_exit_me))
+     return ;
     
-    if ((m_status.is_online()) && (m_status.is_fcb_module_connected()))
+    if (m_status.is_gpio_module_connected())
     {
-        hal_linux::CRPI_GPIO::getInstance().write(m_port_pins[0].gpio_pin, GPIO_ON);
-        m_port_pins[0].status = LED_STATUS_ON;
-    }
-    else if (!m_status.is_online())
-    {
-        hal_linux::CRPI_GPIO::getInstance().toggle(m_port_pins[0].gpio_pin);
-        m_port_pins[0].status = LED_STATUS_FLASHING;
+
+        if (m_status.is_online())
+        {
+            m_power_led_on = LED_ON;
+        }
+        else
+        {
+            m_power_led_on = !m_power_led_on;
+        }
+        
+        Json_de message =
+        {
+            {"a", GPIO_ACTION_PORT_WRITE},
+            {"n", "power_led"},
+            {"v", m_power_led_on}
+        };
+
+        
+        const std::string cmd = message.dump();
+        
+        #ifdef DEBUG
+        std::cout << "cmd:" << cmd.c_str() << "::: len:" << cmd.length() << std::endl;
+        #endif
+        
+        de::comm::CUavosModulesManager::getInstance().forwardCommandsToModules(TYPE_AndruavMessage_GPIO_ACTION, cmd.c_str(), cmd.length());
+    
     }
     else if (m_counter % 3 == 0)
     {
-        hal_linux::CRPI_GPIO::getInstance().toggle(m_port_pins[0].gpio_pin);
-        m_port_pins[0].status = LED_STATUS_FLASHING;
+        
     }
 
     m_counter++;

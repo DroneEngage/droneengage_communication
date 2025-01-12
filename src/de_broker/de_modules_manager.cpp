@@ -24,6 +24,7 @@
 #include "../comm_server/andruav_comm_server.hpp"
 #include "../comm_server/andruav_facade.hpp"
 #include "../comm_server/andruav_auth.hpp"
+#include "../comm_server/andruav_message.hpp"
 #include "../de_broker/de_modules_manager.hpp"
 #include "../de_general_mission_planner/mission_manager_base.hpp"
 
@@ -632,6 +633,13 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
         
         m_status.is_sdr_module_connected(true);
     }
+    else if ((!m_status.is_gpio_module_connected()) && (module_class.find(MODULE_CLASS_GPIO)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_GPIO << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_gpio_module_connected(true);
+    }
+    
 
     else if ((!m_status.is_sound_module_connected()) && (module_class.find(MODULE_CLASS_SOUND)==0))
     {
@@ -659,7 +667,7 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
 
 /**
  * @brief 
- * Process messages recieved from module and may forward to Andruav ommunication server.
+ * Process messages received from module and may forward to DroneEngage Communication server.
  * @details 
  * @param full_message 
  * @param full_message_length 
@@ -923,6 +931,8 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         break;
 
 
+        
+
         default:
         {
             /**
@@ -1042,6 +1052,23 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
 
     return ;
 }
+
+
+/**
+* @brief The function is IMPORTANT it is used by DroneEngageCommunicator as a Main Module to forward messages
+* to other modules.
+* 
+*/
+void de::comm::CUavosModulesManager::forwardCommandsToModules(const int& message_type, const char * message, const std::size_t datalength)
+{
+    Json_de json_msg  = de::andruav_servers::CAndruavMessage::getInstance().generateJSONMessage(CMD_COMM_INDIVIDUAL, std::string(""), std::string(""), TYPE_AndruavMessage_GPIO_ACTION, message);
+        
+    std::string cmd = json_msg.dump();
+    std::cout << "cmd:" << cmd.c_str() << " ::: len:" << cmd.length() << std::endl;
+
+    de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(std::string(""), TYPE_AndruavMessage_GPIO_ACTION, cmd.c_str(), cmd.length(), std::string(""));
+}
+
 
 
 /**

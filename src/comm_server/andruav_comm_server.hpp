@@ -10,7 +10,7 @@
 
 #include "andruav_unit.hpp"
 #include "andruav_comm_ws.hpp"
-
+#include "andruav_message.hpp"
 
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
@@ -137,6 +137,8 @@ namespace andruav_servers
             pthread_t m_watch_dog2;
             bool m_exit;
             CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();
+
+            CAndruavMessage& m_andruav_message = CAndruavMessage::getInstance();
     };
 }
 }

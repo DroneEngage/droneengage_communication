@@ -13,7 +13,10 @@
  */
 
 #include "notification.hpp"
+#include "../status.hpp"
 
+#define LED_ON  1
+#define LED_OFF 0
 namespace notification
 {
 
@@ -45,7 +48,7 @@ class CLEDs : public CNotification
 
     public:
 
-        bool init (const std::vector<PORT_STATUS>& led_pins) override;
+        bool init () override;
         void update() override;
         void uninit() override;  
         
@@ -54,6 +57,11 @@ class CLEDs : public CNotification
 
     private:
         uint32_t m_counter;
+        de::STATUS &m_status = de::STATUS::getInstance();
+
+    private:
+        int m_power_led_on = 0;
+                 
 };
 
 }

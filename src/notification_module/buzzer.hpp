@@ -67,7 +67,7 @@ class CBuzzer: public CNotification
 
     public:
 
-        bool init (const std::vector<PORT_STATUS>& buzzer_pins);
+        bool init ();
         void update() override;
         void uninit() override;  
 

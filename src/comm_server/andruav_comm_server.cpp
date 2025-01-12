@@ -23,6 +23,7 @@
 #include "andruav_facade.hpp"
 #include "andruav_parser.hpp"
 
+
 std::thread g;
 // Based on Below Model
 // https://www.boost.org/doc/libs/develop/libs/beast/example/websocket/client/async-ssl/websocket_client_async_ssl.cpp
@@ -571,7 +572,7 @@ void de::andruav_servers::CAndruavCommServer::API_sendSystemMessage(const int co
     {
         if (!_cwsa_session) return;
 
-        Json_de json_msg  = this->generateJSONSystemMessage (command_type, msg);
+        Json_de json_msg  = m_andruav_message.generateJSONSystemMessage (command_type, msg);
         _cwsa_session.get()->writeText(json_msg.dump());
     } 
 }
@@ -606,7 +607,7 @@ void de::andruav_servers::CAndruavCommServer::API_sendCMD (const std::string& ta
     {
         if (!_cwsa_session)  return ;
 
-        Json_de json_msg  = this->generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
+        Json_de json_msg  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
         _cwsa_session.get()->writeText(json_msg.dump());
     } 
 }
@@ -629,7 +630,7 @@ std::string de::andruav_servers::CAndruavCommServer::API_sendCMDDummy (const std
 
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
-        Json_de json_msg  = this->generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
+        Json_de json_msg  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
         return json_msg.dump();
     } 
 
@@ -671,7 +672,7 @@ void de::andruav_servers::CAndruavCommServer::API_sendBinaryCMD (const std::stri
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
         
-        Json_de json  = this->generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, message_cmd);
+        Json_de json  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, message_cmd);
         std::string json_msg = json.dump();
         char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
         strcpy(msg_ptr,json_msg.c_str());
@@ -723,63 +724,6 @@ void de::andruav_servers::CAndruavCommServer::sendMessageToCommunicationServer (
     }
 }
 
-
-/// @brief 
-/// 
-/// @param message_routing @link CMD_COMM_GROUP @endlink, @link CMD_COMM_INDIVIDUAL @endlink
-/// @param sender_name 
-/// @param target_party_id  single target except for the following
-///  *_GD_* all GCS
-///  *_AGN_* all agents
-/// @param messageType 
-/// @param message 
-/// @return Json_de 
-Json_de de::andruav_servers::CAndruavCommServer::generateJSONMessage (const std::string& message_routing, const std::string& sender_name, const std::string& target_party_id, const int messageType, const Json_de& message) const
-{
-
-    #ifdef DDEBUG_MSG        
-    
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-    
-    Json_de jMsg;
-    jMsg[INTERMODULE_ROUTING_TYPE] = message_routing;
-    jMsg[ANDRUAV_PROTOCOL_SENDER] = sender_name;
-    if (!target_party_id.empty())
-    {
-        jMsg[ANDRUAV_PROTOCOL_TARGET_ID] = target_party_id;
-    }
-    else
-    {
-        // Inconsistent packet.... but dont enforce global packet for security reasons.
-        //jMsg[INTERMODULE_ROUTING_TYPE] = CMD_COMM_GROUP; // enforce group if party id is null.
-    }
-    jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] = messageType;
-    jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD] = message;
-    
-
-    return jMsg;
-}
-
-/// @brief Generate JSON message for a system message.
-/// @param messageType 
-/// @param message 
-/// @return Json_de object of the message.
-Json_de de::andruav_servers::CAndruavCommServer::generateJSONSystemMessage (const int messageType, const Json_de& message) const
-{
-    #ifdef DDEBUG_MSG        
-    
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "generateJSONMessage " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-    
-    Json_de jMsg;
-    jMsg[INTERMODULE_ROUTING_TYPE]      = CMD_COMM_SYSTEM;
-    jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE] = messageType;
-    jMsg[ANDRUAV_PROTOCOL_MESSAGE_CMD]  = message;
-    
-
-    return jMsg;
-}
 
 void de::andruav_servers::CAndruavCommServer::switchOnline()
 {

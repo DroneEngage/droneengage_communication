@@ -120,11 +120,11 @@ void scheduler ()
         
         status.is_online(de::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED);
 
-        cLeds.update();
         cBuzzer.update();
         
         if (hz_10 % every_sec_1 == 0)
         {
+            cLeds.update();
             if (test_counter % 10)
             {
                 if (status.is_online())
@@ -337,42 +337,24 @@ void initGPIO()
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
 
-    if (!jsonConfig.contains("led_pins")
-    || ((jsonConfig.contains("led_pins_enabled")) && (jsonConfig["led_pins_enabled"].get<bool>()==false))
-    )
+    if ((jsonConfig.contains("led_pins_enabled")) && (jsonConfig["led_pins_enabled"].get<bool>()==false))
     {
         std::cout  << _INFO_CONSOLE_TEXT << "LEDs pins \"led_pins\" are not defined. Notification will be " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return ;
     }
 
 
-    std::vector<notification::PORT_STATUS> led_pins;
-
-    for (auto const& pin : jsonConfig["led_pins"])
-    {
-        led_pins.push_back({pin["name"].get<std::string>(),static_cast<uint8_t>(pin["gpio"].get<int>()), LED_STATUS_OFF});
-    }
-    
-    cLeds.init(led_pins);
+    cLeds.init();
     
      
 
-    if (!jsonConfig.contains("buzzer_pins")
-    || ((jsonConfig.contains("buzzer_pins_enabled")) && (jsonConfig["buzzer_pins_enabled"].get<bool>()==false))
-    )
+    if ((jsonConfig.contains("buzzer_pins_enabled")) && (jsonConfig["buzzer_pins_enabled"].get<bool>()==false))
     {
         std::cout  << _INFO_CONSOLE_TEXT << "Buzzer pins \"buzzer_pins\" are not defined. Notification will be " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return ;
     }
 
-    std::vector<notification::PORT_STATUS> buzzer_pins;
-
-    for (auto const& pin : jsonConfig["buzzer_pins"])
-    {
-        buzzer_pins.push_back({pin["name"].get<std::string>(),static_cast<uint8_t>(pin["gpio"].get<int>()), GPIO_OFF});
-    }
-    
-    cBuzzer.init(buzzer_pins);
+    cBuzzer.init();
     
 }
 

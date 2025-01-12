@@ -305,14 +305,24 @@
  * [a]: SDR_ACTION_TRIGGER                                  7
  */
 #define TYPE_AndruavMessage_SDR_ACTION                      6514
-#define TYPE_AndruavMessage_SDR_STATUS                      6515
+#define TYPE_AndruavMessage_SDR_REMOTE_EXECUTE              6515
 #define TYPE_AndruavMessage_SDR_SPECTRUM                    6516
 
+
+// GPIO Parameters
+#define GPIO_ACTION_PORT_CONFIG                                0
+#define GPIO_ACTION_INFO                                       1
+#define GPIO_ACTION_PORT_WRITE                                 2
 
 #define TYPE_AndruavMessage_P2P_INFO                        6517
 
 
 #define TYPE_AndruavMessage_Mission_Item_Sequence           6518
+
+
+#define TYPE_AndruavMessage_GPIO_ACTION                      6519
+#define TYPE_AndruavMessage_GPIO_STATUS                      6520
+#define TYPE_AndruavMessage_GPIO_REMOTE_EXECUTE              6521
 /**********************************************************************
                         EOF Andruav Messages 2019
 **********************************************************************/

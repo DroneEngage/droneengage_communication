@@ -1038,11 +1038,11 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
                     )
             {
                 // !BUG: if sender_module_key is empty message can be sent back to sender module.
-                //#ifdef DEBUG
-                //#ifdef DEBUG_MSG        
+                #ifdef DEBUG
+                #ifdef DEBUG_MSG        
                 std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Module " << *it  << " for message " << message_type << " is Available" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                //#endif
-                //#endif 
+                #endif
+                #endif 
 
                 // clear to send
                 forwardMessageToModule (message, datalength, module_item);

@@ -119,7 +119,8 @@ namespace comm
 
             CUavosModulesManager():cUDPClient(this)
             {
-
+                m_instance_time_stamp = std::time(nullptr);
+                
             }
 
 
@@ -238,6 +239,8 @@ namespace comm
             std::string m_party_id;
             std::string m_group_id;
 
+            std::time_t m_instance_time_stamp;
+    
             /**
              * @brief 
              * list of registered modules mapped by module id

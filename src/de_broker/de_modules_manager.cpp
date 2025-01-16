@@ -131,10 +131,11 @@ Json de::comm::CUavosModulesManager::createJSONID (const bool& reSend)
                     };
         
         // this is NEW in communicator and could be ignored by current DroneEngage modules.
-        ms[JSON_INTERMODULE_SOCKET_STATUS]      = andruav_servers::CAndruavCommServer::getInstance().getStatus();
-        ms[JSON_INTERMODULE_RESEND]             = reSend;
+        ms[JSON_INTERMODULE_SOCKET_STATUS]          = andruav_servers::CAndruavCommServer::getInstance().getStatus();
+        ms[JSON_INTERMODULE_RESEND]                 = reSend;
 
-        jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD]    = ms;
+        ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = m_instance_time_stamp;
+        jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD]        = ms;
         
         return jsonID;
     }
@@ -1088,7 +1089,6 @@ void de::comm::CUavosModulesManager::forwardMessageToModule ( const char * messa
     #endif
     #endif
     
-    //const Json &msg = createJSONID(false);
     struct sockaddr_in module_address = *module_item->m_module_address.get();  
                 
     cUDPClient.SendMsg(message, datalength, &module_address);

@@ -464,8 +464,11 @@ void uninit ()
     de::STATUS::getInstance().m_exit_me = true;
     exit_scheduler = true;
     // wait for exit
-    m_scheduler.join();
-	
+    if (m_scheduler.joinable())
+    {
+        m_scheduler.join();
+    }
+
     cLeds.uninit();
     
     andruav_server.uninit(true);

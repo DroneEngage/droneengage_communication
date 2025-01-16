@@ -143,7 +143,10 @@ void de::comm::CUDPCommunicator::stop()
 
     try
     {
-        m_threadCreateUDPSocket.join();
+        if (m_threadCreateUDPSocket.joinable())
+        {
+            m_threadCreateUDPSocket.join();
+        }
         delete m_CommunicatorModuleAddress;
 
         #ifdef DEBUG

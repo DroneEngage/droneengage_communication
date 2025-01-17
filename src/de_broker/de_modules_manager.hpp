@@ -266,6 +266,8 @@ namespace comm
             de::STATUS &m_status = de::STATUS::getInstance();
             
             CUDPCommunicator cUDPClient; 
+
+            bool m_exit = false;
             
     };
 }

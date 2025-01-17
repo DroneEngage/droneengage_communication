@@ -68,6 +68,7 @@ void de::comm::CUavosModulesManager::uninit ()
 	    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
+    m_exit = true;
     cUDPClient.stop();
 }
 
@@ -676,6 +677,7 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
  */
 void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_message, const std::size_t full_message_length, const struct sockaddr_in* ssock)
 {
+    if (m_exit) return ;
 
     Json jsonMessage;
     try
@@ -1196,6 +1198,7 @@ void de::comm::CUavosModulesManager::handleOnAndruavServerConnection (const int 
     #endif
     #endif
 
+    if (m_exit) return ;
     const std::lock_guard<std::mutex> lock(g_i_mutex);
     
     MODULE_ITEM_LIST::iterator it;

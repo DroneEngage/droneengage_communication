@@ -291,6 +291,9 @@ void de::andruav_servers::CAndruavCommServer::connectToCommServer (const std::st
     {
         std::cerr << "Error: " << e.what() << std::endl;
         PLOG(plog::error) << "Connecting to Communication Server IP (" << m_host << ") Port(" << m_port << ") PartyID (" << m_party_id << ") failed with error:" << e.what(); 
+        if (_cwsa_session) {
+            _cwsa_session.reset();
+        }
         return ;
     }
 }
@@ -494,8 +497,8 @@ void de::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
 {
     try
     {
-        /* code */
-   #ifdef DEBUG
+    
+    #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
@@ -503,41 +506,57 @@ void de::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
         
     m_exit = exit_mode;
     
-    if (_cwsa_session)
+    struct timespec ts;
+    std::cout <<__PRETTY_FUNCTION__ << " line 1:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
+    try
     {
-        _cwsa_session.get()->shutdown();
-        _cwsa_session.reset();
-        _cwsa_session.release();
-        _cwsa_session = nullptr;
+        if (_cwsa_session) {
+            _cwsa_session->shutdown();
+            _cwsa_session.reset();
+        }
+    }    catch(const std::exception& e)
+    {
+        std::cerr << __PRETTY_FUNCTION__ << " line 1:" << __LINE__ << e.what() << '\n';
     }
     
-    struct timespec ts;
-           int s;
-
+    #ifdef DEBUG
+    std::cout <<__PRETTY_FUNCTION__ << " line 2:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
     if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-        exit(0);
+            std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            exit(0);
     }
+    
+    #ifdef DEBUG
+    std::cout <<__PRETTY_FUNCTION__ << " line:3" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+    
     ts.tv_sec += 10;
-
-    m_watch_dog->join(); // Wait for the thread to exit
-    m_watch_dog.release();
+    if (m_watch_dog && m_watch_dog->joinable())
+    {
+        m_watch_dog->join(); // Wait for the thread to exit
+    }
+    
+    if (m_watch_dog)
+    {
+        m_watch_dog.release();
+    }
     #ifdef DEBUG
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
+    
     if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
         exit(0);
     }
     ts.tv_sec += 10;
 
-    s = pthread_timedjoin_np(m_watch_dog2, NULL, &ts);
-    if (s != 0) {
-        //exit(0);
-    }
+    
     #ifdef DEBUG
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 2" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    m_status = SOCKET_STATUS_FREASH;
+    m_status = SOCKET_STATUS_FRESH;
 	
     PLOG(plog::info) << "uninit finished."; 
     

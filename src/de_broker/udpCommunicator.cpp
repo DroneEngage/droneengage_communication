@@ -133,20 +133,21 @@ void de::comm::CUDPCommunicator::stop()
     #endif
     
     m_stopped_called = true;
+    try
+    {
 
-    if (m_SocketFD != -1)
-        shutdown(m_SocketFD, SHUT_RDWR);
+        if (m_SocketFD != -1)
+            shutdown(m_SocketFD, SHUT_RDWR);
     
     #ifdef DEBUG
 	std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Socket Closed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    try
-    {
         if (m_threadCreateUDPSocket.joinable())
         {
             m_threadCreateUDPSocket.join();
         }
+
         delete m_CommunicatorModuleAddress;
 
         #ifdef DEBUG

@@ -183,8 +183,12 @@ void scheduler ()
         {
         }
         
-        std::this_thread::sleep_for(std::chrono::microseconds(100000)); // 10Hz
-        
+        try {
+            std::this_thread::sleep_for(std::chrono::microseconds(100000)); // 10Hz
+        } catch (const std::system_error& e) {
+             std::cerr << "Error joining thread Schedule: " << e.what() << std::endl;
+                return ; //exit 
+        } 
     }
 
     return ;
@@ -443,15 +447,21 @@ void init (int argc, char *argv[])
 }
 
 
-void loop () 
-{
-    de::andruav_servers::CAndruavCommServer& andruav_server = de::andruav_servers::CAndruavCommServer::getInstance();
-    
-    
-    while (!de::STATUS::getInstance().m_exit_me)
-    {
-       andruav_server.start();
-       std::this_thread::sleep_for(std::chrono::seconds(1));
+void loop() {
+    de::andruav_servers::CAndruavCommServer& andruav_server = 
+        de::andruav_servers::CAndruavCommServer::getInstance();
+
+    while (!de::STATUS::getInstance().m_exit_me) {
+        andruav_server.start(); 
+
+        
+        try {
+            std::this_thread::sleep_for(std::chrono::seconds(1)); 
+        } catch (const std::system_error& e) {
+            std::cerr << "Sleep interrupted by signal: " << e.what() << std::endl;
+            return ; //exit
+        }
+        
     }
 }
 
@@ -463,14 +473,10 @@ void uninit ()
 
     de::STATUS::getInstance().m_exit_me = true;
     exit_scheduler = true;
-    // wait for exit
-    if (m_scheduler.joinable())
-    {
-        m_scheduler.join();
-    }
+    
 
     cLeds.uninit();
-    
+    cUavosModulesManager.uninit();
     andruav_server.uninit(true);
     
     #ifdef DEBUG
@@ -478,8 +484,15 @@ void uninit ()
     #endif
     
     
-    cUavosModulesManager.uninit();
-
+    try {
+    if (m_scheduler.joinable()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Short wait
+        m_scheduler.join();
+    }
+    } catch (const std::system_error& e) {
+        std::cerr << "Error joining thread2: " << e.what() << std::endl;
+        // Handle the exception gracefully (e.g., log the error, attempt recovery)
+    }
 
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint_after Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;

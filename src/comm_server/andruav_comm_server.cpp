@@ -330,58 +330,68 @@ void de::andruav_servers::CAndruavCommServer::onSocketError()
  */
 void de::andruav_servers::CAndruavCommServer::onBinaryMessageRecieved (const char * message, const std::size_t datalength)
 {
-    m_lasttime_access = get_time_usec();
-
-    #ifdef DEBUG
-        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onBinaryMessageRecieved " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-
-    Json_de jMsg;
-    jMsg = Json_de::parse(message);
-    if (!validateField(jMsg, INTERMODULE_ROUTING_TYPE, Json_de::value_t::string))
+    try
     {
-        // bad message format
-        return ;
-    }
+        m_lasttime_access = get_time_usec();
 
-    if (!validateField(jMsg, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json_de::value_t::number_unsigned))
-    {
-        // bad message format
-        return ;
-    }
+        #ifdef DEBUG
+            std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onBinaryMessageRecieved " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
 
-
-    if (jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_SYSTEM_MSG)==0)
-    {   // System Message
-        
-    }
-    else
-    {
-        if (!validateField(jMsg, ANDRUAV_PROTOCOL_SENDER, Json_de::value_t::string))
+        Json_de jMsg;
+        jMsg = Json_de::parse(message);
+        if (!validateField(jMsg, INTERMODULE_ROUTING_TYPE, Json_de::value_t::string))
         {
             // bad message format
             return ;
         }
 
-        std::string sender = jMsg[ANDRUAV_PROTOCOL_SENDER];
-
-        const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
-        switch (command_type)
+        if (!validateField(jMsg, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json_de::value_t::number_unsigned))
         {
-            case TYPE_AndruavMessage_RemoteExecute:
-            {
-                de::andruav_servers::CAndruavParser::getInstance().parseRemoteExecuteCommand(sender, jMsg);
-            }
-            break;
-
-            default:
-            {
-                de::andruav_servers::CAndruavParser::getInstance().parseCommand(sender, command_type, jMsg);
-            }
-            break;
+            // bad message format
+            return ;
         }
 
-        de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  message, datalength, std::string());
+
+        if (jMsg[INTERMODULE_ROUTING_TYPE].get<std::string>().compare(CMD_TYPE_SYSTEM_MSG)==0)
+        {   // System Message
+            
+        }
+        else
+        {
+            if (!validateField(jMsg, ANDRUAV_PROTOCOL_SENDER, Json_de::value_t::string))
+            {
+                // bad message format
+                return ;
+            }
+
+            std::string sender = jMsg[ANDRUAV_PROTOCOL_SENDER];
+
+            const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+            switch (command_type)
+            {
+                case TYPE_AndruavMessage_RemoteExecute:
+                {
+                    de::andruav_servers::CAndruavParser::getInstance().parseRemoteExecuteCommand(sender, jMsg);
+                }
+                break;
+
+                default:
+                {
+                    de::andruav_servers::CAndruavParser::getInstance().parseCommand(sender, command_type, jMsg);
+                }
+                break;
+            }
+
+            de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type,  message, datalength, std::string());
+        }
+    }
+
+    catch(const std::exception& e)
+    {
+        #ifdef DEBUG
+            std::cerr <<__PRETTY_FUNCTION__ <<  e.what() << '\n';
+        #endif
     }
     
 }

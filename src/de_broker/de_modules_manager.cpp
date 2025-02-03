@@ -26,6 +26,7 @@
 #include "../comm_server/andruav_auth.hpp"
 #include "../de_broker/de_modules_manager.hpp"
 #include "../de_general_mission_planner/mission_manager_base.hpp"
+#include "andruav_message.hpp"
 
 
 
@@ -67,6 +68,7 @@ void de::comm::CUavosModulesManager::uninit ()
 	    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
+    m_exit = true;
     cUDPClient.stop();
 }
 
@@ -130,10 +132,11 @@ Json de::comm::CUavosModulesManager::createJSONID (const bool& reSend)
                     };
         
         // this is NEW in communicator and could be ignored by current DroneEngage modules.
-        ms[JSON_INTERMODULE_SOCKET_STATUS]      = andruav_servers::CAndruavCommServer::getInstance().getStatus();
-        ms[JSON_INTERMODULE_RESEND]             = reSend;
+        ms[JSON_INTERMODULE_SOCKET_STATUS]          = andruav_servers::CAndruavCommServer::getInstance().getStatus();
+        ms[JSON_INTERMODULE_RESEND]                 = reSend;
 
-        jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD]    = ms;
+        ms[JSON_INTERMODULE_TIMESTAMP_INSTANCE]     = m_instance_time_stamp;
+        jsonID[ANDRUAV_PROTOCOL_MESSAGE_CMD]        = ms;
         
         return jsonID;
     }
@@ -632,6 +635,13 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
         
         m_status.is_sdr_module_connected(true);
     }
+    else if ((!m_status.is_gpio_module_connected()) && (module_class.find(MODULE_CLASS_GPIO)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_GPIO << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_gpio_module_connected(true);
+    }
+    
 
     else if ((!m_status.is_sound_module_connected()) && (module_class.find(MODULE_CLASS_SOUND)==0))
     {
@@ -659,7 +669,7 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
 
 /**
  * @brief 
- * Process messages recieved from module and may forward to Andruav ommunication server.
+ * Process messages received from module and may forward to DroneEngage Communication server.
  * @details 
  * @param full_message 
  * @param full_message_length 
@@ -667,6 +677,7 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
  */
 void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_message, const std::size_t full_message_length, const struct sockaddr_in* ssock)
 {
+    if (m_exit) return ;
 
     Json jsonMessage;
     try
@@ -923,6 +934,8 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         break;
 
 
+        
+
         default:
         {
             /**
@@ -1028,11 +1041,11 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
                     )
             {
                 // !BUG: if sender_module_key is empty message can be sent back to sender module.
-                //#ifdef DEBUG
-                //#ifdef DEBUG_MSG        
+                #ifdef DEBUG
+                #ifdef DEBUG_MSG        
                 std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Module " << *it  << " for message " << message_type << " is Available" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                //#endif
-                //#endif 
+                #endif
+                #endif 
 
                 // clear to send
                 forwardMessageToModule (message, datalength, module_item);
@@ -1042,6 +1055,23 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
 
     return ;
 }
+
+
+/**
+* @brief The function is IMPORTANT it is used by DroneEngageCommunicator as a Main Module to forward messages
+* to other modules.
+* 
+*/
+void de::comm::CUavosModulesManager::forwardCommandsToModules(const int& message_type, const char * message, const std::size_t datalength)
+{
+    Json_de json_msg  = CAndruavMessage::getInstance().generateJSONMessage(CMD_COMM_INDIVIDUAL, std::string(""), std::string(""), TYPE_AndruavMessage_GPIO_ACTION, message);
+        
+    std::string cmd = json_msg.dump();
+    std::cout << "cmd:" << cmd.c_str() << " ::: len:" << cmd.length() << std::endl;
+
+    de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(std::string(""), TYPE_AndruavMessage_GPIO_ACTION, cmd.c_str(), cmd.length(), std::string(""));
+}
+
 
 
 /**
@@ -1061,7 +1091,6 @@ void de::comm::CUavosModulesManager::forwardMessageToModule ( const char * messa
     #endif
     #endif
     
-    //const Json &msg = createJSONID(false);
     struct sockaddr_in module_address = *module_item->m_module_address.get();  
                 
     cUDPClient.SendMsg(message, datalength, &module_address);
@@ -1169,6 +1198,7 @@ void de::comm::CUavosModulesManager::handleOnAndruavServerConnection (const int 
     #endif
     #endif
 
+    if (m_exit) return ;
     const std::lock_guard<std::mutex> lock(g_i_mutex);
     
     MODULE_ITEM_LIST::iterator it;

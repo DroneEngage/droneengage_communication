@@ -35,7 +35,7 @@ class CNotification
 
     public:
 
-        virtual bool init (const std::vector<PORT_STATUS>& led_pins) = 0;
+        virtual bool init () = 0;
         virtual void update()   = 0;
         virtual void uninit()   {};
         

@@ -120,11 +120,11 @@ void scheduler ()
         
         status.is_online(de::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED);
 
-        cLeds.update();
         cBuzzer.update();
         
         if (hz_10 % every_sec_1 == 0)
         {
+            cLeds.update();
             if (test_counter % 10)
             {
                 if (status.is_online())
@@ -183,8 +183,12 @@ void scheduler ()
         {
         }
         
-        std::this_thread::sleep_for(std::chrono::microseconds(100000)); // 10Hz
-        
+        try {
+            std::this_thread::sleep_for(std::chrono::microseconds(100000)); // 10Hz
+        } catch (const std::system_error& e) {
+             std::cerr << "Error joining thread Schedule: " << e.what() << std::endl;
+                return ; //exit 
+        } 
     }
 
     return ;
@@ -337,42 +341,24 @@ void initGPIO()
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
 
-    if (!jsonConfig.contains("led_pins")
-    || ((jsonConfig.contains("led_pins_enabled")) && (jsonConfig["led_pins_enabled"].get<bool>()==false))
-    )
+    if ((jsonConfig.contains("led_pins_enabled")) && (jsonConfig["led_pins_enabled"].get<bool>()==false))
     {
         std::cout  << _INFO_CONSOLE_TEXT << "LEDs pins \"led_pins\" are not defined. Notification will be " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return ;
     }
 
 
-    std::vector<notification::PORT_STATUS> led_pins;
-
-    for (auto const& pin : jsonConfig["led_pins"])
-    {
-        led_pins.push_back({pin["name"].get<std::string>(),static_cast<uint8_t>(pin["gpio"].get<int>()), LED_STATUS_OFF});
-    }
-    
-    cLeds.init(led_pins);
+    cLeds.init();
     
      
 
-    if (!jsonConfig.contains("buzzer_pins")
-    || ((jsonConfig.contains("buzzer_pins_enabled")) && (jsonConfig["buzzer_pins_enabled"].get<bool>()==false))
-    )
+    if ((jsonConfig.contains("buzzer_pins_enabled")) && (jsonConfig["buzzer_pins_enabled"].get<bool>()==false))
     {
         std::cout  << _INFO_CONSOLE_TEXT << "Buzzer pins \"buzzer_pins\" are not defined. Notification will be " << _ERROR_CONSOLE_BOLD_TEXT_ << "DISABLED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         return ;
     }
 
-    std::vector<notification::PORT_STATUS> buzzer_pins;
-
-    for (auto const& pin : jsonConfig["buzzer_pins"])
-    {
-        buzzer_pins.push_back({pin["name"].get<std::string>(),static_cast<uint8_t>(pin["gpio"].get<int>()), GPIO_OFF});
-    }
-    
-    cBuzzer.init(buzzer_pins);
+    cBuzzer.init();
     
 }
 
@@ -461,15 +447,21 @@ void init (int argc, char *argv[])
 }
 
 
-void loop () 
-{
-    de::andruav_servers::CAndruavCommServer& andruav_server = de::andruav_servers::CAndruavCommServer::getInstance();
-    
-    
-    while (!de::STATUS::getInstance().m_exit_me)
-    {
-       andruav_server.start();
-       std::this_thread::sleep_for(std::chrono::seconds(1));
+void loop() {
+    de::andruav_servers::CAndruavCommServer& andruav_server = 
+        de::andruav_servers::CAndruavCommServer::getInstance();
+
+    while (!de::STATUS::getInstance().m_exit_me) {
+        andruav_server.start(); 
+
+        
+        try {
+            std::this_thread::sleep_for(std::chrono::seconds(1)); 
+        } catch (const std::system_error& e) {
+            std::cerr << "Sleep interrupted by signal: " << e.what() << std::endl;
+            return ; //exit
+        }
+        
     }
 }
 
@@ -481,11 +473,10 @@ void uninit ()
 
     de::STATUS::getInstance().m_exit_me = true;
     exit_scheduler = true;
-    // wait for exit
-    m_scheduler.join();
-	
-    cLeds.uninit();
     
+
+    cLeds.uninit();
+    cUavosModulesManager.uninit();
     andruav_server.uninit(true);
     
     #ifdef DEBUG
@@ -493,8 +484,15 @@ void uninit ()
     #endif
     
     
-    cUavosModulesManager.uninit();
-
+    try {
+    if (m_scheduler.joinable()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Short wait
+        m_scheduler.join();
+    }
+    } catch (const std::system_error& e) {
+        std::cerr << "Error joining thread2: " << e.what() << std::endl;
+        // Handle the exception gracefully (e.g., log the error, attempt recovery)
+    }
 
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint_after Stop" << _NORMAL_CONSOLE_TEXT_ << std::endl;

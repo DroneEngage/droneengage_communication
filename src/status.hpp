@@ -63,6 +63,17 @@ class STATUS {
                 m_sound_module_connected = is_sound_module_connected;
             }
 
+            
+            inline const bool is_gpio_module_connected() const
+            {
+                return m_gpio_module_connected;
+            }
+
+            inline void is_gpio_module_connected(const bool is_gpio_module_connected) 
+            {
+                m_gpio_module_connected = is_gpio_module_connected;
+            }
+
             inline const bool is_sdr_module_connected() const
             {
                 return m_sdr_module_connected;
@@ -92,27 +103,6 @@ class STATUS {
             {
                 m_camera_module_connected = camera_module_connected;
             }
-
-            inline bool is_light_connected() const
-            {
-                return m_light;
-            }
-
-            inline void is_light_connected(const bool light)
-            {
-                m_light = light;
-            }
-
-            inline bool is_buzzer_connected() const
-            {
-                return m_buzzer;
-            }
-
-            inline void is_buzzer_connected(const bool buzzer)
-            {
-                m_buzzer = buzzer;
-            }
-
 
             inline void cpu_temp (const uint32_t cpu_temprature)
             {
@@ -167,6 +157,7 @@ class STATUS {
             bool m_p2p_module_connected = false;
             bool m_sound_module_connected = false;
             bool m_sdr_module_connected = false;
+            bool m_gpio_module_connected = false;
             bool m_buzzer = false;
             bool m_light = false;
 

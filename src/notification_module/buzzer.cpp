@@ -19,43 +19,10 @@ using namespace notification;
 
 
 
-bool CBuzzer::init (const std::vector<PORT_STATUS>& buzzer_pins)
+bool CBuzzer::init ()
 {
-    if (buzzer_pins.size() == 0) 
-    {
-        std::cout << _LOG_CONSOLE_TEXT << "Buzzer " << _INFO_CONSOLE_TEXT << "Disabled" << std::endl; 
-        
-        m_error = ENUM_Module_Error_Code::ERR_NO_HW_AVAILABLE;
-        return false;
-    }
-
-    m_port_pins = buzzer_pins;
-
-    
-    if (!hal_linux::CRPI_GPIO::getInstance().init())
-    {
-        std::cout << std::endl << _ERROR_CONSOLE_BOLD_TEXT_ << "Error: Could not initialize Buzzer GPIO pins." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-        m_error = ENUM_Module_Error_Code::ERR_INIT_FAILED;
-
-        return false;
-    }
-
-    
     m_error = ENUM_Module_Error_Code::ERR_NON;
 
-    for (auto pin : m_port_pins)
-    {
-        std::cout << _SUCCESS_CONSOLE_TEXT_ << "Initalize Buzzer at GPIO " << _INFO_CONSOLE_TEXT << std::to_string(pin.gpio_pin) << std::endl; 
-        hal_linux::CRPI_GPIO::getInstance().pinMode(pin.gpio_pin, HAL_GPIO_OUTPUT);
-        hal_linux::CRPI_GPIO::getInstance().write(pin.gpio_pin, GPIO_OFF);
-
-        
-        m_buzzer_status.push_back({0UL, 0UL, 0UL, 0UL});
-    }
-    
-    m_status.is_buzzer_connected(true);
-   
     return true;
 }
 

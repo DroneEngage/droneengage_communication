@@ -119,7 +119,8 @@ namespace comm
 
             CUavosModulesManager():cUDPClient(this)
             {
-
+                m_instance_time_stamp = std::time(nullptr);
+                
             }
 
 
@@ -145,8 +146,12 @@ namespace comm
             
             void processModuleRemoteExecute (const Json ms);
             void processIncommingServerMessage (const std::string& sender_party_id, const int& message_type, const char * message, const std::size_t datalength, const std::string& sender_module_key);
-            void forwardMessageToModule (const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item);
-            
+            /**
+             * @brief The function is IMPORTANT it is used by DroneEngageCommunicator as a Main Module to forward messages
+             * to other modules.
+             * 
+             */
+            void forwardCommandsToModules(const int& message_type, const char * message, const std::size_t datalength);
             /**
              * @brief Get the Camera List object that defines all camera devices attached to all camera modules.
              * 
@@ -172,6 +177,7 @@ namespace comm
         
         private:
 
+            void forwardMessageToModule (const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item);
             bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);
 
             /**
@@ -233,6 +239,8 @@ namespace comm
             std::string m_party_id;
             std::string m_group_id;
 
+            std::time_t m_instance_time_stamp;
+    
             /**
              * @brief 
              * list of registered modules mapped by module id
@@ -258,6 +266,8 @@ namespace comm
             de::STATUS &m_status = de::STATUS::getInstance();
             
             CUDPCommunicator cUDPClient; 
+
+            bool m_exit = false;
             
     };
 }

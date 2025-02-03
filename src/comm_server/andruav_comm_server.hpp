@@ -10,14 +10,14 @@
 
 #include "andruav_unit.hpp"
 #include "andruav_comm_ws.hpp"
-
+#include "../de_broker/andruav_message.hpp"
 
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 
 // SOCKET STATUS
-#define SOCKET_STATUS_FREASH 			1   // socket is new
+#define SOCKET_STATUS_FRESH 			1   // socket is new
 #define SOCKET_STATUS_CONNECTING    	2	// connecting to WS
 #define SOCKET_STATUS_DISCONNECTING 	3   // disconnecting from WS
 #define SOCKET_STATUS_DISCONNECTED 		4   // disconnected  from WS
@@ -127,16 +127,17 @@ namespace andruav_servers
             std::string m_port;
             std::string m_party_id;
 
-            u_int8_t m_status =  SOCKET_STATUS_FREASH;
+            u_int8_t m_status =  SOCKET_STATUS_FRESH;
 
             u_int64_t m_next_connect_time,  m_lasttime_access =0;
 
             u_int64_t m_on_off_delay = 0;
 
             std::unique_ptr<std::thread> m_watch_dog;
-            pthread_t m_watch_dog2;
             bool m_exit;
             CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();
+
+            de::comm::CAndruavMessage& m_andruav_message = de::comm::CAndruavMessage::getInstance();
     };
 }
 }

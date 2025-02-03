@@ -34,6 +34,7 @@ void de::andruav_servers::CWSASession::run()
         // Set SNI Hostname (many hosts need this to handshake successfully)
         if (!SSL_set_tlsext_host_name(ws_.next_layer().native_handle(), host_.c_str()))
         {
+            std::cerr << "SSL error" << std::endl;
             m_connected = false;
             return ;
         }
@@ -286,8 +287,13 @@ void de::andruav_servers::CWSASession::shutdown ()
     //const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     close();
     
-    if (m_thread_receiver.joinable()) { // suggested by AI
-        m_thread_receiver.join(); // Ensure the thread has finished
+    try {
+        if (m_thread_receiver.joinable()) { 
+            m_thread_receiver.join(); // Ensure the thread has finished
+        }
+    }
+    catch (const std::system_error& e) {
+        std::cerr << "Error joining thread CWSASession::shutdown: " << e.what() << std::endl;
     }
 }
 
@@ -297,5 +303,5 @@ std::unique_ptr<de::andruav_servers::CWSASession> de::andruav_servers::CWSAProxy
     // Create a WebSocket client and connect to the server
     std::unique_ptr<de::andruav_servers::CWSASession> ptr = std::make_unique<de::andruav_servers::CWSASession>(io_context_, std::string(host), std::string(port), std::string(url_param),callback);
     ptr.get()->run();
-    return std::move(ptr);
+    return ptr;
 }

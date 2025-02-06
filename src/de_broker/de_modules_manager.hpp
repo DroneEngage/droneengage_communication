@@ -151,7 +151,7 @@ namespace comm
              * to other modules.
              * 
              */
-            void forwardCommandsToModules(const int& message_type, const char * message, const std::size_t datalength);
+            void forwardCommandsToModules(const int& message_type, const Json_de& message);
             /**
              * @brief Get the Camera List object that defines all camera devices attached to all camera modules.
              * 

@@ -1062,7 +1062,7 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
 * to other modules.
 * 
 */
-void de::comm::CUavosModulesManager::forwardCommandsToModules(const int& message_type, const char * message, const std::size_t datalength)
+void de::comm::CUavosModulesManager::forwardCommandsToModules(const int& message_type, const Json_de&  message)
 {
     Json_de json_msg  = CAndruavMessage::getInstance().generateJSONMessage(CMD_COMM_INDIVIDUAL, std::string(""), std::string(""), TYPE_AndruavMessage_GPIO_ACTION, message);
         

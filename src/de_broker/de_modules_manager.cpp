@@ -38,15 +38,20 @@ static std::mutex g_i_mutex_process;
 static std::mutex g_i_mutex_process2; 
 
 
-void de::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in *  sock)
+void de::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_in * sock)
 {
     #ifdef DDEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    parseIntermoduleMessage(message, len, sock);
+    // Create a MessageWithSocket structure: : use std::move to avoid unnecessary copying
+    MessageWithSocket msgWithSocket;
+    msgWithSocket.message = std::move(std::string(message, len));
+    msgWithSocket.socket = *sock; // Copy the socket information
 
-    if (m_OnReceive!= nullptr) m_OnReceive(message, len);
+    // Enqueue the message with its socket information
+    m_buffer.enqueue(msgWithSocket);
+
 }
 
 
@@ -54,6 +59,8 @@ bool de::comm::CUavosModulesManager::init (const std::string host, int listennin
 {
     std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
+    m_consumerThread = std::thread(&CUavosModulesManager::consumerThreadFunc, this);
+    
     cUDPClient.init (host.c_str(), listenningPort, chunkSize);
 
     cUDPClient.start();
@@ -70,10 +77,43 @@ void de::comm::CUavosModulesManager::uninit ()
     
     m_exit = true;
     cUDPClient.stop();
+    const std::string WAKE_UP_SIGNAL = "WAKE_UP";
+    m_buffer.enqueue({WAKE_UP_SIGNAL, sockaddr_in()}); // Enqueue an empty message to wake up the consumer
+
+    // Wait for the consumer thread to finish
+    if (m_consumerThread.joinable()) {
+        m_consumerThread.join();
+    }
 }
 
             
+void de::comm::CUavosModulesManager::consumerThreadFunc() 
+{
+    try
+    {
+        while (!m_exit) {
+            MessageWithSocket msgWithSocket = m_buffer.dequeue();
 
+            // Check if the message is empty (this could happen if the buffer is empty and the thread is exiting)
+            if (msgWithSocket.message.empty()) {
+                continue; // Skip processing and check the exit condition again
+            }
+            
+            const std::size_t len = msgWithSocket.message.length();
+            const char* c_str = msgWithSocket.message.c_str();
+            
+            parseIntermoduleMessage(c_str, len, &msgWithSocket.socket);
+
+            if (m_OnReceive!= nullptr) m_OnReceive(c_str, len);
+        }
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << "consumerThreadFunc:" << e.what() << '\n';
+    }
+        
+    
+}
 
 void de::comm::CUavosModulesManager::defineModule (
                  std::string module_class,

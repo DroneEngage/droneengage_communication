@@ -78,11 +78,18 @@ void CLEDs::update()
 
         if (m_status.is_online())
         {
-            m_power_led_on = LED_ON;
+            if (m_counter % 2)
+            {
+                m_power_led_on = LED_OFF;
+            }
+            else
+            {
+                m_power_led_on = LED_ON;
+            }
         }
         else
         {
-            m_power_led_on = !m_power_led_on;
+            m_power_led_on = LED_OFF;
         }
         
         Json_de message =

@@ -320,7 +320,7 @@ void initModuleManager()
     }
     else
     {
-        std::cout << _LOG_CONSOLE_BOLD_TEXT << "WARNING:" << _INFO_CONSOLE_TEXT << " MISSING FIELD " << _ERROR_CONSOLE_BOLD_TEXT_ << "s2s_udp_packet_size " <<  _INFO_CONSOLE_TEXT << "is missing in config file. default value " << _ERROR_CONSOLE_BOLD_TEXT_  << "8160 " <<  _INFO_CONSOLE_TEXT <<  "is used." << _NORMAL_CONSOLE_TEXT_ << std::endl;    
+        std::cout << _LOG_CONSOLE_BOLD_TEXT << "WARNING:" << _INFO_CONSOLE_TEXT << " MISSING FIELD " << _ERROR_CONSOLE_BOLD_TEXT_ << "s2s_udp_packet_size " <<  _INFO_CONSOLE_TEXT << "is missing in config file. default value " << _ERROR_CONSOLE_BOLD_TEXT_  << std::to_string(DEFAULT_UDP_DATABUS_PACKET_SIZE) <<  _INFO_CONSOLE_TEXT <<  " is used." << _NORMAL_CONSOLE_TEXT_ << std::endl;    
     }
 
     cUavosModulesManager.defineModule( MODULE_CLASS_COMM, 

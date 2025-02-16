@@ -7,7 +7,7 @@
 
 
 #define MAX_UDP_DATABUS_PACKET_SIZE 0xffff
-#define DEFAULT_UDP_DATABUS_PACKET_SIZE 8160
+#define DEFAULT_UDP_DATABUS_PACKET_SIZE 8192
 
 typedef void (*ONRECEIVE_CALLBACK)(const char *, int len, struct sockaddr_in *  sock);
 

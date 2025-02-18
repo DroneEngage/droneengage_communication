@@ -249,33 +249,29 @@ bool de::comm::CUavosModulesManager::updateUavosPermission (const Json& module_f
 * 
 * @param module_id 
 */
-void de::comm::CUavosModulesManager::cleanOrphanCameraEntries (const std::string& module_id, const uint64_t& time_now)
+void de::comm::CUavosModulesManager::cleanOrphanCameraEntries (const std::string& module_id, const uint64_t time_now)
 {
     auto camera_module = m_camera_list.find(module_id);
-    if (camera_module == m_camera_list.end()) return ;
-
-    std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>> *camera_entry_list= camera_module->second.get();
-
-    std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>>::iterator camera_entry_itrator;
-    std::vector <std::string> orphan_list;
-    for (camera_entry_itrator = camera_entry_list->begin(); camera_entry_itrator != camera_entry_list->end(); camera_entry_itrator++)
-    {   
-            const MODULE_CAMERA_ENTRY * camera_entry= camera_entry_itrator->second.get();
-
-            if (camera_entry->module_last_access_time < time_now)
-            {
-                // old and should be removed
-                orphan_list.push_back (camera_entry->global_index);
-            }
+    if (camera_module == m_camera_list.end()) {
+        return; // Module not found, nothing to do
     }
 
-
-    //TODO: NOT TESTED
-    // remove orphans 
-    for(auto const& value: orphan_list) {
-        camera_entry_list->erase(value);
+    // Get the camera entry list for the module
+    auto* camera_entry_list = camera_module->second.get();
+    if (!camera_entry_list) {
+        return; // Null pointer, nothing to do
     }
-    
+
+    // Collect orphaned entries and remove them
+    for (auto it = camera_entry_list->begin(); it != camera_entry_list->end(); ) {
+        const auto& camera_entry = it->second;
+        if (camera_entry->module_last_access_time < time_now) {
+            // Erase the orphaned entry and update the iterator
+            it = camera_entry_list->erase(it);
+        } else {
+            ++it; // Move to the next entry
+        }
+    }
 }
 
 
@@ -349,15 +345,14 @@ void de::comm::CUavosModulesManager::updateCameraList(const std::string& module_
             std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: updateCameraList // Module Not found in camera list" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
 
-        std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>> *pcamera_entries = new std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>>();
-        m_camera_list.insert(std::make_pair(module_id, std::unique_ptr<std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>>>(pcamera_entries)));
+        auto pcamera_entries = std::make_unique<std::map<std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>>>();
+        m_camera_list.emplace(module_id, std::move(pcamera_entries));
     }
-
 
     // Retrieve list of camera entries of this module.
     camera_module = m_camera_list.find(module_id);
 
-    std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>> *camera_entry_list= camera_module->second.get();
+    auto& camera_entry_list = *camera_module->second;
 
     // List of camera devices in a camera module recieved by intermodule message.
     const uint64_t now_time = get_time_usec();
@@ -366,91 +361,92 @@ void de::comm::CUavosModulesManager::updateCameraList(const std::string& module_
     if (msg_cmd.contains("m"))
     {
 
-    Json camera_array = msg_cmd["m"];
+        const Json& camera_array = msg_cmd["m"];
 
-    // iterate over camera devices in recieved json message.
-    const int messages_length = camera_array.size(); 
-    for (int i=0; i< messages_length; ++i)
-    {
-        
-        Json jcamera_entry = camera_array[i];
-        // camera device id
-        const std::string& camera_entry_id = jcamera_entry["id"].get<std::string>();
-        
-        
-        auto camera_entry_record = camera_entry_list->find(camera_entry_id);
-        if (camera_entry_record == camera_entry_list->end()) 
+        // iterate over camera devices in recieved json message.
+        for (const auto& jcamera_entry : camera_array)
         {
-            // camera entry not listed in cameras list of submodule
-            MODULE_CAMERA_ENTRY * camera_entry = new MODULE_CAMERA_ENTRY();
-            camera_entry->module_id  = module_id;
-            camera_entry->global_index = camera_entry_id;
-            camera_entry->logical_name = jcamera_entry["ln"].get<std::string>();
-            camera_entry->is_recording = jcamera_entry["r"].get<bool>();
-            camera_entry->is_camera_avail = jcamera_entry["v"].get<bool>();
-            camera_entry->is_camera_streaming = jcamera_entry["active"].get<int>();
-            camera_entry->camera_type = jcamera_entry["p"].get<int>();
-            camera_entry->camera_specification = jcamera_entry["s"].get<int>();
-            camera_entry->module_last_access_time = now_time;
-            camera_entry->updates = true;
-            camera_entry_list->insert(std::make_pair(camera_entry_id, std::unique_ptr<MODULE_CAMERA_ENTRY> (camera_entry) ));
-        
-        }
-        else
-        {
-            //camera listed
             
-            MODULE_CAMERA_ENTRY * camera_entry = camera_entry_record->second.get();
-            camera_entry->module_id  = module_id;
-            camera_entry->global_index = camera_entry_id;
-            camera_entry->logical_name = jcamera_entry["ln"].get<std::string>();
-            camera_entry->is_recording = jcamera_entry["r"].get<bool>();
-            camera_entry->is_camera_avail = jcamera_entry["v"].get<bool>();
-            camera_entry->is_camera_streaming = jcamera_entry["active"].get<int>();
-            camera_entry->camera_type = jcamera_entry["p"].get<int>();
-            camera_entry->camera_specification = jcamera_entry["s"].get<int>();
+            // camera device id
+            const std::string& camera_entry_id = jcamera_entry["id"].get<std::string>();
             
-            camera_entry->module_last_access_time = now_time;
-            camera_entry->updates = true;
+            
+            // Check if the camera entry already exists
+            auto camera_entry_record = camera_entry_list.find(camera_entry_id);
+            if (camera_entry_record == camera_entry_list.end()) 
+            {
+                // camera entry not listed in cameras list of submodule
+                MODULE_CAMERA_ENTRY * camera_entry = new MODULE_CAMERA_ENTRY();
+                camera_entry->module_id  = module_id;
+                camera_entry->global_index = camera_entry_id;
+                camera_entry->logical_name = jcamera_entry["ln"].get<std::string>();
+                camera_entry->is_recording = jcamera_entry["r"].get<bool>();
+                camera_entry->is_camera_avail = jcamera_entry["v"].get<bool>();
+                camera_entry->is_camera_streaming = jcamera_entry["active"].get<int>();
+                camera_entry->camera_type = jcamera_entry["p"].get<int>();
+                camera_entry->camera_specification = jcamera_entry["s"].get<int>();
+                camera_entry->module_last_access_time = now_time;
+                camera_entry->updates = true;
+                
+                // Insert the new camera entry into the list
+                camera_entry_list.emplace(camera_entry_id, std::move(camera_entry));
+            
+            }
+            else
+            {
+                //camera listed
+                
+                MODULE_CAMERA_ENTRY * camera_entry = camera_entry_record->second.get();
+                camera_entry->module_id  = module_id;
+                camera_entry->global_index = camera_entry_id;
+                camera_entry->logical_name = jcamera_entry["ln"].get<std::string>();
+                camera_entry->is_recording = jcamera_entry["r"].get<bool>();
+                camera_entry->is_camera_avail = jcamera_entry["v"].get<bool>();
+                camera_entry->is_camera_streaming = jcamera_entry["active"].get<int>();
+                camera_entry->camera_type = jcamera_entry["p"].get<int>();
+                camera_entry->camera_specification = jcamera_entry["s"].get<int>();
+                
+                camera_entry->module_last_access_time = now_time;
+                camera_entry->updates = true;
 
+            }
         }
-    }
     }
 
     cleanOrphanCameraEntries(module_id, now_time);
 }
 
 
-Json de::comm::CUavosModulesManager::getCameraList()
+Json de::comm::CUavosModulesManager::getCameraList() const
 {
     Json camera_list = Json::array();
 
-    MODULE_CAMERA_LIST::iterator camera_module;
-    for (camera_module = m_camera_list.begin(); camera_module != m_camera_list.end(); camera_module++)
-    {   
-        std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>> * camera_entry_list = camera_module->second.get();
-        
-        std::map <std::string, std::unique_ptr<MODULE_CAMERA_ENTRY>>::iterator camera_entry_itrator;
+    // Iterate over each camera module
+    for (const auto& [module_id, camera_entry_list_ptr] : m_camera_list) {
+        // Check if the camera entry list is valid
+        if (!camera_entry_list_ptr) {
+            continue; // Skip invalid entries
+        }
 
-        for (camera_entry_itrator = camera_entry_list->begin(); camera_entry_itrator != camera_entry_list->end(); camera_entry_itrator++)
-        {   
-            const MODULE_CAMERA_ENTRY * camera_entry= camera_entry_itrator->second.get();
-    
-            
-            
-            Json json_camera_entry =
-            {
-                // check uavos_camera_plugin
-                {"v", camera_entry->is_camera_avail},
-                {"ln", camera_entry->logical_name},
-                {"id", camera_entry->global_index},
-                {"active", camera_entry->is_camera_streaming},
-                {"r", camera_entry->is_recording},
-                {"p", camera_entry->camera_type},
-                {"s", camera_entry->camera_specification}
+        // Iterate over each camera entry in the module
+        for (const auto& [entry_id, camera_entry_ptr] : *camera_entry_list_ptr) {
+            if (!camera_entry_ptr) {
+                continue; // Skip invalid entries
+            }
 
+            // Create a JSON object for the camera entry
+            Json json_camera_entry = {
+                {"v", camera_entry_ptr->is_camera_avail},
+                {"ln", camera_entry_ptr->logical_name},
+                {"id", camera_entry_ptr->global_index},
+                {"active", camera_entry_ptr->is_camera_streaming},
+                {"r", camera_entry_ptr->is_recording},
+                {"p", camera_entry_ptr->camera_type},
+                {"s", camera_entry_ptr->camera_specification}
             };
-            camera_list.push_back(json_camera_entry);
+
+            // Add the JSON object to the list
+            camera_list.push_back(std::move(json_camera_entry));
         }
     }
 
@@ -459,28 +455,22 @@ Json de::comm::CUavosModulesManager::getCameraList()
 }
 
 
-bool de::comm::CUavosModulesManager::updateModuleSubscribedMessages (const std::string& module_id, const Json& message_array)
+bool de::comm::CUavosModulesManager::updateModuleSubscribedMessages(const std::string& module_id, const Json& message_array)
 {
     bool new_module = false;
 
-    const int messages_length = message_array.size(); 
-    for (int i=0; i< messages_length; ++i)
-    {
-        /**
-        * @brief 
-        * select list of a given message id.
-        * * &v should be by reference to avoid making fresh copy.
-        */
-        std::vector<std::string> &v = m_module_messages[message_array[i].get<int>()];
-        if (std::find(v.begin(), v.end(), module_id) == v.end())
-        {
-            /**
-            * @brief 
-            * add module in the callback list.
-            * when this message is received from andruav-server it should be 
-            * forwarded to this list.
-            */
-            v.push_back(module_id);
+    // Iterate over each message ID in the JSON array
+    for (const auto& message : message_array) {
+        // Get the message ID and ensure it's an integer
+        const int message_id = message.get<int>();
+
+        // Get the list of modules subscribed to this message
+        std::vector<std::string>& module_list = m_module_messages[message_id];
+
+        // Check if the module is already in the list
+        if (std::find(module_list.begin(), module_list.end(), module_id) == module_list.end()) {
+            // Add the module to the list
+            module_list.push_back(module_id);
             new_module = true;
         }
     }
@@ -645,7 +635,7 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     const Json& message_array = msg_cmd[JSON_INTERMODULE_MODULE_MESSAGES_LIST]; 
     updated |= updateModuleSubscribedMessages(module_id, message_array);
 
-    const std::string module_class = module_item->module_class; //msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>(); 
+    const std::string module_class = module_item->module_class; 
     if (module_class.find(MODULE_CLASS_VIDEO)==0)
     {
         // update camera list

@@ -158,7 +158,7 @@ namespace comm
              * 
              * @return Json 
              */
-            Json getCameraList();
+            Json getCameraList() const;
 
             bool handleDeadModules();
 
@@ -200,7 +200,7 @@ namespace comm
             void updateCameraList(const std::string& module_id, const Json& msg_cmd);
 
             
-            void cleanOrphanCameraEntries (const std::string& module_id, const uint64_t& time_now);
+            void cleanOrphanCameraEntries (const std::string& module_id, const uint64_t time_now);
 
             
             void checkLicenseStatus(MODULE_ITEM_TYPE * module_item);

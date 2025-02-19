@@ -545,6 +545,7 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     * this is the main list of modules.
     */
     
+    const Json& message_array = msg_cmd[JSON_INTERMODULE_MODULE_MESSAGES_LIST]; 
         
     auto module_entry = m_modules_list.find(module_id);
     if (module_entry == m_modules_list.end()) 
@@ -588,6 +589,9 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
                 
         m_modules_list.insert(std::make_pair(module_item->module_id, std::unique_ptr<MODULE_ITEM_TYPE>(module_item)));
         
+        // insert message callback ... Module cannot update messages ids during running.
+        updated |= updateModuleSubscribedMessages(module_id, message_array);
+
         PLOG(plog::info)<<"Module Adding: " << module_item->module_id ; 
         
     }
@@ -630,11 +634,7 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     module_item->module_last_access_time = now;
 
             
-    // insert message callback
     
-    const Json& message_array = msg_cmd[JSON_INTERMODULE_MODULE_MESSAGES_LIST]; 
-    updated |= updateModuleSubscribedMessages(module_id, message_array);
-
     const std::string module_class = module_item->module_class; 
     if (module_class.find(MODULE_CLASS_VIDEO)==0)
     {

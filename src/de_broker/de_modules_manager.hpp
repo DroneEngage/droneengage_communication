@@ -18,6 +18,7 @@ using Json = nlohmann::json;
 #include "../global.hpp"
 #include "../status.hpp"
 #include "udpCommunicator.hpp"
+#include "andruav_message_buffer.hpp"
 
 
 #define MODULE_CLASS_COMM                       "comm"
@@ -151,13 +152,13 @@ namespace comm
              * to other modules.
              * 
              */
-            void forwardCommandsToModules(const int& message_type, const char * message, const std::size_t datalength);
+            void forwardCommandsToModules(const int& message_type, const Json_de& message);
             /**
              * @brief Get the Camera List object that defines all camera devices attached to all camera modules.
              * 
              * @return Json 
              */
-            Json getCameraList();
+            Json getCameraList() const;
 
             bool handleDeadModules();
 
@@ -168,15 +169,15 @@ namespace comm
         public:
 
             void setMessageOnReceive (void (*onReceive)(const char *, int len))
-                {
-                    m_OnReceive = onReceive;
-                }
+            {
+                m_OnReceive = onReceive;
+            }
         
             void onReceive (const char * message, int len, struct sockaddr_in *  sock) override;
             void (*m_OnReceive)(const char *, int len) = nullptr;
         
         private:
-
+            void consumerThreadFunc();
             void forwardMessageToModule (const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item);
             bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);
 
@@ -199,7 +200,7 @@ namespace comm
             void updateCameraList(const std::string& module_id, const Json& msg_cmd);
 
             
-            void cleanOrphanCameraEntries (const std::string& module_id, const uint64_t& time_now);
+            void cleanOrphanCameraEntries (const std::string& module_id, const uint64_t time_now);
 
             
             void checkLicenseStatus(MODULE_ITEM_TYPE * module_item);
@@ -268,6 +269,10 @@ namespace comm
             CUDPCommunicator cUDPClient; 
 
             bool m_exit = false;
+
+            de::comm::CMessageBuffer m_buffer;
+            std::thread m_consumerThread;
+            bool m_running = true;
             
     };
 }

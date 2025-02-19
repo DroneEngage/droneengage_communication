@@ -7,10 +7,13 @@
 
 
 #define MAX_UDP_DATABUS_PACKET_SIZE 0xffff
-#define DEFAULT_UDP_DATABUS_PACKET_SIZE 8160
+#define DEFAULT_UDP_DATABUS_PACKET_SIZE 8192
 
 typedef void (*ONRECEIVE_CALLBACK)(const char *, int len, struct sockaddr_in *  sock);
 
+#ifndef MAXLINE
+#define MAXLINE 0xffff 
+#endif
 
 namespace de
 {
@@ -50,7 +53,6 @@ class CUDPCommunicator
         void InternalReceiverEntry();
         void InternelSenderIDEntry();
 
-        struct sockaddr_in  *m_CommunicatorModuleAddress = NULL; 
         int m_SocketFD = -1; 
         std::thread m_threadCreateUDPSocket;
         pthread_t m_thread;
@@ -61,8 +63,10 @@ class CUDPCommunicator
         std::mutex m_lock;  
         
         CCallBack_UDPCommunicator *m_callback = nullptr;
-
+        std::unique_ptr<struct sockaddr_in> m_CommunicatorModuleAddress = std::make_unique<struct sockaddr_in>();
         int m_chunkSize;
+
+        char m_buffer[MAXLINE]; 
 };
 }
 }

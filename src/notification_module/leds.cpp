@@ -78,11 +78,18 @@ void CLEDs::update()
 
         if (m_status.is_online())
         {
-            m_power_led_on = LED_ON;
+            if (m_counter % 2)
+            {
+                m_power_led_on = LED_OFF;
+            }
+            else
+            {
+                m_power_led_on = LED_ON;
+            }
         }
         else
         {
-            m_power_led_on = !m_power_led_on;
+            m_power_led_on = LED_OFF;
         }
         
         Json_de message =
@@ -99,7 +106,7 @@ void CLEDs::update()
         std::cout << "cmd:" << cmd.c_str() << "::: len:" << cmd.length() << std::endl;
         #endif
         
-        de::comm::CUavosModulesManager::getInstance().forwardCommandsToModules(TYPE_AndruavMessage_GPIO_ACTION, cmd.c_str(), cmd.length());
+        de::comm::CUavosModulesManager::getInstance().forwardCommandsToModules(TYPE_AndruavMessage_GPIO_ACTION, message);
     
     }
     else if (m_counter % 3 == 0)

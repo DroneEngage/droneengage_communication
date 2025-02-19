@@ -14,11 +14,9 @@ using Json_de = nlohmann::json;
 #include <plog/Log.h> 
 #include "plog/Initializers/RollingFileInitializer.h"
 
-#ifndef MAXLINE
-#define MAXLINE 0xffff 
-#endif
 
-char buffer[MAXLINE]; 
+
+
 
 
 de::comm::CUDPCommunicator::~CUDPCommunicator ()
@@ -81,8 +79,13 @@ void de::comm::CUDPCommunicator::init (const char * host, int listenningPort, in
         exit(EXIT_FAILURE); 
     }
 
-    m_CommunicatorModuleAddress = new (struct sockaddr_in)();
-    memset(m_CommunicatorModuleAddress, 0, sizeof(struct sockaddr_in)); 
+    if (!m_CommunicatorModuleAddress) {
+        std::cout << "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " Failed to allocate memory for sockaddr_in" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        PLOG(plog::error) << "UDP Listener Failed to allocate memory for sockaddr_in" ; 
+        exit(-1) ;
+    }
+
+    memset(m_CommunicatorModuleAddress.get(), 0, sizeof(struct sockaddr_in)); 
      
     // Communication Server (IP - PORT) 
     m_CommunicatorModuleAddress->sin_family = AF_INET; 
@@ -91,7 +94,7 @@ void de::comm::CUDPCommunicator::init (const char * host, int listenningPort, in
     
     
     // Bind the socket with the server address 
-    if (bind(m_SocketFD, (const struct sockaddr *)m_CommunicatorModuleAddress, sizeof(struct sockaddr_in)) < 0 ) 
+    if (bind(m_SocketFD, (const struct sockaddr *)m_CommunicatorModuleAddress.get(), sizeof(struct sockaddr_in)) < 0 ) 
     { 
         std::cout << "UDP Listener  " << _ERROR_CONSOLE_TEXT_ << " BAD BIND: " << host << ":" << listenningPort << _NORMAL_CONSOLE_TEXT_ << std::endl;
         PLOG(plog::error) << "UDP Listener BAD BIND: " << host << ":" << listenningPort ; 
@@ -148,8 +151,6 @@ void de::comm::CUDPCommunicator::stop()
             m_threadCreateUDPSocket.join();
         }
 
-        delete m_CommunicatorModuleAddress;
-
         #ifdef DEBUG
 	    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         #endif
@@ -187,14 +188,14 @@ void de::comm::CUDPCommunicator::InternalReceiverEntry()
     while (!m_stopped_called)
     {
         // TODO: you should send header ot message length and handle if total message size is larger than MAXLINE.
-        n = recvfrom(m_SocketFD, (char *)buffer, MAXLINE,  
+        n = recvfrom(m_SocketFD, (char *)m_buffer, MAXLINE,  
                 MSG_WAITALL, ( struct sockaddr *) &cliaddr, &sender_address_size);
         
         if (n > 0) 
         {
 
             // First two bytes represent the chunk number
-            const uint16_t chunkNumber = (buffer[1] << 8) | buffer[0]; 
+            const uint16_t chunkNumber = (m_buffer[1] << 8) | m_buffer[0]; 
             #ifdef DDEBUG        
                 std::cout << "chunkNumber:" << chunkNumber << " :len :" << n << std::endl;
             #endif
@@ -211,7 +212,7 @@ void de::comm::CUDPCommunicator::InternalReceiverEntry()
             //! IF MODULE connects and disconnects from many ports this vector will contain orphan data.
             std::vector<std::vector<uint8_t>>& chunkVector = receivedChunksBySource[cliaddr.sin_port];
 
-            chunkVector.emplace_back(buffer + 2 * sizeof(uint8_t), buffer + n);
+            chunkVector.emplace_back(m_buffer + 2 * sizeof(uint8_t), m_buffer + n);
 
             // Check if we have received all the chunks
             if (end)

@@ -190,32 +190,31 @@ void de::andruav_servers::CAndruavCommServer::connect ()
  */
 void de::andruav_servers::CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_seconds)
 {
-    m_on_off_delay  = duration_seconds;
+    m_on_off_delay = duration_seconds;
     if (on_off)
     {
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "WS Module:" << _LOG_CONSOLE_TEXT << " Set Communication Line " << _SUCCESS_CONSOLE_BOLD_TEXT_ <<  " Switched Online" << _LOG_CONSOLE_TEXT <<  " duration (sec): "  << _SUCCESS_CONSOLE_BOLD_TEXT_ << std::to_string(duration_seconds) << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-        g = std::thread {[&](){ 
+        // Create and immediately detach the thread
+        g = std::thread{[this]() { 
             try
             {
                 // Switch online
                 m_exit = false;
-                if (m_on_off_delay!=0)
+                if (m_on_off_delay != 0)
                 {
                     std::this_thread::sleep_for(std::chrono::seconds(m_on_off_delay));
                     // Switch offline again after delay
                     std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Switched Offline" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
                     uninit(true);
                 }
-                
-                g.detach();
             }
             catch (...)
             {
                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
             }
         }};
-    
+        g.detach(); // Detach immediately after creation
     }
     else
     {
@@ -223,14 +222,15 @@ void de::andruav_servers::CAndruavCommServer::turnOnOff(const bool on_off, const
         
         de::andruav_servers::CAndruavFacade::getInstance().API_sendCommunicationLineStatus(std::string(), false);
     
-        g = std::thread {[&](){ 
+        // Create and immediately detach the thread
+        g = std::thread{[this]() { 
             try
             {
                 std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for message to be sent.
                         
                 uninit(true);
                     
-                if (m_on_off_delay!=0)
+                if (m_on_off_delay != 0)
                 {
                     std::this_thread::sleep_for(std::chrono::seconds(m_on_off_delay));
                     std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Restart" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -238,19 +238,15 @@ void de::andruav_servers::CAndruavCommServer::turnOnOff(const bool on_off, const
                     // re-enable.
                     m_exit = false;
                 }
-                    
-                g.detach();
             }
             catch (...)
             {
                 std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
             }
         }};
+        g.detach(); // Detach immediately after creation
     }
-                    
-                
 }
-
 
 /**
  * @brief Connects to Andruav Communication Server. 

@@ -317,7 +317,7 @@ void de::andruav_servers::CAndruavParser::parseRemoteExecuteCommand (const std::
         }
         break;
 
-        case RemoteCommand_CLEAR_WAY_POINTS_FROM_FCB:
+        case RemoteCommand_CLEAR_WAY_POINTS:
             
             if (unit_info.is_gcs_blocked) break ;
             

@@ -69,7 +69,7 @@
 #define ANDRUAV_PROTOCOL_SENDER_ALL_GCS         "_GCS_"
 #define ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS      "_AGN_"
 #define ANDRUAV_PROTOCOL_SENDER_ALL             "_GD_"
-#define SPECIAL_NAME_SYS_NAME                   "_SYS_"
+#define ANDRUAV_PROTOCOL_SENDER_COMM_SERVER     "_SYS_"
 
 
 // Andruav Protocol Fields

@@ -518,10 +518,30 @@ void de::andruav_servers::CAndruavCommServer::uninit(const bool exit_mode)
     try
     {
         if (_cwsa_session) {
+            boost::asio::io_context io;
+            boost::asio::steady_timer timer(io, std::chrono::seconds(5)); // 5-second timeout
+
+            bool shutdown_completed = false;
+
+            // Start the timer
+            timer.async_wait([&](boost::system::error_code ec) {
+                if (!ec) {
+                    // Timeout occurred
+                    if (!shutdown_completed) {
+                        std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "Shutdown timed out! Forcefully closing." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                        _cwsa_session->close(); // Forcefully close
+                    }
+                }
+            });
+
+            // Perform the shutdown
             _cwsa_session->shutdown();
+            shutdown_completed = true;
+            timer.cancel(); // Cancel the timer if shutdown succeeds.
+
             _cwsa_session.reset();
-        }
-    }    catch(const std::exception& e)
+        } 
+    }   catch(const std::exception& e)
     {
         std::cerr << __PRETTY_FUNCTION__ << " line 1:" << __LINE__ << e.what() << '\n';
     }

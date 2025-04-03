@@ -37,7 +37,8 @@
 #include "./hal/gpio.hpp"
 #include "./notification_module/leds.hpp"
 #include "./notification_module/buzzer.hpp"
-
+#include "./de_general_mission_planner/mission_file.hpp"
+#include "./de_general_mission_planner/mission_manager_base.hpp"
 #include <plog/Log.h> 
 #include "plog/Initializers/RollingFileInitializer.h"
 
@@ -406,6 +407,20 @@ void initArguments (int argc, char *argv[])
     }
 }
 
+void readSavedMission()
+{
+const std::string plan = de::mission::CMissionFile::getInstance().readMissionFile("de_plan.json");
+    if (plan != "")
+    {
+        const Json_de json_plan = Json_de::parse(plan);
+        de::mission::CMissionManagerBase::getInstance().extractPlanModule(json_plan);
+    }   
+    else
+    {
+        std::cout << _INFO_CONSOLE_TEXT << "No saved mission file found." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
+}
+
 /**
  * initialize components
  **/
@@ -443,7 +458,8 @@ void init (int argc, char *argv[])
     initScheduler();
 
     initModuleManager();
-
+    readSavedMission();
+            
 }
 
 

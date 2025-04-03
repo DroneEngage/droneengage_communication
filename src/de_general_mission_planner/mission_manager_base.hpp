@@ -74,12 +74,7 @@ namespace mission
 
         public:
             
-                inline void clearModuleMissionItems ()
-                {
-                    m_last_executed_mission_id = "";
-                    m_module_missions.clear();
-                    m_module_missions_by_de_events.clear();
-                }
+                void clearModuleMissionItems ();
                 
                 
 

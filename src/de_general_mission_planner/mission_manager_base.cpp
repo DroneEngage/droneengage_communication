@@ -7,8 +7,19 @@
 #include "../de_broker/de_modules_manager.hpp"
 #include "../comm_server/andruav_parser.hpp"
 #include "../comm_server/andruav_comm_server.hpp"
+#include "./mission_file.hpp"
 
 using namespace de::mission;
+
+
+void CMissionManagerBase::clearModuleMissionItems ()
+{
+    m_last_executed_mission_id = "";
+    m_module_missions.clear();
+    m_module_missions_by_de_events.clear();
+    CMissionFile::getInstance().deleteMissionFile("de_plan.json");
+}
+
 
 /**
  * @brief Read plan file as JSON object and extract DE mission items from it.
@@ -24,6 +35,8 @@ try
         
         if (std::string(plan["fileType"]).find("de_plan") != std::string::npos)
         {
+            CMissionFile::getInstance().writeMissionFile("de_plan.json", plan.dump());
+            
             if (plan.contains("de_mission"))
             {
                 // there is a waypoint data

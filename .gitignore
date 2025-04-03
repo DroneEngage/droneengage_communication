@@ -10,3 +10,4 @@ config.null.json
 doxygen_doc/
 *.local
 *.log
+de_plan.json

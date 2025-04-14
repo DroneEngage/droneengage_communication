@@ -1,5 +1,5 @@
-#ifndef ANDRUAV_COMM_SERVER_H_
-#define ANDRUAV_COMM_SERVER_H_
+#ifndef ANDRUAV_COMM_SERVER_LOCAL_H_
+#define ANDRUAV_COMM_SERVER_LOCAL_H_
 
 #include <cstdlib>
 #include <functional>
@@ -23,35 +23,32 @@ namespace de
     
 namespace andruav_servers
 {
-
-
-    
-    class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServer>, public CCallBack_WSASession
+    class CAndruavCommServerLocal : public std::enable_shared_from_this<CAndruavCommServerLocal>, public CCallBack_WSASession
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
             
-            static CAndruavCommServer& getInstance()
+            static CAndruavCommServerLocal& getInstance()
             {
-                static CAndruavCommServer instance;
+                static CAndruavCommServerLocal instance;
 
                 return instance;
             };
 
         public:
-            CAndruavCommServer(CAndruavCommServer const&) = delete;
-            void operator=(CAndruavCommServer const&) = delete;
+            CAndruavCommServerLocal(CAndruavCommServerLocal const&) = delete;
+            void operator=(CAndruavCommServerLocal const&) = delete;
 
         private:
 
-            CAndruavCommServer():m_exit(false) 
+            CAndruavCommServerLocal():m_exit(false) 
             {
                 m_next_connect_time = 0;
             };
     
         public:
             
-            ~CAndruavCommServer (){};
+            ~CAndruavCommServerLocal (){};
             
         
         public:
@@ -92,7 +89,7 @@ namespace andruav_servers
                 return m_lasttime_access;
             }
 
-
+            
         private:
             void switchOnline();
             void switchOffline();
@@ -126,6 +123,8 @@ namespace andruav_servers
             CAndruavUnits& m_andruav_units = CAndruavUnits::getInstance();
 
             de::comm::CAndruavMessage& m_andruav_message = de::comm::CAndruavMessage::getInstance();
+
+            
     };
 }
 }

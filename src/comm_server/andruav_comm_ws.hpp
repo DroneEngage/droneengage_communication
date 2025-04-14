@@ -111,8 +111,10 @@ class CWSAProxy
         ~CWSAProxy (){};
 
     public:
-        std::unique_ptr<de::andruav_servers::CWSASession> run(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback);
-        boost::asio::io_context io_context_;
+        std::unique_ptr<de::andruav_servers::CWSASession> run1(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback);
+        std::unique_ptr<de::andruav_servers::CWSASession> run2(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback);
+        boost::asio::io_context io_context_1;
+        boost::asio::io_context io_context_2;
     
 };
         

@@ -19,12 +19,12 @@
 #include "andruav_auth.hpp"
 #include "andruav_unit.hpp"
 #include "../de_broker/de_modules_manager.hpp"
-#include "andruav_comm_server.hpp"
+#include "andruav_comm_server_local.hpp"
 #include "andruav_facade.hpp"
 #include "andruav_parser.hpp"
 
 
-std::thread g1;
+
 // Based on Below Model
 // https://www.boost.org/doc/libs/develop/libs/beast/example/websocket/client/async-ssl/websocket_client_async_ssl.cpp
 
@@ -32,11 +32,12 @@ std::thread g1;
 //  Pthread Starter Helper Functions
 // ------------------------------------------------------------------------------
 
+std::thread g2;
 
 using namespace de::andruav_servers;
 
 
-void CAndruavCommServer::startWatchDogThread()
+void CAndruavCommServerLocal::startWatchDogThread()
 {
     static uint32_t off_count = 0;
 
@@ -102,7 +103,7 @@ void CAndruavCommServer::startWatchDogThread()
  * @brief Entry function for Connection.
  * 
  */
-void CAndruavCommServer::start ()
+void CAndruavCommServerLocal::start ()
 {
     
     if (m_exit) return ;
@@ -119,7 +120,7 @@ void CAndruavCommServer::start ()
  * @brief Main function that connects to Andruav Authentication
  * 
  */
-void CAndruavCommServer::connect ()
+void CAndruavCommServerLocal::connect ()
 {
     try
     {
@@ -150,13 +151,13 @@ void CAndruavCommServer::connect ()
         CAndruavAuthenticator& andruav_auth = CAndruavAuthenticator::getInstance();
         
         m_status = SOCKET_STATUS_CONNECTING;
-        if (!andruav_auth.doAuthentication() || !andruav_auth.isAuthenticationOK())   
-        {
-            m_status = SOCKET_STATUS_ERROR;
-            PLOG(plog::error) << "Communicator Server Connection Status: SOCKET_STATUS_ERROR"; 
-            de::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
-            return ;
-        }
+        // if (!andruav_auth.doAuthentication() || !andruav_auth.isAuthenticationOK())   
+        // {
+        //     m_status = SOCKET_STATUS_ERROR;
+        //     PLOG(plog::error) << "Communicator Server Connection Status: SOCKET_STATUS_ERROR"; 
+        //     de::comm::CUavosModulesManager::getInstance().handleOnAndruavServerConnection (m_status);
+        //     return ;
+        // }
     
 
         std::string serial;
@@ -188,7 +189,7 @@ void CAndruavCommServer::connect ()
  * @param on_off 
  * @param duration in seconds
  */
-void CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_seconds)
+void CAndruavCommServerLocal::turnOnOff(const bool on_off, const uint32_t duration_seconds)
 {
     m_on_off_delay = duration_seconds;
     if (on_off)
@@ -196,7 +197,7 @@ void CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_se
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "WS Module:" << _LOG_CONSOLE_TEXT << " Set Communication Line " << _SUCCESS_CONSOLE_BOLD_TEXT_ <<  " Switched Online" << _LOG_CONSOLE_TEXT <<  " duration (sec): "  << _SUCCESS_CONSOLE_BOLD_TEXT_ << std::to_string(duration_seconds) << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
         // Create and immediately detach the thread
-        g1 = std::thread{[this]() { 
+        g2 = std::thread{[this]() { 
             try
             {
                 // Switch online
@@ -214,7 +215,7 @@ void CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_se
                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
             }
         }};
-        g1.detach(); // Detach immediately after creation
+        g2.detach(); // Detach immediately after creation
     }
     else
     {
@@ -223,7 +224,7 @@ void CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_se
         CAndruavFacade::getInstance().API_sendCommunicationLineStatus(std::string(), false);
     
         // Create and immediately detach the thread
-        g1 = std::thread{[this]() { 
+        g2 = std::thread{[this]() { 
             try
             {
                 std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for message to be sent.
@@ -244,7 +245,7 @@ void CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_se
                 std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
             }
         }};
-        g1.detach(); // Detach immediately after creation
+        g2.detach(); // Detach immediately after creation
     }
 }
 
@@ -257,7 +258,7 @@ void CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_se
  * @param key 
  * @param party_id 
  */
-void CAndruavCommServer::connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id)
+void CAndruavCommServerLocal::connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id)
 {
     try
     {
@@ -266,7 +267,7 @@ void CAndruavCommServer::connectToCommServer (const std::string& server_ip, cons
         m_port = std::string(server_port);
         m_party_id = std::string(party_id);
 
-        m_url_param = "/?f=" + key + "&s=" + m_party_id;
+        m_url_param = "/?f=" + key + "&s=" + m_party_id + "&at=d";
         
         // Launch Synchronous Socket
         if (_cwsa_session)
@@ -295,7 +296,7 @@ void CAndruavCommServer::connectToCommServer (const std::string& server_ip, cons
 }
 
 
-void CAndruavCommServer::onSocketError()
+void CAndruavCommServerLocal::onSocketError()
 {
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onSocketError " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -324,7 +325,7 @@ void CAndruavCommServer::onSocketError()
  * @param message first part until byte of value'0' should be XML header.
  * @param datalength 
  */
-void CAndruavCommServer::onBinaryMessageRecieved (const char * message, const std::size_t datalength)
+void CAndruavCommServerLocal::onBinaryMessageRecieved (const char * message, const std::size_t datalength)
 {
     try
     {
@@ -398,7 +399,7 @@ void CAndruavCommServer::onBinaryMessageRecieved (const char * message, const st
  * 
  * @param jsonMessage string message in JSON format.
  */
-void CAndruavCommServer::onTextMessageRecieved(const std::string& jsonMessage)
+void CAndruavCommServerLocal::onTextMessageRecieved(const std::string& jsonMessage)
 {
     m_lasttime_access = get_time_usec();
 
@@ -499,7 +500,7 @@ void CAndruavCommServer::onTextMessageRecieved(const std::string& jsonMessage)
 
             
 
-void CAndruavCommServer::uninit(const bool exit_mode)
+void CAndruavCommServerLocal::uninit(const bool exit_mode)
 {
     try
     {
@@ -601,7 +602,7 @@ void CAndruavCommServer::uninit(const bool exit_mode)
 }
 
 
-void CAndruavCommServer::API_pingServer()
+void CAndruavCommServerLocal::API_pingServer()
 {
     Json_de message =  { 
         {"t", get_time_usec()}
@@ -611,7 +612,7 @@ void CAndruavCommServer::API_pingServer()
     API_sendSystemMessage(TYPE_AndruavSystem_Ping, message);
 }
 
-void CAndruavCommServer::API_sendSystemMessage(const int command_type, const Json_de& msg) const 
+void CAndruavCommServerLocal::API_sendSystemMessage(const int command_type, const Json_de& msg) const 
 {
     if (m_status == SOCKET_STATUS_REGISTERED)  
     {
@@ -632,7 +633,7 @@ void CAndruavCommServer::API_sendSystemMessage(const int command_type, const Jso
 /// @param target_name party_id of a target or can be null or _GD_, _AGN_, _GCS_
 /// @param command_type 
 /// @param msg 
-void CAndruavCommServer::API_sendCMD (const std::string& target_name, const int command_type, const Json_de& msg)
+void CAndruavCommServerLocal::API_sendCMD (const std::string& target_name, const int command_type, const Json_de& msg)
 {
     static std::mutex g_i_mutex; 
 
@@ -657,7 +658,7 @@ void CAndruavCommServer::API_sendCMD (const std::string& target_name, const int 
     } 
 }
 
-std::string CAndruavCommServer::API_sendCMDDummy (const std::string& target_name, const int command_type, const Json_de& msg)
+std::string CAndruavCommServerLocal::API_sendCMDDummy (const std::string& target_name, const int command_type, const Json_de& msg)
 {
 
     static std::mutex g_i_mutex; 
@@ -694,7 +695,7 @@ std::string CAndruavCommServer::API_sendCMDDummy (const std::string& target_name
  * @param bmsg 
  * @param bmsg_length
  */
-void CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const uint64_t bmsg_length, const Json_de& message_cmd)
+void CAndruavCommServerLocal::API_sendBinaryCMD (const std::string& target_party_id, const int command_type, const char * bmsg, const uint64_t bmsg_length, const Json_de& message_cmd)
 {
     static std::mutex g_i_mutex; 
 
@@ -745,7 +746,7 @@ void CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, 
 * @param msg_type : i.e. Message ID
 * @param msg_cmd : Message ID Parameters... i.e. JSOM command of the message
 */
-void CAndruavCommServer::sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd )
+void CAndruavCommServerLocal::sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd )
 {
     if (is_binary)
     {
@@ -770,12 +771,12 @@ void CAndruavCommServer::sendMessageToCommunicationServer (const char * full_mes
 }
 
 
-void CAndruavCommServer::switchOnline()
+void CAndruavCommServerLocal::switchOnline()
 {
     m_exit = false;
 }
 
-void CAndruavCommServer::switchOffline()
+void CAndruavCommServerLocal::switchOffline()
 {
     uninit(true);
 }

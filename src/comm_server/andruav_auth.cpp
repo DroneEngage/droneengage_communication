@@ -36,15 +36,13 @@ bool de::andruav_servers::CAndruavAuthenticator::doAuthentication()
     if (!validateField(jsonConfig,"auth_ip", Json_de::value_t::string))
     {
 
-        std::cout << std::to_string(validateField(jsonConfig,"auth_ip", Json_de::value_t::string)) << std::endl;
-        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing login info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing auth_ip info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(1);
     }
     
-    if (validateField(jsonConfig,"auth_port", Json_de::value_t::number_unsigned) == false)
+    if (!validateField(jsonConfig,"auth_port", Json_de::value_t::number_unsigned))
     {
 
-        std::cout << std::to_string(validateField(jsonConfig,"auth_port", Json_de::value_t::number_unsigned)) << std::endl;
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "FATAL:: Missing auth_port info in config file !!" <<_NORMAL_CONSOLE_TEXT_ << std::endl;
         exit(1);
     }

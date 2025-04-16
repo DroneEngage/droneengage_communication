@@ -6,7 +6,6 @@
 #include "mission_manager_base.hpp"
 #include "../de_broker/de_modules_manager.hpp"
 #include "../comm_server/andruav_parser.hpp"
-#include "../comm_server/andruav_comm_server.hpp"
 #include "./mission_file.hpp"
 
 using namespace de::mission;

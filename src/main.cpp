@@ -31,7 +31,7 @@
 #include "localConfigFile.hpp"
 
 #include "./comm_server/andruav_unit.hpp"
-#include "./comm_server/andruav_comm_server.hpp"
+#include "./comm_server/andruav_comm_server_manager.hpp"
 #include "./comm_server/andruav_facade.hpp"
 #include "./de_broker/de_modules_manager.hpp"
 #include "./hal/gpio.hpp"
@@ -119,7 +119,8 @@ void scheduler ()
     {
         hz_10++;
         
-        status.is_online(de::andruav_servers::CAndruavCommServer::getInstance().getStatus()==SOCKET_STATUS_REGISTERED);
+        bool status_is_online = de::andruav_servers::CAndruavCommServerManager::getInstance().isOnline();
+        status.is_online(status_is_online);
 
         cBuzzer.update();
         
@@ -467,10 +468,50 @@ void loop() {
     de::andruav_servers::CAndruavCommServer& andruav_server = 
         de::andruav_servers::CAndruavCommServer::getInstance();
 
-    while (!de::STATUS::getInstance().m_exit_me) {
-        andruav_server.start(); 
+    de::andruav_servers::CAndruavCommServerLocal& andruav_server_local = 
+        de::andruav_servers::CAndruavCommServerLocal::getInstance();
 
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
+
+    bool m_is_local_comm_server = false;
+    std::string m_local_comm_server_ip = "";
+    int m_local_comm_server_port = 0;
+
+    if ((validateField(jsonConfig,"local_comm_server_ip", Json_de::value_t::string))
+    && (validateField(jsonConfig,"local_comm_server_port", Json_de::value_t::number_unsigned)))
+    {
+        m_is_local_comm_server = true;
+        m_local_comm_server_ip = jsonConfig["local_comm_server_ip"].get<std::string>();
+        m_local_comm_server_port = jsonConfig["local_comm_server_port"].get<int>();
+    }
+
+    
+
+    bool is_warning_notified = false; // Flag to track if we've encountered ignore_original_comm_server = true
+
+    while (!de::STATUS::getInstance().m_exit_me) {
         
+        bool shouldIgnoreAuth = false;
+        if (validateField(jsonConfig, "ignore_original_comm_server", Json_de::value_t::boolean)) {
+            shouldIgnoreAuth = jsonConfig["ignore_original_comm_server"].get<bool>();
+        }
+
+        if (shouldIgnoreAuth) {
+            if (!is_warning_notified) {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "WARNING:: ignore_original_comm_server is true. Main communication server channel will NOT be started." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                is_warning_notified = true;
+            }
+            // Do not start the server if ignore_original_comm_server is true
+        } else {
+            andruav_server.start();
+            is_warning_notified = false; // Reset the flag if ignore_original_comm_server is false or absent
+        } 
+
+        if (m_is_local_comm_server)
+        {
+            andruav_server_local.start(m_local_comm_server_ip, m_local_comm_server_port, "my_key");
+        }
+
         try {
             std::this_thread::sleep_for(std::chrono::seconds(1)); 
         } catch (const std::system_error& e) {
@@ -485,15 +526,14 @@ void loop() {
 void uninit ()
 {
 
-    de::andruav_servers::CAndruavCommServer& andruav_server = de::andruav_servers::CAndruavCommServer::getInstance();
-
+    
     de::STATUS::getInstance().m_exit_me = true;
     exit_scheduler = true;
     
 
     cLeds.uninit();
     cUavosModulesManager.uninit();
-    andruav_server.uninit(true);
+    de::andruav_servers::CAndruavCommServerManager::getInstance().uninit(true);
     
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;

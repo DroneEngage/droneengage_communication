@@ -9,7 +9,7 @@
 #include "../localConfigFile.hpp"
 #include "andruav_parser.hpp"
 #include "andruav_facade.hpp"
-#include "andruav_comm_server.hpp"
+#include "andruav_comm_server_manager.hpp"
 #include "../de_general_mission_planner/mission_manager_base.hpp"
 #include "../status.hpp"
 
@@ -198,7 +198,7 @@ void de::andruav_servers::CAndruavParser::parseCommand (const std::string& sende
                 {
                     ws_duration = command["wsd"].get<int>();  
                 }
-                de::andruav_servers::CAndruavCommServer::getInstance().turnOnOff(ws_on_off, ws_duration);
+                de::andruav_servers::CAndruavCommServerManager::getInstance().turnOnOff(ws_on_off, ws_duration);
             }
 
             // Message can be handled by other modules.

@@ -17,10 +17,11 @@
 #include "../de_broker/de_modules_manager.hpp"
 #include "../status.hpp"
 
-#include "andruav_comm_server.hpp"
+#include "andruav_comm_server_manager.hpp"
 #include "andruav_facade.hpp"
 
 using namespace de::andruav_servers;
+
 
 void de::andruav_servers::CAndruavFacade::API_requestID (const std::string& target_party_id) const  
 {
@@ -30,7 +31,7 @@ void de::andruav_servers::CAndruavFacade::API_requestID (const std::string& targ
 
     Json_de jMsg = {{"C", TYPE_AndruavMessage_ID}};
     
-    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_RemoteExecute, jMsg);
+    CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_RemoteExecute, jMsg);
 }
 
 
@@ -118,14 +119,14 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
     }
     
     
-    #ifdef DDEBUG
+    #ifdef DEBUG
         std::cout << "API_sendID:" <<  jMsg.dump() << std::endl;
     #endif
     // !TODO Enhance logic here
-    std::string data = de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMDDummy(target_party_id, TYPE_AndruavMessage_ID, jMsg);
+    const std::string data = CAndruavCommServerManager::getInstance().API_sendCMDDummy(target_party_id, TYPE_AndruavMessage_ID, jMsg);
     de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(unit_info.party_id, TYPE_AndruavMessage_ID,  data.c_str(), data.length(), std::string());
     
-    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
+    CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_ID, jMsg);
 }
 
 
@@ -145,7 +146,7 @@ void de::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, c
         {"T", camera_list}
     };
         
-    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_CameraList, jMsg);
+    CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_CameraList, jMsg);
 }
 
 
@@ -168,7 +169,7 @@ void de::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::strin
         };
 
     
-    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Error, message);
+    CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Error, message);
 
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "sendErrorMessage " << _NORMAL_CONSOLE_TEXT_ << description << std::endl;
     
@@ -345,7 +346,7 @@ void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string&
         jMsg["q"] = unit_info.swarm_leader_I_am_following;    
     }
     
-    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Prepherials, jMsg);
+    CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Prepherials, jMsg);
 }
 
 
@@ -364,5 +365,5 @@ void de::andruav_servers::CAndruavFacade::API_sendCommunicationLineStatus(const 
       };
  
 
-    de::andruav_servers::CAndruavCommServer::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Communication_Line_Status, jMsg);
+    CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Communication_Line_Status, jMsg);
 }

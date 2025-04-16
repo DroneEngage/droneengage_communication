@@ -21,7 +21,7 @@
 #include "../configFile.hpp"
 #include "../localConfigFile.hpp"
 #include "../comm_server/andruav_unit.hpp"
-#include "../comm_server/andruav_comm_server.hpp"
+#include "../comm_server/andruav_comm_server_manager.hpp"
 #include "../comm_server/andruav_facade.hpp"
 #include "../comm_server/andruav_auth.hpp"
 #include "../de_broker/de_modules_manager.hpp"
@@ -842,8 +842,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             if (!intermodule_msg)
             {
                 // broadcast to other units on the system.
-                andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
+                de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
             }
         }
         break;
@@ -915,7 +914,6 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
         case TYPE_AndruavMessage_IMG:
         { 
-            andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
                 
             /**
              * @brief The message could be internal or not.
@@ -926,14 +924,14 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
              */
             if (!intermodule_msg)
             {
-                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
+                de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
         
                 break;
             }
             
             Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
-            andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, msg_cmd);
+            de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, msg_cmd);
         }
         break;
 
@@ -954,8 +952,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             else
             {
                 // forward the messages normally through the server.
-                andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
+                de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
 
                 // TODO: IMPORTANT: There is no gurantee that P2P is working fine.... so we need a confirmation from P2P
                 // or P2P can resend SWARM_MAVLINK again and request forward to server directly.
@@ -983,8 +980,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
 
             if (!intermodule_msg)
             {   
-                andruav_servers::CAndruavCommServer& andruavCommServer = andruav_servers::CAndruavCommServer::getInstance();
-                andruavCommServer.sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
+                de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
             }
             else
             {

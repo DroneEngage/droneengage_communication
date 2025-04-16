@@ -53,8 +53,8 @@ namespace andruav_servers
         
         public:
             
-            void start();
-            void connect();
+            void start(const std::string comm_server_ip, const uint16_t comm_server_port, const std::string comm_server_key);
+            void connect(const std::string comm_server_ip, const uint16_t comm_server_port, const std::string comm_server_key);
             void uninit(const bool exit);
             void turnOnOff(const bool on_off, const uint32_t duration_seconds);
 

@@ -286,7 +286,7 @@ std::unique_ptr<de::andruav_servers::CWSASession> de::andruav_servers::CWSAProxy
 std::unique_ptr<de::andruav_servers::CWSASession> de::andruav_servers::CWSAProxy::run2(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback)
 {
     // Create a WebSocket client and connect to the server
-    std::unique_ptr<de::andruav_servers::CWSASession> ptr = std::make_unique<de::andruav_servers::CWSASession>(io_context_1, std::string(host), std::string(port), std::string(url_param),callback);
+    std::unique_ptr<de::andruav_servers::CWSASession> ptr = std::make_unique<de::andruav_servers::CWSASession>(io_context_2, std::string(host), std::string(port), std::string(url_param),callback);
     ptr.get()->run();
     return ptr;
 }

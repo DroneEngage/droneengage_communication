@@ -63,6 +63,10 @@ namespace andruav_servers
             void API_sendCommunicationLineStatus(const std::string&  target_party_id, const bool on_off) const;
 
 
+        protected:
+
+            void API_sendCMD (const std::string& target_party_id, const int command_type, const Json_de& msg) const;
+            const std::string API_sendCMDDummy (const std::string& target_party_id, const int command_type, const Json_de& msg) const; 
     };
 
 }

@@ -206,8 +206,7 @@ namespace comm
             void checkLicenseStatus(MODULE_ITEM_TYPE * module_item);
 
             
-            //void sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json &msg_cmd );
-
+            
         private:
 
             /**

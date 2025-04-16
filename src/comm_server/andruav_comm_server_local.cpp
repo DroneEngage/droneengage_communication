@@ -16,7 +16,6 @@
 #include "../helpers/util_rpi.hpp"
 #include "../messages.hpp"
 #include "../configFile.hpp"
-#include "andruav_auth.hpp"
 #include "andruav_unit.hpp"
 #include "../de_broker/de_modules_manager.hpp"
 #include "andruav_comm_server_local.hpp"
@@ -103,7 +102,7 @@ void CAndruavCommServerLocal::startWatchDogThread()
  * @brief Entry function for Connection.
  * 
  */
-void CAndruavCommServerLocal::start ()
+void CAndruavCommServerLocal::start (const std::string comm_server_ip, const uint16_t comm_server_port, const std::string comm_server_key)
 {
     
     if (m_exit) return ;
@@ -112,7 +111,7 @@ void CAndruavCommServerLocal::start ()
     {
         m_watch_dog = std::make_unique<std::thread>([&](){ startWatchDogThread(); });
     }
-    connect(); 
+    connect(comm_server_ip, comm_server_port, comm_server_key); 
     
 }
 
@@ -120,7 +119,7 @@ void CAndruavCommServerLocal::start ()
  * @brief Main function that connects to Andruav Authentication
  * 
  */
-void CAndruavCommServerLocal::connect ()
+void CAndruavCommServerLocal::connect (const std::string comm_server_ip, const uint16_t comm_server_port, const std::string comm_server_key )
 {
     try
     {
@@ -148,8 +147,6 @@ void CAndruavCommServerLocal::connect ()
 
         m_next_connect_time = now_time + MIN_RECONNECT_RATE_US; // retry after 10 sec.
 
-        CAndruavAuthenticator& andruav_auth = CAndruavAuthenticator::getInstance();
-        
         m_status = SOCKET_STATUS_CONNECTING;
         // if (!andruav_auth.doAuthentication() || !andruav_auth.isAuthenticationOK())   
         // {
@@ -169,7 +166,7 @@ void CAndruavCommServerLocal::connect ()
 
         de::ANDRUAV_UNIT_INFO&  unit_info = de::CAndruavUnitMe::getInstance().getUnitInfo();
     
-        connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, unit_info.party_id);
+        connectToCommServer(comm_server_ip, std::to_string(comm_server_port), comm_server_key, unit_info.party_id);
 
     }
 
@@ -275,7 +272,7 @@ void CAndruavCommServerLocal::connectToCommServer (const std::string& server_ip,
             _cwsa_session.get()->shutdown();
         }
         
-        _cwsa_session = _cwsa_proxy.run1(m_host.c_str(), m_port.c_str(), m_url_param.c_str(), *this);
+        _cwsa_session = _cwsa_proxy.run2(m_host.c_str(), m_port.c_str(), m_url_param.c_str(), *this);
         
         // To delay the auto retry
         m_lasttime_access = get_time_usec();
@@ -614,13 +611,13 @@ void CAndruavCommServerLocal::API_pingServer()
 
 void CAndruavCommServerLocal::API_sendSystemMessage(const int command_type, const Json_de& msg) const 
 {
-    if (m_status == SOCKET_STATUS_REGISTERED)  
-    {
-        if (!_cwsa_session) return;
+    if (m_status != SOCKET_STATUS_REGISTERED) return ;
+    if (!_cwsa_session)  return ;
 
-        Json_de json_msg  = m_andruav_message.generateJSONSystemMessage (command_type, msg);
-        _cwsa_session.get()->writeText(json_msg.dump());
-    } 
+
+    Json_de json_msg  = m_andruav_message.generateJSONSystemMessage (command_type, msg);
+    _cwsa_session.get()->writeText(json_msg.dump());
+    
 }
             
 
@@ -639,6 +636,10 @@ void CAndruavCommServerLocal::API_sendCMD (const std::string& target_name, const
 
     const std::lock_guard<std::mutex> lock(g_i_mutex);
     
+    if (m_status != SOCKET_STATUS_REGISTERED) return ;
+    if (!_cwsa_session)  return ;
+
+    
     std::string message_routing;
     if (target_name.empty() == false)
     {  // BUG HERE PLease ensure that it sends ind.
@@ -649,13 +650,9 @@ void CAndruavCommServerLocal::API_sendCMD (const std::string& target_name, const
         message_routing = CMD_COMM_GROUP;
     }
 
-    if (m_status == SOCKET_STATUS_REGISTERED)  
-    {
-        if (!_cwsa_session)  return ;
+    Json_de json_msg  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
+    _cwsa_session.get()->writeText(json_msg.dump());
 
-        Json_de json_msg  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
-        _cwsa_session.get()->writeText(json_msg.dump());
-    } 
 }
 
 std::string CAndruavCommServerLocal::API_sendCMDDummy (const std::string& target_name, const int command_type, const Json_de& msg)
@@ -701,6 +698,9 @@ void CAndruavCommServerLocal::API_sendBinaryCMD (const std::string& target_party
 
     const std::lock_guard<std::mutex> lock(g_i_mutex);
     
+    if (m_status != SOCKET_STATUS_REGISTERED) return ;
+    if (!_cwsa_session)  return ;
+
     #ifdef DDEBUG_MSG        
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
@@ -715,22 +715,21 @@ void CAndruavCommServerLocal::API_sendBinaryCMD (const std::string& target_party
         message_routing = CMD_COMM_GROUP;
     }
 
-    if (m_status == SOCKET_STATUS_REGISTERED)  
-    {
+    
         
-        Json_de json  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, message_cmd);
-        std::string json_msg = json.dump();
-        char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
-        strcpy(msg_ptr,json_msg.c_str());
-        msg_ptr[json_msg.length()] = 0;
-        memcpy(&msg_ptr[json_msg.length()+1], bmsg, bmsg_length);
-        if (_cwsa_session) 
-        {
-            _cwsa_session.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
-        }
+    Json_de json  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, message_cmd);
+    std::string json_msg = json.dump();
+    char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
+    strcpy(msg_ptr,json_msg.c_str());
+    msg_ptr[json_msg.length()] = 0;
+    memcpy(&msg_ptr[json_msg.length()+1], bmsg, bmsg_length);
+    if (_cwsa_session) 
+    {
+        _cwsa_session.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
+    }
 
-        delete[] msg_ptr;
-    } 
+    delete[] msg_ptr;
+    
 }
 
 

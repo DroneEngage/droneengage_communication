@@ -4,7 +4,7 @@
     */
     
     // A name and GUID for this module
-    "module_id"                 : "MT_1",
+    "module_id"                 : "MT_LOCAL",
     "unit_type"                 : "control_unit",
     // IP & Port Communication Module is listening to.
     "s2s_udp_listening_ip"      : "0.0.0.0",
@@ -13,12 +13,15 @@
 
     
     // Drone-Engage Communication Server Connection
+    "ignore_original_comm_server"   : true,  // dont authenticate and connect directly to a drone server [optional default=false].
     "auth_ip"                       : "127.0.0.1",
     "auth_port"                     : 19408,
     "auth_verify_ssl"               : false,
-    "ignore_original_comm_server"   : false,  // dont authenticate and connect directly to a drone server.
+    "local_comm_server_ip"          : "192.168.1.144",
+    "local_comm_server_port"        : 9967,
+    "enable_local_comm_server"      : true,  // my own local server as a leader drone node.
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
-    "root_certificate_path"         : "./root.crt",
+    "root_certificate_path"     : "./root.crt",
 
     "userName"                  :"mhefny@andruav.com", 
     "accessCode"                :"mhefny",

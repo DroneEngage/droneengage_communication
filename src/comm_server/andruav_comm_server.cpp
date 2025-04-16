@@ -613,13 +613,13 @@ void CAndruavCommServer::API_pingServer()
 
 void CAndruavCommServer::API_sendSystemMessage(const int command_type, const Json_de& msg) const 
 {
-    if (m_status == SOCKET_STATUS_REGISTERED)  
-    {
-        if (!_cwsa_session) return;
+    if (m_status != SOCKET_STATUS_REGISTERED) return ;
+    if (!_cwsa_session)  return ;
 
-        Json_de json_msg  = m_andruav_message.generateJSONSystemMessage (command_type, msg);
-        _cwsa_session.get()->writeText(json_msg.dump());
-    } 
+
+    Json_de json_msg  = m_andruav_message.generateJSONSystemMessage (command_type, msg);
+    _cwsa_session.get()->writeText(json_msg.dump());
+    
 }
             
 
@@ -638,6 +638,9 @@ void CAndruavCommServer::API_sendCMD (const std::string& target_name, const int 
 
     const std::lock_guard<std::mutex> lock(g_i_mutex);
     
+    if (m_status != SOCKET_STATUS_REGISTERED) return ;
+    if (!_cwsa_session)  return ;
+
     std::string message_routing;
     if (target_name.empty() == false)
     {  // BUG HERE PLease ensure that it sends ind.
@@ -648,13 +651,9 @@ void CAndruavCommServer::API_sendCMD (const std::string& target_name, const int 
         message_routing = CMD_COMM_GROUP;
     }
 
-    if (m_status == SOCKET_STATUS_REGISTERED)  
-    {
-        if (!_cwsa_session)  return ;
+    Json_de json_msg  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
+    _cwsa_session.get()->writeText(json_msg.dump());
 
-        Json_de json_msg  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_name, command_type, msg);
-        _cwsa_session.get()->writeText(json_msg.dump());
-    } 
 }
 
 std::string CAndruavCommServer::API_sendCMDDummy (const std::string& target_name, const int command_type, const Json_de& msg)
@@ -704,6 +703,9 @@ void CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, 
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "API_sendCMD " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
+    if (m_status != SOCKET_STATUS_REGISTERED) return ;
+    if (!_cwsa_session)  return ;
+
     std::string message_routing;
     if (target_party_id.empty() == false)
     {
@@ -714,22 +716,19 @@ void CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, 
         message_routing = CMD_COMM_GROUP;
     }
 
-    if (m_status == SOCKET_STATUS_REGISTERED)  
+    Json_de json  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, message_cmd);
+    std::string json_msg = json.dump();
+    char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
+    strcpy(msg_ptr,json_msg.c_str());
+    msg_ptr[json_msg.length()] = 0;
+    memcpy(&msg_ptr[json_msg.length()+1], bmsg, bmsg_length);
+    if (_cwsa_session) 
     {
-        
-        Json_de json  = m_andruav_message.generateJSONMessage (message_routing, m_party_id, target_party_id, command_type, message_cmd);
-        std::string json_msg = json.dump();
-        char * msg_ptr = new char[json_msg.length() + 1 + bmsg_length];
-        strcpy(msg_ptr,json_msg.c_str());
-        msg_ptr[json_msg.length()] = 0;
-        memcpy(&msg_ptr[json_msg.length()+1], bmsg, bmsg_length);
-        if (_cwsa_session) 
-        {
-            _cwsa_session.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
-        }
+        _cwsa_session.get()->writeBinary(msg_ptr, json_msg.length() + 1 + bmsg_length);
+    }
 
-        delete[] msg_ptr;
-    } 
+    delete[] msg_ptr;
+    
 }
 
 
@@ -744,7 +743,7 @@ void CAndruavCommServer::API_sendBinaryCMD (const std::string& target_party_id, 
 * @param target_id 
 * @param msg_type : i.e. Message ID
 * @param msg_cmd : Message ID Parameters... i.e. JSOM command of the message
-*/
+*/                                                        
 void CAndruavCommServer::sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd )
 {
     if (is_binary)

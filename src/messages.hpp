@@ -85,20 +85,7 @@
 #define FIRE_EVENT                              "ef"
 #define LINKED_TO_STEP                          "ls"
 
-// System Messages
-#define TYPE_AndruavSystem_LoadTasks		    9001
-#define TYPE_AndruavSystem_SaveTasks		    9002
-#define TYPE_AndruavSystem_DeleteTasks	        9003
-#define TYPE_AndruavSystem_DisableTasks	        9004
-#define TYPE_AndruavSystem_Ping                 9005
-#define TYPE_AndruavSystem_LogoutCommServer     9006
-#define TYPE_AndruavSystem_ConnectedCommServer  9007
-#define TYPE_AndruavSystem_UdpProxy             9008
 
-// Inter Module Commands
-#define TYPE_AndruavModule_ID                   9100
-#define TYPE_AndruavModule_RemoteExecute        9101
-#define TYPE_AndruavModule_Location_Info        9102
 
 
 // Andruav Messages
@@ -284,7 +271,8 @@
  * current fields are:
  * [p2p]: for turning p2p on/off or leave as is.
  * [ws]: for turning communication server websocket on/off or leave as is.
- * 
+ * [w2]: for turning communication server LOCAL websocket on/off or leave as is. 
+ * [p2]: ip of [w2] which means reconnect to this ip Local Communication Socket.
  */
 #define TYPE_AndruavMessage_Communication_Line_Set          6509
 
@@ -338,26 +326,42 @@
 #define TYPE_AndruavMessage_GPIO_ACTION                      6519
 #define TYPE_AndruavMessage_GPIO_STATUS                      6520
 #define TYPE_AndruavMessage_GPIO_REMOTE_EXECUTE              6521
-/**********************************************************************
-                        EOF Andruav Messages 2019
-**********************************************************************/
 
+/**
+ * @brief Set IP/Port of Local Communication Server.
+ * current fields are:
+ * [u]: url/ip
+ * [p]: port
+ */
+#define TYPE_AndruavMessage_LocalServer_ACTION              6522
+#define TYPE_AndruavMessage_LocalServer_STATUS              6523
+#define TYPE_AndruavMessage_LocalServer_REMOTE_EXECUTE      6524
 
-
-/**********************************************************************
-                        EOF Binary Messages
-**********************************************************************/
 
 
 #define TYPE_AndruavMessage_DUMMY                       9999
 
 
+// System Messages
+#define TYPE_AndruavSystem_LoadTasks	              9001
+#define TYPE_AndruavSystem_SaveTasks	              9002
+#define TYPE_AndruavSystem_DeleteTasks	              9003
+#define TYPE_AndruavSystem_DisableTasks	              9004
+#define TYPE_AndruavSystem_Ping                         9005
+#define TYPE_AndruavSystem_LogoutCommServer             9006
+#define TYPE_AndruavSystem_ConnectedCommServer          9007
+#define TYPE_AndruavSystem_UdpProxy                     9008
+#define TYPE_AndruavSystem_LocalServer                  9009
+
+// Inter Module Commands
+#define TYPE_AndruavModule_ID                           9100
+#define TYPE_AndruavModule_RemoteExecute                9101
+#define TYPE_AndruavModule_Location_Info                9102
 
 
-
-#define TYPE_AndruavMessage_Sonar_Info              13001
-#define TYPE_AndruavMessage_Sonar_Action            13002
-#define TYPE_AndruavMessage_Sonar_RemoteExecute     13003
+// #define TYPE_AndruavMessage_Sonar_Info              13001
+// #define TYPE_AndruavMessage_Sonar_Action            13002
+// #define TYPE_AndruavMessage_Sonar_RemoteExecute     13003
 
 
 // Andruav Mission Types

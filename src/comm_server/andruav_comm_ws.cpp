@@ -140,6 +140,11 @@ void de::andruav_servers::CWSASession::receive_message()
             m_connected = false;
             break;
         }
+        catch (...) {
+            PLOG(plog::error) << "Unknown exception during read.";
+            m_connected = false;
+            break;
+        }
     }
     m_callback.onSocketClosed(); // Notify when the receive loop ends
 }

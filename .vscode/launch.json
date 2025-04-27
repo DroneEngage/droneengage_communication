@@ -28,7 +28,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/bin/de_comm.so",
-            "args": ["--config",  "config.home.module.json"],
+            "args": ["--config",  "de_comm.config.module.json"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}/",
             "environment": [],

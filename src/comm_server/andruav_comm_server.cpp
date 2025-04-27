@@ -24,7 +24,6 @@
 #include "andruav_parser.hpp"
 
 
-std::thread g1;
 // Based on Below Model
 // https://www.boost.org/doc/libs/develop/libs/beast/example/websocket/client/async-ssl/websocket_client_async_ssl.cpp
 
@@ -166,9 +165,7 @@ void CAndruavCommServer::connect ()
         }
         serial.append(get_linux_machine_id());
 
-        de::ANDRUAV_UNIT_INFO&  unit_info = de::CAndruavUnitMe::getInstance().getUnitInfo();
-    
-        connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key, unit_info.party_id);
+        connectToCommServer(andruav_auth.m_comm_server_ip, std::to_string(andruav_auth.m_comm_server_port), andruav_auth.m_comm_server_key);
 
     }
 
@@ -182,71 +179,6 @@ void CAndruavCommServer::connect ()
 
 
 
-/**
- * @brief Disconnect websocket for a time duration
- * 
- * @param on_off 
- * @param duration in seconds
- */
-void CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_seconds)
-{
-    m_on_off_delay = duration_seconds;
-    if (on_off)
-    {
-        std::cout << _INFO_CONSOLE_BOLD_TEXT << "WS Module:" << _LOG_CONSOLE_TEXT << " Set Communication Line " << _SUCCESS_CONSOLE_BOLD_TEXT_ <<  " Switched Online" << _LOG_CONSOLE_TEXT <<  " duration (sec): "  << _SUCCESS_CONSOLE_BOLD_TEXT_ << std::to_string(duration_seconds) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
-        // Create and immediately detach the thread
-        g1 = std::thread{[this]() { 
-            try
-            {
-                // Switch online
-                m_exit = false;
-                if (m_on_off_delay != 0)
-                {
-                    std::this_thread::sleep_for(std::chrono::seconds(m_on_off_delay));
-                    // Switch offline again after delay
-                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Switched Offline" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-                    uninit(true);
-                }
-            }
-            catch (...)
-            {
-               std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-            }
-        }};
-        g1.detach(); // Detach immediately after creation
-    }
-    else
-    {
-        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Switched Offline" << _LOG_CONSOLE_TEXT <<  " duration (sec): " << _SUCCESS_CONSOLE_BOLD_TEXT_ << std::to_string(duration_seconds) << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        
-        CAndruavFacade::getInstance().API_sendCommunicationLineStatus(std::string(), false);
-    
-        // Create and immediately detach the thread
-        g1 = std::thread{[this]() { 
-            try
-            {
-                std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for message to be sent.
-                        
-                uninit(true);
-                    
-                if (m_on_off_delay != 0)
-                {
-                    std::this_thread::sleep_for(std::chrono::seconds(m_on_off_delay));
-                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Restart" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-                        
-                    // re-enable.
-                    m_exit = false;
-                }
-            }
-            catch (...)
-            {
-                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
-            }
-        }};
-        g1.detach(); // Detach immediately after creation
-    }
-}
 
 /**
  * @brief Connects to Andruav Communication Server. 
@@ -257,14 +189,14 @@ void CAndruavCommServer::turnOnOff(const bool on_off, const uint32_t duration_se
  * @param key 
  * @param party_id 
  */
-void CAndruavCommServer::connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key, const std::string& party_id)
+void CAndruavCommServer::connectToCommServer (const std::string& server_ip, const std::string &server_port, const std::string& key)
 {
     try
     {
         
         m_host = std::string(server_ip);
         m_port = std::string(server_port);
-        m_party_id = std::string(party_id);
+        m_party_id = de::CAndruavUnitMe::getInstance().getUnitInfo().party_id;
 
         m_url_param = "/?f=" + key + "&s=" + m_party_id;
         
@@ -769,12 +701,3 @@ void CAndruavCommServer::sendMessageToCommunicationServer (const char * full_mes
 }
 
 
-void CAndruavCommServer::switchOnline()
-{
-    m_exit = false;
-}
-
-void CAndruavCommServer::switchOffline()
-{
-    uninit(true);
-}

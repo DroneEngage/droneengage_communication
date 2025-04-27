@@ -46,6 +46,7 @@ namespace andruav_servers
             void sendMessageToCommunicationServer (const char * full_message, const std::size_t full_message_length, const bool &is_system, const bool &is_binary, const std::string &target_id, const int msg_type, const Json_de &msg_cmd );
             bool isOnline();
             void turnOnOff(const bool on_off, const uint32_t duration_seconds);
+            void turnOnOffLocal(const bool on_off, const uint32_t duration_seconds);
             void uninit(bool exit_mode);
             void API_sendCMD (const std::string& target_party_id, const int command_type, const Json_de& msg) const;
             const std::string API_sendCMDDummy (const std::string& target_party_id, const int command_type, const Json_de& msg) const;

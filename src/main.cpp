@@ -473,16 +473,17 @@ void loop() {
 
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
 
-    bool m_is_local_comm_server = false;
     std::string m_local_comm_server_ip = "";
     int m_local_comm_server_port = 0;
 
     if ((validateField(jsonConfig,"local_comm_server_ip", Json_de::value_t::string))
     && (validateField(jsonConfig,"local_comm_server_port", Json_de::value_t::number_unsigned)))
     {
-        m_is_local_comm_server = true;
+        andruav_server_local.isLocalCommServer(true);
         m_local_comm_server_ip = jsonConfig["local_comm_server_ip"].get<std::string>();
         m_local_comm_server_port = jsonConfig["local_comm_server_port"].get<int>();
+
+        andruav_server_local.start(m_local_comm_server_ip, m_local_comm_server_port, "my_key");
     }
 
     
@@ -507,9 +508,9 @@ void loop() {
             is_warning_notified = false; // Reset the flag if ignore_original_comm_server is false or absent
         } 
 
-        if (m_is_local_comm_server)
+        if (andruav_server_local.isLocalCommServer())
         {
-            andruav_server_local.start(m_local_comm_server_ip, m_local_comm_server_port, "my_key");
+            andruav_server_local.start();
         }
 
         try {

@@ -60,5 +60,9 @@ const std::string CAndruavCommServerManager::API_sendCMDDummy (const std::string
 void CAndruavCommServerManager::turnOnOff(const bool on_off, const uint32_t duration_seconds)
 {
     CAndruavCommServer::getInstance().turnOnOff (on_off, duration_seconds);
+}
+
+void CAndruavCommServerManager::turnOnOffLocal(const bool on_off, const uint32_t duration_seconds)
+{
     CAndruavCommServerLocal::getInstance().turnOnOff (on_off, duration_seconds);
 }

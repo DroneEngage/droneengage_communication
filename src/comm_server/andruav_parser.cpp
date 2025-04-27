@@ -185,13 +185,16 @@ void de::andruav_servers::CAndruavParser::parseCommand (const std::string& sende
              * current fields are:
              * [p2p]: for turning p2p on/off or leave as is.
              * [ws]: for turning communication server websocket on/off or leave as is.
-             * 
-            */
+             * [wsd]: duration of websocket off in seconds.
+             * [w2]: for turning communication server LOCAL websocket on/off or leave as is. 
+             * [wd2]: duration of websocket off in seconds.
+             */
 
             const Json_de command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
             
             if (validateField(command,"ws", Json_de::value_t::boolean))
             {
+                
                 bool ws_on_off = command["ws"].get<bool>();
                 uint32_t ws_duration = 0;
                 if (validateField(command,"wsd", Json_de::value_t::number_unsigned))
@@ -201,7 +204,42 @@ void de::andruav_servers::CAndruavParser::parseCommand (const std::string& sende
                 de::andruav_servers::CAndruavCommServerManager::getInstance().turnOnOff(ws_on_off, ws_duration);
             }
 
-            // Message can be handled by other modules.
+            if (validateField(command,"w2", Json_de::value_t::boolean))
+            {
+                
+                bool ws_on_off = command["w2"].get<bool>();
+                uint32_t ws_duration = 0;
+                if (validateField(command,"wd2", Json_de::value_t::number_unsigned))
+                {
+                    ws_duration = command["wd2"].get<int>();  
+                }
+                de::andruav_servers::CAndruavCommServerManager::getInstance().turnOnOffLocal(ws_on_off, ws_duration);
+            }
+        }
+        break;
+
+        case TYPE_AndruavMessage_LocalServer_ACTION:
+        {
+            /**
+             * @brief Set IP/Port of Local Communication Server.
+             * current fields are:
+             * [u]: url/ip
+             * [p]: port
+             */
+
+             const Json_de command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            
+             if ((validateField(command,"u", Json_de::value_t::string))
+             &&(validateField(command,"p", Json_de::value_t::string)))
+             {
+                const std::string url = command["u"].get<std::string>();
+                const std::string port = command["p"].get<std::string>();
+                
+                de::andruav_servers::CAndruavCommServer::getInstance().turnOnOff(false,0);
+                de::andruav_servers::CAndruavCommServerLocal::getInstance().reconnectToCommServer("192.168.1.144", "9967", "my_key");
+             }
+             
+        
         }
         break;
 

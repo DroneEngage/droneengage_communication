@@ -1,4 +1,5 @@
 #include <memory>
+#include <thread>
 #include <openssl/ssl.h> // Include the OpenSSL header for SSL/TLS functions
 #include <openssl/err.h>
 #include "../global.hpp"
@@ -9,7 +10,7 @@
 #include <plog/Log.h> 
 #include "plog/Initializers/RollingFileInitializer.h"
 
-static std::mutex g_i_mutex_writeText, g_i_mutex_on_read; 
+
 
 void de::andruav_servers::CWSASession::run()
 {
@@ -86,7 +87,7 @@ void de::andruav_servers::CWSASession::receive_message()
 
     while (m_connected) {
         if (!m_connected) break; // Check again at the beginning of the loop
-
+        std::lock_guard<std::mutex> lock(g_i_mutex_on_read); // Lock the mutex
         try
         {
             ws_.read(buffer, ec);
@@ -142,6 +143,7 @@ void de::andruav_servers::CWSASession::receive_message()
         }
         catch (...) {
             PLOG(plog::error) << "Unknown exception during read.";
+            std::cout << "Unknown exception during read." << std::endl;
             m_connected = false;
             break;
         }

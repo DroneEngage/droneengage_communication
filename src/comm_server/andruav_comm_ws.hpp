@@ -82,6 +82,7 @@ class CWSASession
             websocket::stream<beast::ssl_stream<tcp::socket>> ws_;
             std::thread m_thread_receiver;
             de::andruav_servers::CCallBack_WSASession &m_callback;
+            std::mutex g_i_mutex_writeText, g_i_mutex_on_read; 
 };
 
 class CWSAProxy
@@ -115,6 +116,8 @@ class CWSAProxy
         std::unique_ptr<de::andruav_servers::CWSASession> run2(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback);
         boost::asio::io_context io_context_1;
         boost::asio::io_context io_context_2;
+
+
     
 };
         

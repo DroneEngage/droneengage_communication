@@ -637,7 +637,7 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     
     const std::string module_class = module_item->module_class; 
     if (module_class.find(MODULE_CLASS_VIDEO)==0)
-    {
+    { //TODO: use anotehr message to update updateCameraList and use && (module_class.find(MODULE_CLASS_VIDEO)==0))
         // update camera list
         std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_VIDEO << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
         

@@ -50,7 +50,7 @@ enum ENUM_LICENCE
  * @brief Structure that defines Uavos modules.
  * 
  */
-typedef struct 
+typedef struct MODULE_ITEM_TYPE_TAG
 {
     std::string module_id;
     std::string module_class;
@@ -67,7 +67,7 @@ typedef struct
 } MODULE_ITEM_TYPE;
 
 
-typedef struct 
+typedef struct MODULE_CAMERA_ENTRY_TAG
 {
     std::string module_id;
     Json camera_entry;      //[Active, id, ln, p, r , v]

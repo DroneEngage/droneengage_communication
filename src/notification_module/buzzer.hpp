@@ -21,7 +21,7 @@
 namespace notification
 {
 
-typedef struct  
+typedef struct  BUZZER_STATUS_TAG
 {
     uint32_t pattern_start_time =0UL;
     uint32_t tone =0UL;

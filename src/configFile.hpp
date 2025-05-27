@@ -3,7 +3,7 @@
 #define CCONFIGFILE_H
 
 #include <sstream>
-#include "./helpers/json_nlohmann.hpp"
+#include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 namespace de
@@ -28,7 +28,7 @@ namespace de
             //       due to the compilers behavior to check accessibility
             //       before deleted status
         private:
-            CConfigFile():m_fileURL(""){}                    // Constructor? (the {} brackets) are needed here.
+            CConfigFile() {}                    // Constructor? (the {} brackets) are needed here.
 
             // C++ 11
             // =======
@@ -37,28 +37,18 @@ namespace de
             
 
         public:
-            /**
-             * @brief read JSON data from file.
-             * This is the inital function
-             * 
-             * @param fileURL file path.
-             */
-            void InitConfigFile (const std::string& fileURL);
-            
-            /**
-             * @brief re-read data ffrom file.
-             * 
-             */
-            void Refresh ();
+            void initConfigFile (const char* fileURL);
+            void reloadFile ();
             const Json_de& GetConfigJSON();
-
+            std::string getFileName () const {return m_file_url;};
+            
         protected:
             void ReadFile (const char * fileURL);
             void ParseData (std::string jsonString);
             
 
         private:
-            std::string m_fileURL;
+            std::string m_file_url;
             std::stringstream m_fileContents;
             Json_de m_ConfigJSON;
         

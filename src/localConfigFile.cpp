@@ -19,7 +19,7 @@ const Json_de& CLocalConfigFile::GetConfigJSON()
 }
 
 
-void CLocalConfigFile::InitConfigFile (const char* fileURL)
+void CLocalConfigFile::initConfigFile (const char* fileURL)
 {
     m_ConfigJSON={};
     

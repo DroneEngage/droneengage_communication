@@ -37,7 +37,7 @@ namespace de
             
 
         public:
-            void InitConfigFile (const char* fileURL);
+            void initConfigFile (const char* fileURL);
             const Json_de& GetConfigJSON();
             void clearFile();
             void apply();

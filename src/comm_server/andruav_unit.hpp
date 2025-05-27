@@ -57,7 +57,7 @@ typedef enum ANDRUAV_UNIT_TYPE
  */
 
 
-typedef struct {
+typedef struct ANDRUAV_UNIT_LOCATION_TAG{
 
     int32_t latitude = 0;
     int32_t longitude = 0;
@@ -75,7 +75,7 @@ typedef struct {
     bool is_new = false;   
 } ANDRUAV_UNIT_LOCATION;
 
-typedef struct {
+typedef struct ANDRUAV_UNIT_INFO_TAG{
   
   bool is_me;
   bool is_gcs;

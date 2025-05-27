@@ -13,7 +13,7 @@ helpers::CUtil_Rpi::CUtil_Rpi ()
 int helpers::CUtil_Rpi::_check_rpi_version_by_rev()
 {
     const unsigned int MAX_SIZE_LINE = 50;
-    typedef struct  {
+    typedef struct RPI_REVISION_TABLE_TAG{
         const char* revision;
         int cpu_code;
     } rpi_revision_table;

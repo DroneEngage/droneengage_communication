@@ -439,8 +439,8 @@ void init (int argc, char *argv[])
     signal(SIGTERM,quit_handler);
 	
     
-    cConfigFile.InitConfigFile (configName.c_str());
-    cLocalConfigFile.InitConfigFile (localConfigName.c_str());
+    cConfigFile.initConfigFile (configName.c_str());
+    cLocalConfigFile.initConfigFile (localConfigName.c_str());
     
     _version();
     

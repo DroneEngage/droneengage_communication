@@ -14,7 +14,7 @@ namespace notification
 #define LED_STATUS_FLASHING   2
 
 
-typedef struct  
+typedef struct PORT_STATUS_TAG
 {
     std::string name;
     uint8_t gpio_pin;

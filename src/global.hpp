@@ -27,7 +27,6 @@
 
 #if defined (DEBUG)
 
-//  #define DDEBUG
 //  #define DDEBUG_PARSER
 //  #define DDEBUG_MSG
 #endif

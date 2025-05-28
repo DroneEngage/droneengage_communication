@@ -79,11 +79,14 @@ else()
   link_directories(${Boost_LIBRARY_DIRS})
 endif (NOT Boost_FOUND)
 
+# Define an option for user control over DETAILED_DEBUG
+option(DDEBUG "Detailed Debug" OFF) # Default is OFF
 
 #define default build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 SET(CMAKE_BUILD_TYPE DEBUG)
 ENDIF()
+
 
 message ("${Yellow}=========================================================================${ColourReset}")
 message ("CMAKE_C_COMPILER: "  ${CMAKE_C_COMPILER})
@@ -115,10 +118,6 @@ add_compile_definitions(
     $<$<CONFIG:RELEASE>:RELEASE>
 )
 
-# add_link_options(
-#   $<$<CONFIG:DEBUG>:>
-#   $<$<CONFIG:RELEASE>:>
-# )
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-export-dynamic")
 
@@ -129,9 +128,19 @@ SET(EXECUTABLE_OUTPUT_PATH ${OUTPUT_DIRECTORY})
 
 add_subdirectory(src)
 
+# Conditionally define DDEBUG based on the DDEBUG option
+target_compile_definitions(OUTPUT_BINARY PRIVATE
+    $<$<BOOL:${DDEBUG}>:DDEBUG>
+)
+
 configure_file(de_comm.config.module.json ${OUTPUT_DIRECTORY}/de_comm.config.module.json COPYONLY)
 configure_file(root.crt ${OUTPUT_DIRECTORY}/root.crt COPYONLY)
 
+
+# Highlight if DDEBUG or TEST_MODE_NO_HAILO_LINK are enabled
+if (DDEBUG)
+    message(STATUS "${Red}Option DDEBUG is ENABLED.${ColourReset}")
+endif()
 
 message ("${Yellow}=========================================================================${ColourReset}")
 

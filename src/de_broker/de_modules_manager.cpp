@@ -672,7 +672,20 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
         m_status.is_gpio_module_connected(true);
     }
     
-
+    else if ((!m_status.is_tracking_module_connected()) && (module_class.find(MODULE_CLASS_TRACKING)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_TRACKING << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_tracking_module_connected(true);
+    }
+    
+    else if ((!m_status.is_ai_identification_module_connected()) && (module_class.find(MODULE_CLASS_A_RECOGNITION)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_A_RECOGNITION << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_ai_identification_module_connected(true);
+    }
+    
     else if ((!m_status.is_sound_module_connected()) && (module_class.find(MODULE_CLASS_SOUND)==0))
     {
         std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_SOUND << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;

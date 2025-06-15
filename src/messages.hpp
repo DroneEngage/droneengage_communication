@@ -142,14 +142,19 @@
 #define TYPE_AndruavMessage_ConfigFCB               1039
 #define TYPE_AndruavMessage_ChangeSpeed             1040
 #define TYPE_AndruavMessage_Ctrl_Cameras            1041
-#define TYPE_AndruavMessage_TrackingTarget          1042
-#define TYPE_AndruavMessage_TargetLoackedAt         1043
-#define TYPE_AndruavMessage_TargetLost              1044
+#define TYPE_AndruavMessage_TrackingTarget_ACTION   1042
+#define TYPE_AndruavMessage_TrackingTargetLocation  1043
+#define TYPE_AndruavMessage_TargetTracking_STATUS   1044
 #define TYPE_AndruavMessage_UploadWayPoints         1046
-#define TYPE_AndruavMessage_RemoteControlSettings	1047
+#define TYPE_AndruavMessage_RemoteControlSettings   1047
 #define TYPE_AndruavMessage_SET_HOME_LOCATION       1048
-#define TYPE_AndruavMessage_CameraFlash		        1051
-#define TYPE_AndruavMessage_RemoteControl2		    1052
+#define TYPE_AndruavMessage_CameraZoom              1049
+#define TYPE_AndruavMessage_CameraSwitch            1050
+#define TYPE_AndruavMessage_CameraFlash		   1051
+#define TYPE_AndruavMessage_RemoteControl2	   1052
+#define TYPE_AndruavMessage_SensorsStatus           1053
+
+
 /**
  * @brief tell a drone that another drone is in its team -a follower-.
  * @details 
@@ -174,17 +179,19 @@
  * If a Drone wants to IGNORE these messages that is OK for whatever reason.<br>
  * If a Drone wants to Stop others from sending such messages it can send ANdruavResala_UpdateSwarm with remove action.
  */
-#define TYPE_AndruavMessage_FollowMe_Guided         1055
+#define TYPE_AndruavMessage_FollowMe_Guided             1055
 /**
  * @brief This command is sent to instruct a drone to be a leader with a swarm-formation.
  * A Formation FORMATION_SERB_NO_SWARM means there is no swarm mode anymore. 
  */
-#define TYPE_AndruavMessage_Make_Swarm              1056
+#define TYPE_AndruavMessage_Make_Swarm                  1056
+#define TYPE_AndruavMessage_SwarmReport                 1057
 /**
  * @brief This message is sent to Leader Drone to add a slave drone in a swarm and in an index.
  * given index may contradict with other indices. It is upto Leader Drone to handle this conflict.
  */
-#define TYPE_AndruavMessage_UpdateSwarm             1058
+#define TYPE_AndruavMessage_UpdateSwarm                 1058
+#define TYPE_AndruavMessage_CommSignalsStatus           1059
 /**
  * d: event-id
  * [c]: sender module class type
@@ -193,10 +200,11 @@
  * 
  * [bin]: binary conntent maybe attached to the command.
  */
-#define TYPE_AndruavMessage_Sync_EventFire          1061 
+#define TYPE_AndruavMessage_Sync_EventFire              1061
+#define TYPE_AndruavMessage_SearchTargetList            1062
 
 //! NOT USED YET
-#define TYPE_AndruavMessage_Prepherials             1070
+#define TYPE_AndruavMessage_Prepherials                 1070
 /**
  * @brief: sends information about UDP Proxy of the unit.
  * a:  string - udp_ip_other
@@ -205,13 +213,13 @@
  * en: bool - enabled
  * z: bool - paused
  */
-#define TYPE_AndruavMessage_UDPProxy_Info           1071
+#define TYPE_AndruavMessage_UDPProxy_Info               1071
 /**
  * @brief used to set unit name and description.
  * This message is mainly sent from web and received by communication module.
  * It is used to change unit name and description.
 */
-#define TYPE_AndruavMessage_Unit_Name               1072
+#define TYPE_AndruavMessage_Unit_Name                   1072
 /**
  * @brief used to ping a unit name.
  * This message works in two ways:
@@ -310,7 +318,6 @@
 #define TYPE_AndruavMessage_SDR_ACTION                      6514
 #define TYPE_AndruavMessage_SDR_REMOTE_EXECUTE              6515
 #define TYPE_AndruavMessage_SDR_SPECTRUM                    6516
-
 
 // GPIO Parameters
 #define GPIO_ACTION_PORT_CONFIG                                0
@@ -502,3 +509,11 @@
 #define SPECIAL_NAME_VEHICLE_RECEIVERS  "_drone_"
 #define SPECIAL_NAME_GCS_RECEIVERS      "_gcs_"
 
+// TYPE_AndruavMessage_TrackingTarget_ACTION
+#define TrackingTarget_ACTION_TRACKING_POINT    0
+#define TrackingTarget_ACTION_TRACKING_REGION   1
+#define TrackingTarget_ACTION_TRACKING_STOP     2
+
+// TYPE_AndruavMessage_TargetTracking_STATUS
+#define TrackingTarget_STATUS_TRACKING_LOST     0
+#define TrackingTarget_STATUS_TRACKING_DETECTED 1

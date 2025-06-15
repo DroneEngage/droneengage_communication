@@ -111,11 +111,11 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
     
     if (unit_info.flying_last_start_time > 0)
     {
-        jMsg["z"] = unit_info.flying_last_start_time;    // is whisling
+        jMsg["z"] = unit_info.flying_last_start_time;    
     }
     if (unit_info.flying_total_duration > 0)
     {
-        jMsg["a"] = unit_info.flying_total_duration;    // is whisling
+        jMsg["a"] = unit_info.flying_total_duration;    
     }
     
     

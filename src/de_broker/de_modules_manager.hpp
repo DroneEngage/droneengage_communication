@@ -29,6 +29,19 @@ using Json = nlohmann::json;
 #define MODULE_CLASS_GPIO                       "gpio"
 #define MODULE_CLASS_GENERIC                    "gen"
 #define MODULE_CLASS_SDR                        "sdr"
+#define MODULE_CLASS_A_RECOGNITION              "aiq" 
+#define MODULE_CLASS_TRACKING                   "trk" 
+
+#define MODULE_FEATURE_RECEIVING_TELEMETRY      "R"
+#define MODULE_FEATURE_SENDING_TELEMETRY        "T"
+#define MODULE_FEATURE_CAPTURE_IMAGE            "C"
+#define MODULE_FEATURE_CAPTURE_VIDEO            "V"
+#define MODULE_FEATURE_GPIO                     "G"
+#define MODULE_FEATURE_AI_RECOGNITION           "A"
+#define MODULE_FEATURE_TRACKING                 "K"
+#define MODULE_FEATURE_P2P                      "P"
+
+
 
 
 // 5 seconds

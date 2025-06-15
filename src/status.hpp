@@ -74,6 +74,28 @@ class STATUS {
                 m_gpio_module_connected = is_gpio_module_connected;
             }
 
+            inline const bool is_tracking_module_connected() const
+            {
+                return m_tracking_module_connected;
+            }
+
+            inline void is_tracking_module_connected(const bool is_tracking_module_connected) 
+            {
+                m_tracking_module_connected = is_tracking_module_connected;
+            }
+
+            
+            inline const bool is_ai_identification_module_connected() const
+            {
+                return m_ai_identification_module_connected;
+            }
+
+            inline void is_ai_identification_module_connected(const bool is_ai_identification_module_connected) 
+            {
+                m_ai_identification_module_connected = is_ai_identification_module_connected;
+            }
+
+            
             inline const bool is_sdr_module_connected() const
             {
                 return m_sdr_module_connected;
@@ -158,6 +180,8 @@ class STATUS {
             bool m_sound_module_connected = false;
             bool m_sdr_module_connected = false;
             bool m_gpio_module_connected = false;
+            bool m_tracking_module_connected = false;
+            bool m_ai_identification_module_connected = false;
             bool m_buzzer = false;
             bool m_light = false;
 

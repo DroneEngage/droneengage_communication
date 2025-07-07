@@ -948,6 +948,13 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         }
         break;
 
+        case TYPE_AndruavMessage_TargetTracking_STATUS:
+        {
+            // TYPE_AndruavMessage_TargetTracking_STATUS is internal but also broadcast it.
+            processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
+            de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
+        }
+        break;
 
         case TYPE_AndruavMessage_SWARM_MAVLINK:
         {
@@ -982,6 +989,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
              * @brief 
              *      The default section uses the concept of [intermodule_msg] where messages are not forwarded to server
              *  if it is marked intermodule_msg=true as it should be processed by other modules only.
+             *  if (intermodule_msg = false) then it will NOT be processed internally UNLESS it is catched before in previous "cases"
              * 
              */
             

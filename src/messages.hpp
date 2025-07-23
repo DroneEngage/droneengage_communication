@@ -154,7 +154,6 @@
 #define TYPE_AndruavMessage_RemoteControl2	   1052
 #define TYPE_AndruavMessage_SensorsStatus           1053
 
-
 /**
  * @brief tell a drone that another drone is in its team -a follower-.
  * @details 
@@ -243,6 +242,10 @@
  *      [e]: p_eraseFirst
  */
 #define TYPE_AndruavMessage_Upload_DE_Mission           1075
+
+
+#define TYPE_AndruavMessage_AI_Recognition_ACTION       1076
+#define TYPE_AndruavMessage_AI_Recognition_STATUS       1077
 
 
 //Binary Starts with 2000
@@ -513,7 +516,24 @@
 #define TrackingTarget_ACTION_TRACKING_POINT    0
 #define TrackingTarget_ACTION_TRACKING_REGION   1
 #define TrackingTarget_ACTION_TRACKING_STOP     2
+#define TrackingTarget_ACTION_TRACKING_PAUSE    3
 
 // TYPE_AndruavMessage_TargetTracking_STATUS
 #define TrackingTarget_STATUS_TRACKING_LOST     0
 #define TrackingTarget_STATUS_TRACKING_DETECTED 1
+#define TrackingTarget_STATUS_TRACKING_ENABLED  2
+#define TrackingTarget_STATUS_TRACKING_STOPPED  3
+
+
+// TYPE_AndruavMessage_AI_Recognition_ACTION
+#define TrackingTarget_ACTION_AI_Recognition_POINT    0
+#define TrackingTarget_ACTION_AI_Recognition_SEARCH   1
+#define TrackingTarget_ACTION_AI_Recognition_STOP     2
+#define TrackingTarget_ACTION_AI_Recognition_PAUSE    3
+
+// TYPE_AndruavMessage_AI_Recognition_STATUS
+#define TrackingTarget_STATUS_AI_Recognition_LOST              0
+#define TrackingTarget_STATUS_AI_Recognition_DETECTED          1
+#define TrackingTarget_STATUS_AI_Recognition_ENABLED           2
+#define TrackingTarget_STATUS_AI_Recognition_STOPPED           3
+#define TrackingTarget_STATUS_AI_Recognition_CLASS_LIST        4

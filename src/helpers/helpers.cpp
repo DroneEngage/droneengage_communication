@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <iomanip>
 #include <stdexcept>
+#include <chrono>
 #include "helpers.hpp"
 
 
@@ -34,9 +35,9 @@ std::string get_time_string()
 
 uint64_t get_time_usec()
 {
-	static struct timeval _time_stamp;
-	gettimeofday(&_time_stamp, NULL);
-	return _time_stamp.tv_sec*1000000 + _time_stamp.tv_usec;
+	return std::chrono::duration_cast<std::chrono::microseconds>(
+               std::chrono::steady_clock::now().time_since_epoch()
+           ).count();
 }
 
 

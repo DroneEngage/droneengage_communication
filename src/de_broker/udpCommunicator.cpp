@@ -70,8 +70,7 @@ void de::comm::CUDPCommunicator::init (const char * host, int listenningPort, in
 	m_thread = pthread_self(); // get pthread ID
 	pthread_setschedprio(m_thread, SCHED_FIFO); // setting priority
 
-    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
+    
     // Creating socket file descriptor 
     if ( (m_SocketFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
         perror("socket creation failed"); 

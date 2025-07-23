@@ -287,7 +287,9 @@ void de::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_SID
     
     de::andruav_servers::CAndruavCommServer::getInstance().API_sendSystemMessage (TYPE_AndruavSystem_LoadTasks, message);
 
+    #ifdef DEBUG
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "API_sendSystemMessage " << _NORMAL_CONSOLE_TEXT_ << message.dump() << std::endl;
+    #endif
     
     return ;
 }

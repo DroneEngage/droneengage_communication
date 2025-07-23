@@ -338,6 +338,8 @@ void de::comm::CUavosModulesManager::updateCameraList(const std::string& module_
     auto camera_module = m_camera_list.find(module_id);
     if (camera_module == m_camera_list.end()) 
     {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_VIDEO << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
         // Module Not found in camera list
         #ifdef DEBUG
             std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: updateCameraList // Module Not found in camera list" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -637,8 +639,6 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     if (module_class.find(MODULE_CLASS_VIDEO)==0)
     { //TODO: use anotehr message to update updateCameraList and use && (module_class.find(MODULE_CLASS_VIDEO)==0))
         // update camera list
-        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_VIDEO << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        
         updateCameraList(module_id, msg_cmd);
         m_status.is_camera_module_connected (true);
     }

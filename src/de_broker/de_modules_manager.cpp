@@ -57,8 +57,6 @@ void de::comm::CUavosModulesManager::onReceive (const char * message, int len, s
 
 bool de::comm::CUavosModulesManager::init (const std::string host, int listenningPort, int chunkSize)
 {
-    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG:" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
     m_consumerThread = std::thread(&CUavosModulesManager::consumerThreadFunc, this);
     
     cUDPClient.init (host.c_str(), listenningPort, chunkSize);

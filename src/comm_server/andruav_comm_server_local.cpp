@@ -458,7 +458,6 @@ void CAndruavCommServerLocal::uninit(const bool exit_mode)
     m_exit = exit_mode;
     
     struct timespec ts;
-    std::cout <<__PRETTY_FUNCTION__ << " line 1:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
     try
     {
@@ -495,7 +494,6 @@ void CAndruavCommServerLocal::uninit(const bool exit_mode)
     std::cout <<__PRETTY_FUNCTION__ << " line 2:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-            std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: EXIT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
             exit(0);
     }
     

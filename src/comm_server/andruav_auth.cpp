@@ -94,7 +94,7 @@ bool de::andruav_servers::CAndruavAuthenticator::doAuthentication()
 bool de::andruav_servers::CAndruavAuthenticator::doValidateHardware(const std::string hardware_id, const int hardware_type)
 {
 
-    if (hardware_id == std::string("")) return false;
+    if (hardware_id.empty()) return false;
 
     de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
 

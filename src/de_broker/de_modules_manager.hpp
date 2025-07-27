@@ -90,6 +90,7 @@ typedef struct MODULE_CAMERA_ENTRY_TAG
     bool is_camera_avail;
     int is_camera_streaming;
     int camera_type; // Internal & External.... legacy ... always external now.
+    int actual_FPS; // latest FPS actually read from camera. valid only if recording or streaming.
     uint64_t camera_specification =0; 
     uint64_t module_last_access_time = 0;
     bool updates;

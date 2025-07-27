@@ -385,6 +385,8 @@ void de::comm::CUavosModulesManager::updateCameraList(const std::string& module_
                 camera_entry->is_camera_streaming = jcamera_entry["active"].get<int>();
                 camera_entry->camera_type = jcamera_entry["p"].get<int>();
                 camera_entry->camera_specification = jcamera_entry["s"].get<int>();
+                camera_entry->actual_FPS = jcamera_entry.contains("a")?jcamera_entry["a"].get<int>():0;
+                
                 camera_entry->module_last_access_time = now_time;
                 camera_entry->updates = true;
                 
@@ -405,6 +407,7 @@ void de::comm::CUavosModulesManager::updateCameraList(const std::string& module_
                 camera_entry->is_camera_streaming = jcamera_entry["active"].get<int>();
                 camera_entry->camera_type = jcamera_entry["p"].get<int>();
                 camera_entry->camera_specification = jcamera_entry["s"].get<int>();
+                camera_entry->actual_FPS = jcamera_entry.contains("a")?jcamera_entry["a"].get<int>():0;
                 
                 camera_entry->module_last_access_time = now_time;
                 camera_entry->updates = true;
@@ -440,6 +443,7 @@ Json de::comm::CUavosModulesManager::getCameraList() const
                 {"ln", camera_entry_ptr->logical_name},
                 {"id", camera_entry_ptr->global_index},
                 {"active", camera_entry_ptr->is_camera_streaming},
+                {"a", camera_entry_ptr->actual_FPS},
                 {"r", camera_entry_ptr->is_recording},
                 {"p", camera_entry_ptr->camera_type},
                 {"s", camera_entry_ptr->camera_specification}

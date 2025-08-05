@@ -244,8 +244,11 @@
 #define TYPE_AndruavMessage_Upload_DE_Mission           1075
 
 
-#define TYPE_AndruavMessage_AI_Recognition_ACTION       1076
-#define TYPE_AndruavMessage_AI_Recognition_STATUS       1077
+#define TYPE_AndruavMessage_AI_Recognition_ACTION               1076
+#define TYPE_AndruavMessage_AI_Recognition_STATUS               1077
+#define TYPE_AndruavMessage_AI_Recognition_TargetLocation       1077
+
+
 
 
 //Binary Starts with 2000

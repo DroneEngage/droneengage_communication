@@ -31,8 +31,10 @@ bool CLEDs::init ()
 
 void CLEDs::uninit()
 {
+    #if DEBUG
     std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: LEDS Unint" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-
+    #endif
+    
     if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
 
     // Reset pins again to start condition.   

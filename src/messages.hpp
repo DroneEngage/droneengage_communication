@@ -246,7 +246,7 @@
 
 #define TYPE_AndruavMessage_AI_Recognition_ACTION               1076
 #define TYPE_AndruavMessage_AI_Recognition_STATUS               1077
-#define TYPE_AndruavMessage_AI_Recognition_TargetLocation       1077
+#define TYPE_AndruavMessage_AI_Recognition_TargetLocation       1078
 
 
 

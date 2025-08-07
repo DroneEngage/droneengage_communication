@@ -44,13 +44,15 @@ void de::comm::CUavosModulesManager::onReceive (const char * message, int len, s
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    // Create a MessageWithSocket structure: : use std::move to avoid unnecessary copying
-    MessageWithSocket msgWithSocket;
-    msgWithSocket.message = std::move(std::string(message, len));
-    msgWithSocket.socket = *sock; // Copy the socket information
+    // Use std::make_unique to create the object and transfer ownership to a smart pointer.
+    auto msgWithSocket = std::make_unique<MessageWithSocket>();
+    
+    // Use std::move to efficiently transfer the string data.
+    msgWithSocket->message = std::string(message, len);
+    msgWithSocket->socket = *sock; // Copy the socket information
 
-    // Enqueue the message with its socket information
-    m_buffer.enqueue(msgWithSocket);
+    // Enqueue the unique_ptr. The buffer now owns the message.
+    m_buffer.enqueue(std::move(msgWithSocket));
 
 }
 
@@ -70,15 +72,22 @@ bool de::comm::CUavosModulesManager::init (const std::string host, int listennin
 void de::comm::CUavosModulesManager::uninit ()
 {
     #ifdef DEBUG
-	    std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Stop Threads Killed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
     m_exit = true;
     cUDPClient.stop();
-    const std::string WAKE_UP_SIGNAL = "WAKE_UP";
-    m_buffer.enqueue({WAKE_UP_SIGNAL, sockaddr_in()}); // Enqueue an empty message to wake up the consumer
 
-    // Wait for the consumer thread to finish
+    // Create a new unique_ptr for the wake-up message.
+    // The message itself doesn't need to be meaningful, just non-null.
+    auto wakeUpMessage = std::make_unique<MessageWithSocket>();
+    wakeUpMessage->message = "WAKE_UP";
+    wakeUpMessage->socket = sockaddr_in();
+
+    // Enqueue the unique_ptr to wake up the consumer thread.
+    m_buffer.enqueue(std::move(wakeUpMessage));
+
+    // Wait for the consumer thread to finish.
     if (m_consumerThread.joinable()) {
         m_consumerThread.join();
     }
@@ -90,17 +99,19 @@ void de::comm::CUavosModulesManager::consumerThreadFunc()
     try
     {
         while (!m_exit) {
-            MessageWithSocket msgWithSocket = m_buffer.dequeue();
-
-            // Check if the message is empty (this could happen if the buffer is empty and the thread is exiting)
-            if (msgWithSocket.message.empty()) {
-                continue; // Skip processing and check the exit condition again
+            // Dequeue a unique_ptr. The ownership is transferred to msgWithSocket.
+            std::unique_ptr<MessageWithSocket> msgWithSocket = m_buffer.dequeue();
+            
+            // Check if the received pointer is valid.
+            if (!msgWithSocket) {
+                continue;
             }
             
-            const std::size_t len = msgWithSocket.message.length();
-            const char* c_str = msgWithSocket.message.c_str();
+            // Access the members using the arrow operator.
+            const std::size_t len = msgWithSocket->message.length();
+            const char* c_str = msgWithSocket->message.c_str();
             
-            parseIntermoduleMessage(c_str, len, &msgWithSocket.socket);
+            parseIntermoduleMessage(c_str, len, &msgWithSocket->socket);
 
             if (m_OnReceive!= nullptr) m_OnReceive(c_str, len);
         }
@@ -109,8 +120,6 @@ void de::comm::CUavosModulesManager::consumerThreadFunc()
     {
         std::cerr << "consumerThreadFunc:" << e.what() << '\n';
     }
-        
-    
 }
 
 void de::comm::CUavosModulesManager::defineModule (

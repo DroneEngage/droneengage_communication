@@ -520,6 +520,7 @@
 #define TrackingTarget_ACTION_TRACKING_REGION   1
 #define TrackingTarget_ACTION_TRACKING_STOP     2
 #define TrackingTarget_ACTION_TRACKING_PAUSE    3
+#define TrackingTarget_ACTION_TRACKING_ENABLE   4 
 
 // TYPE_AndruavMessage_TargetTracking_STATUS
 #define TrackingTarget_STATUS_TRACKING_LOST     0
@@ -528,15 +529,18 @@
 #define TrackingTarget_STATUS_TRACKING_STOPPED  3
 
 
-// TYPE_AndruavMessage_AI_Recognition_ACTION
-#define TrackingTarget_ACTION_AI_Recognition_POINT    0
-#define TrackingTarget_ACTION_AI_Recognition_SEARCH   1
-#define TrackingTarget_ACTION_AI_Recognition_STOP     2
-#define TrackingTarget_ACTION_AI_Recognition_PAUSE    3
+// TYPE_AndruavMessage_TrackingTarget_ACTION
+#define TrackingTarget_ACTION_AI_Recognition_POINT          0
+#define TrackingTarget_ACTION_AI_Recognition_SEARCH         1
+#define TrackingTarget_ACTION_AI_Recognition_DISABLE        2
+#define TrackingTarget_ACTION_AI_Recognition_ENABLE         3
+#define TrackingTarget_ACTION_AI_Recognition_CLASS_LIST     4
+
+
 
 // TYPE_AndruavMessage_AI_Recognition_STATUS
-#define TrackingTarget_STATUS_AI_Recognition_LOST              0
-#define TrackingTarget_STATUS_AI_Recognition_DETECTED          1
-#define TrackingTarget_STATUS_AI_Recognition_ENABLED           2
-#define TrackingTarget_STATUS_AI_Recognition_STOPPED           3
-#define TrackingTarget_STATUS_AI_Recognition_CLASS_LIST        4
+#define TrackingTarget_STATUS_AI_Recognition_LOST           0
+#define TrackingTarget_STATUS_AI_Recognition_DETECTED       1
+#define TrackingTarget_STATUS_AI_Recognition_ENABLED        2
+#define TrackingTarget_STATUS_AI_Recognition_DISABLED       3
+#define TrackingTarget_STATUS_AI_Recognition_CLASS_LIST     4

@@ -31,6 +31,7 @@ namespace comm
             std::queue<MessageWithSocket> m_queue;
             std::mutex m_mutex;
             std::condition_variable m_cond;
+            uint32_t m_message_count =0;
     };
 }
 }

@@ -17,7 +17,6 @@ add_executable( OUTPUT_BINARY ${files})
 set_target_properties( OUTPUT_BINARY 
                 PROPERTIES 
                     OUTPUT_NAME "de_comm"
-                    SUFFIX ".so"
                 )
 
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")

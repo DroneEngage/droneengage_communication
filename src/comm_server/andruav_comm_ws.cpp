@@ -5,12 +5,15 @@
 #include "../global.hpp"
 #include "../helpers/colors.hpp"
 #include "andruav_comm_ws.hpp"
-
+#include <boost/beast/websocket.hpp>
+#include <boost/asio.hpp>
 
 #include <plog/Log.h> 
 #include "plog/Initializers/RollingFileInitializer.h"
 
 
+using tcp = boost::asio::ip::tcp;
+namespace websocket = boost::beast::websocket;
 
 void de::andruav_servers::CWSASession::run()
 {
@@ -45,18 +48,18 @@ void de::andruav_servers::CWSASession::run()
             return;
         }
 
-        // Set User-Agent
+        // Set WebSocket headers (User-Agent and permessage-deflate)
         ws_.set_option(websocket::stream_base::decorator(
             [](websocket::request_type& req)
             {
                 req.set(http::field::user_agent,
-                    std::string(BOOST_BEAST_VERSION_STRING) +
-                        " websocket-client");
+                    std::string(BOOST_BEAST_VERSION_STRING) + " websocket-client");
+                req.set(http::field::sec_websocket_extensions, "permessage-deflate");
             }));
 
         // Perform the WebSocket handshake
         beast::error_code ec;
-        ws_.handshake(host_ , url_param_, ec);
+        ws_.handshake(host_, url_param_, ec);
         if (ec)
         {
             PLOG(plog::error) << "WebSocket handshake failed: " << ec.message();
@@ -64,14 +67,14 @@ void de::andruav_servers::CWSASession::run()
             m_callback.onSocketError();
             return;
         }
-        PLOG(plog::info) << "WebSocket handshake successful.";
+        PLOG(plog::info) << "WebSocket handshake successful, compression: " << (ws_.got_text() ? "text" : "binary");
 
-        m_thread_receiver = std::thread {[this](){
+        // Start receiver thread
+        m_thread_receiver = std::thread{[this]() {
             receive_message();
         }};
-
     }
-    catch(std::exception const& e)
+    catch (const std::exception& e)
     {
         PLOG(plog::error) << "Error during connection setup: " << e.what();
         m_connected = false;

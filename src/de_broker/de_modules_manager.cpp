@@ -505,7 +505,7 @@ void de::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * modu
     {
         if (auth.doValidateHardware(module_item->hardware_serial, module_item->hardware_type))
         {
-            std::cout << std::endl << _LOG_CONSOLE_BOLD_TEXT << "Module License " << _SUCCESS_CONSOLE_TEXT_ << "OK " <<  _SUCCESS_CONSOLE_BOLD_TEXT_ << module_item->module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            std::cout << std::endl << _LOG_CONSOLE_BOLD_TEXT << "Module License " << _SUCCESS_CONSOLE_TEXT_ << "OK " <<  _INFO_CONSOLE_TEXT << module_item->module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
             PLOG(plog::info)<< "Module License OK: " << module_item->module_id ;
 
             module_item->licence_status = ENUM_LICENCE::LICENSE_VERIFIED_OK;

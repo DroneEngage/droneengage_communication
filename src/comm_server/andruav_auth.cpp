@@ -389,7 +389,7 @@ bool de::andruav_servers::CAndruavAuthenticator::translateResponse_doValidateHar
     }
 
     
-    std::cout << _INFO_CONSOLE_TEXT  << "HW AUTH: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Passed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _INFO_CONSOLE_BOLD_TEXT  << "HW AUTH: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Passed" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     
     return true;
 }

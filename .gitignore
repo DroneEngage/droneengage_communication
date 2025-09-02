@@ -12,3 +12,4 @@ doxygen_doc/
 *.log
 de_plan.json
 TODO.txt
+checks.json

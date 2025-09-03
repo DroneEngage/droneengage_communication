@@ -97,17 +97,23 @@ void de::andruav_servers::CWSASession::receive_message()
             if (ec) {
                 if (ec == beast::websocket::error::closed) {
                     PLOG(plog::info) << "WebSocket connection closed by the server.";
+                    std::cout <<  "WebSocket connection closed by the server." << std::endl;
                 } else if (ec == boost::asio::error::timed_out) {
                     PLOG(plog::warning) << "WebSocket read timeout.";
+                    std::cout <<  "WebSocket read timeout." << std::endl;
                     // Consider if you want to try to recover or break
                 } else if (ec == boost::asio::error::connection_reset) {
                     PLOG(plog::warning) << "Connection reset by peer.";
+                    std::cout << "Connection reset by peer." << std::endl;
                 } else if (ec == boost::asio::error::eof) {
                     PLOG(plog::info) << "End of file reached on WebSocket.";
+                    std::cout << "WebSocket connection closed by the server." << std::endl;
                 } else if (ec == boost::asio::error::operation_aborted) {
                     PLOG(plog::info) << "WebSocket read operation aborted (likely due to closing).";
+                    std::cout << "WebSocket read operation aborted (likely due to closing)." << std::endl;
                 } else {
                     PLOG(plog::error) << "WebSocket read error: " << ec.message();
+                    std::cout <<  "WebSocket read error: " << ec.message() << std::endl;
                 }
                 m_connected = false;
                 break; // Exit the loop on read error

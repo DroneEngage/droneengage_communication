@@ -50,23 +50,6 @@ void CLEDs::uninit()
 
 
 /**
- * @brief Turn On/Off leds
- * 
- * @param led_index 0 means status LED. and cannot be access from this function.
- * @param onOff 
- */
-void CLEDs::switchLED(const uint8_t led_index, const bool onOff)
-{
-    if (m_error != ENUM_Module_Error_Code::ERR_NON) return ;
-    
-    if (m_port_pins.size()>=led_index) return ;
-
-    hal_linux::CRPI_GPIO::getInstance().write(led_index, onOff?GPIO_ON:GPIO_OFF);
-    
-    m_port_pins[led_index].status = onOff?LED_STATUS_ON:LED_STATUS_OFF;
-}
-
-/**
  * @brief called by scheduler to update status LED or leds that toggle.
  * 
  */

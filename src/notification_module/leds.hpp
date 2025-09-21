@@ -53,8 +53,6 @@ class CLEDs : public CNotification
         void uninit() override;  
         
         
-        void switchLED(const uint8_t led_index, const bool onOff);
-
     private:
         uint32_t m_counter;
         de::STATUS &m_status = de::STATUS::getInstance();

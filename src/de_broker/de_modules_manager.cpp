@@ -1294,6 +1294,7 @@ Json de::comm::CUavosModulesManager::getModuleListAsJSON ()
             {"c", module_item->module_class},
             {"t", module_item->time_stamp},
             {"d", module_item->is_dead},
+            {"k", module_item->module_key}
         };
         modules.push_back(json_module_entry);
     }

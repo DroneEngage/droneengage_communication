@@ -103,7 +103,7 @@
  */
 #define TYPE_AndruavMessage_GPS                     1002
 #define TYPE_AndruavMessage_POWER                   1003
-#define TYPE_AndruavMessage_ID 	                    1004
+#define TYPE_AndruavMessage_ID 	                 1004
 /**
  * @brief This command is used to execute a remote command on another unit.
  * @param C command id.
@@ -118,11 +118,11 @@
  * @param Act :bool which used with @param C to activate & deactivate as extra parameter.
  * 
  */
-#define TYPE_AndruavMessage_RemoteExecute 		    1005
+#define TYPE_AndruavMessage_RemoteExecute 	   1005
 #define TYPE_AndruavMessage_IMG                     1006
 #define TYPE_AndruavMessage_Error                   1008    
 #define TYPE_AndruavMessage_FlightControl           1010
-#define TYPE_AndruavMessage_CameraList 			    1012  //RX: {"tg":"GCS1","sd":"zxcv","ty":"c","gr":"1","cm":"i","mt":1012,"ms":"{\"E\":2,\"P\":0,\"I\":\"zxcv\"}"}
+#define TYPE_AndruavMessage_CameraList 		   1012  //RX: {"tg":"GCS1","sd":"zxcv","ty":"c","gr":"1","cm":"i","mt":1012,"ms":"{\"E\":2,\"P\":0,\"I\":\"zxcv\"}"}
 #define TYPE_AndruavMessage_DroneReport             1020
 #define TYPE_AndruavMessage_Signaling               1021
 #define TYPE_AndruavMessage_HomeLocation            1022
@@ -259,10 +259,10 @@
 /**********************************************************************
                         New Andruav Messages 2019
 **********************************************************************/
-#define TYPE_AndruavMessage_ServoChannel                6001
+#define TYPE_AndruavMessage_ServoChannel                       6001
 
-#define TYPE_AndruavMessage_MAVLINK                     6502
-#define TYPE_AndruavMessage_SWARM_MAVLINK               6503
+#define TYPE_AndruavMessage_MAVLINK                            6502
+#define TYPE_AndruavMessage_SWARM_MAVLINK                      6503
 
 /**
  * Used by other modules to exchange mavlink information
@@ -270,14 +270,14 @@
  * This allows custom implementation for sharing mavlink info 
  * between mavlink module and other modules.
 */
-#define TYPE_AndruavMessage_INTERNAL_MAVLINK            6504
+#define TYPE_AndruavMessage_INTERNAL_MAVLINK                   6504
 
 
-#define TYPE_AndruavMessage_P2P_ACTION                  6505
-#define TYPE_AndruavMessage_P2P_STATUS                  6506
+#define TYPE_AndruavMessage_P2P_ACTION                         6505
+#define TYPE_AndruavMessage_P2P_STATUS                         6506
 
-#define TYPE_AndruavMessage_P2P_InRange_BSSID           6507
-#define TYPE_AndruavMessage_P2P_InRange_Node            6508
+#define TYPE_AndruavMessage_P2P_InRange_BSSID                  6507
+#define TYPE_AndruavMessage_P2P_InRange_Node                   6508
 
 
 /**
@@ -288,13 +288,13 @@
  * [w2]: for turning communication server LOCAL websocket on/off or leave as is. 
  * [p2]: ip of [w2] which means reconnect to this ip Local Communication Socket.
  */
-#define TYPE_AndruavMessage_Communication_Line_Set          6509
+#define TYPE_AndruavMessage_Communication_Line_Set             6509
 
-#define TYPE_AndruavMessage_Communication_Line_Status       6510
+#define TYPE_AndruavMessage_Communication_Line_Status          6510
 
 
-#define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH            6511
-#define TYPE_AndruavMessage_SOUND_PLAY_FILE                 6512
+#define TYPE_AndruavMessage_SOUND_TEXT_TO_SPEECH               6511
+#define TYPE_AndruavMessage_SOUND_PLAY_FILE                    6512
 
 
 /**
@@ -321,24 +321,24 @@
  * CMD#3
  * [a]: SDR_ACTION_TRIGGER                                  7
  */
-#define TYPE_AndruavMessage_SDR_ACTION                      6514
-#define TYPE_AndruavMessage_SDR_REMOTE_EXECUTE              6515
-#define TYPE_AndruavMessage_SDR_SPECTRUM                    6516
+#define TYPE_AndruavMessage_SDR_ACTION                         6514
+#define TYPE_AndruavMessage_SDR_REMOTE_EXECUTE                 6515
+#define TYPE_AndruavMessage_SDR_SPECTRUM                       6516
 
 // GPIO Parameters
 #define GPIO_ACTION_PORT_CONFIG                                0
 #define GPIO_ACTION_INFO                                       1
 #define GPIO_ACTION_PORT_WRITE                                 2
 
-#define TYPE_AndruavMessage_P2P_INFO                        6517
+#define TYPE_AndruavMessage_P2P_INFO                           6517
 
 
-#define TYPE_AndruavMessage_Mission_Item_Sequence           6518
+#define TYPE_AndruavMessage_Mission_Item_Sequence              6518
 
 
-#define TYPE_AndruavMessage_GPIO_ACTION                      6519
-#define TYPE_AndruavMessage_GPIO_STATUS                      6520
-#define TYPE_AndruavMessage_GPIO_REMOTE_EXECUTE              6521
+#define TYPE_AndruavMessage_GPIO_ACTION                        6519
+#define TYPE_AndruavMessage_GPIO_STATUS                        6520
+#define TYPE_AndruavMessage_GPIO_REMOTE_EXECUTE                6521
 
 /**
  * @brief Set IP/Port of Local Communication Server.
@@ -346,13 +346,15 @@
  * [u]: url/ip
  * [p]: port
  */
-#define TYPE_AndruavMessage_LocalServer_ACTION              6522
-#define TYPE_AndruavMessage_LocalServer_STATUS              6523
-#define TYPE_AndruavMessage_LocalServer_REMOTE_EXECUTE      6524
+#define TYPE_AndruavMessage_LocalServer_ACTION                 6522
+#define TYPE_AndruavMessage_LocalServer_STATUS                 6523
+#define TYPE_AndruavMessage_LocalServer_REMOTE_EXECUTE         6524
 
+#define TYPE_AndruavMessage_CONFIG_ACTION                      6525
+#define TYPE_AndruavMessage_CONFIG_STATUS                      6526
+#define TYPE_AndruavMessage_CONFIG_REMOTE_EXECUTE              6527
 
-
-#define TYPE_AndruavMessage_DUMMY                       9999
+#define TYPE_AndruavMessage_DUMMY                              9999
 
 
 // System Messages
@@ -544,3 +546,8 @@
 #define TrackingTarget_STATUS_AI_Recognition_ENABLED        2
 #define TrackingTarget_STATUS_AI_Recognition_DISABLED       3
 #define TrackingTarget_STATUS_AI_Recognition_CLASS_LIST     4
+
+
+// TYPE_AndruavMessage_CONFIG_ACTION
+#define CONFIG_ACTION_Restart                               0
+#define CONFIG_ACTION_APPLY_CONFIG                          1   

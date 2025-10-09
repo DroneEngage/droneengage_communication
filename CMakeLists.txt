@@ -135,7 +135,7 @@ target_compile_definitions(OUTPUT_BINARY PRIVATE
 
 configure_file(de_comm.config.module.json ${OUTPUT_DIRECTORY}/de_comm.config.module.json COPYONLY)
 configure_file(root.crt ${OUTPUT_DIRECTORY}/root.crt COPYONLY)
-
+configure_file(template.json ${OUTPUT_DIRECTORY}/template.json COPYONLY)
 
 # Highlight if DDEBUG or TEST_MODE_NO_HAILO_LINK are enabled
 if (DDEBUG)

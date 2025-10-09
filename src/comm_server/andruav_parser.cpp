@@ -1,3 +1,4 @@
+#include <fstream>
 #include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
 
@@ -186,24 +187,63 @@ void de::andruav_servers::CAndruavParser::parseCommand(const std::string &sender
 
         const Json_de cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
         std::string module_key = "";
-        
-        if (!validateField(cmd, "a", Json_de::value_t::number_unsigned)) return ;
+
+        if (!validateField(cmd, "a", Json_de::value_t::number_unsigned))
+            return;
 
         if (validateField(cmd, "b", Json_de::value_t::string))
         {
-            return ; // this is an internal message.
+            return; // this is an internal message.
         }
 
         int action = cmd["a"].get<int>();
         switch (action)
         {
         case CONFIG_ACTION_Restart:
-            /* code */
+        { /* code */
             exit(0);
-            break;
-        
+        }
+        break;
+
         case CONFIG_ACTION_APPLY_CONFIG:
-             break;
+            break;
+
+        case CONFIG_REQUEST_FETCH_CONFIG_TEMPLATE:
+        {
+            if (!jsonMessage.contains(ANDRUAV_PROTOCOL_SENDER))
+                return;
+            std::string sender = jsonMessage[ANDRUAV_PROTOCOL_SENDER].get<std::string>();
+
+#ifdef DEBUG
+            std::cout << std::endl
+                      << _INFO_CONSOLE_TEXT << "CONFIG_REQUEST_FETCH_CONFIG_TEMPLATE" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#endif
+
+            // Read file content
+            std::ifstream file("template.json");
+            if (!file.is_open())
+            {
+                // ERROR FILE NOT FOUND
+                std::cout << std::endl
+                          << _ERROR_CONSOLE_BOLD_TEXT_ << "cannot read template.json" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                de::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR, "cannot read template.json");
+                Json_de empty_file_content_json = {};
+                de::andruav_servers::CAndruavFacade::getInstance().API_sendConfigTemplate(sender, module_key, empty_file_content_json, true);
+                return;
+            }
+
+            // Read file into string
+            std::string file_content((std::istreambuf_iterator<char>(file)),
+                                     std::istreambuf_iterator<char>());
+            file.close();
+
+            // Parse string to JSON
+            Json_de file_content_json = Json_de::parse(file_content);
+
+            de::andruav_servers::CAndruavFacade::getInstance().API_sendConfigTemplate(sender, module_key, file_content_json, true);
+        }
+        break;
+
         default:
             break;
         }

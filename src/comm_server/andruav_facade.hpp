@@ -62,6 +62,7 @@ namespace andruav_servers
             void API_sendPrepherals (const std::string& target_party_id) const ;
             void API_sendCommunicationLineStatus(const std::string&  target_party_id, const bool on_off) const;
 
+            void API_sendConfigTemplate(const std::string& target_party_id, const std::string& module_key, const Json_de& json_file_content_json, const bool reply);
 
         protected:
 

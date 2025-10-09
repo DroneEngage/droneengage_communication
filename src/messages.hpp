@@ -352,7 +352,6 @@
 
 #define TYPE_AndruavMessage_CONFIG_ACTION                      6525
 #define TYPE_AndruavMessage_CONFIG_STATUS                      6526
-#define TYPE_AndruavMessage_CONFIG_REMOTE_EXECUTE              6527
 
 #define TYPE_AndruavMessage_DUMMY                              9999
 
@@ -550,4 +549,9 @@
 
 // TYPE_AndruavMessage_CONFIG_ACTION
 #define CONFIG_ACTION_Restart                               0
-#define CONFIG_ACTION_APPLY_CONFIG                          1   
+#define CONFIG_ACTION_APPLY_CONFIG                          1
+#define CONFIG_REQUEST_FETCH_CONFIG_TEMPLATE                2
+#define CONFIG_REQUEST_FETCH_CONFIG                         3
+
+#define CONFIG_STATUS_FETCH_CONFIG_TEMPLATE                 0
+#define CONFIG_STATUS_FETCH_CONFIG                          1

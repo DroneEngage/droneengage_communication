@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
-
+#include <fstream>
 #include <plog/Log.h> 
 #include "plog/Initializers/RollingFileInitializer.h"
 
@@ -23,7 +23,7 @@
 using namespace de::andruav_servers;
 
 
-void de::andruav_servers::CAndruavFacade::API_requestID (const std::string& target_party_id) const  
+void CAndruavFacade::API_requestID (const std::string& target_party_id) const  
 {
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -40,7 +40,7 @@ void de::andruav_servers::CAndruavFacade::API_requestID (const std::string& targ
  * 
  * @param target_party_id 
  */
-void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_party_id) const 
+void CAndruavFacade::API_sendID (const std::string& target_party_id) const 
 {
     de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
     de::ANDRUAV_UNIT_INFO&  unit_info = andruavMe.getUnitInfo();
@@ -130,7 +130,7 @@ void de::andruav_servers::CAndruavFacade::API_sendID (const std::string& target_
 }
 
 
-void de::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, const std::string& target_party_id) const 
+void CAndruavFacade::API_sendCameraList(const bool reply, const std::string& target_party_id) const 
 {
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: API_requestID " << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -152,7 +152,7 @@ void de::andruav_servers::CAndruavFacade::API_sendCameraList(const bool reply, c
 
 
 
-void de::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::string& target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const 
+void CAndruavFacade::API_sendErrorMessage (const std::string& target_party_id, const int& error_number, const int& info_type, const int& notification_type, const std::string& description) const 
 {
     /*
         EN : error number  "not currently processed".
@@ -178,7 +178,7 @@ void de::andruav_servers::CAndruavFacade::API_sendErrorMessage (const std::strin
     return ;
 }
 
-void de::andruav_servers::CAndruavFacade::API_loadTasksByScope(const ENUM_TASK_SCOPE scope, const int task_type) const
+void CAndruavFacade::API_loadTasksByScope(const ENUM_TASK_SCOPE scope, const int task_type) const
 {
     
     PLOG(plog::info) << "LoadTasksByScope called"; 
@@ -202,7 +202,7 @@ void de::andruav_servers::CAndruavFacade::API_loadTasksByScope(const ENUM_TASK_S
 }
     
 
-void de::andruav_servers::CAndruavFacade::API_loadTasksByScopeGlobal(const int task_type) const
+void CAndruavFacade::API_loadTasksByScopeGlobal(const int task_type) const
 {
     PLOG(plog::info) << "API_loadTasksByScopeGlobal called"; 
     
@@ -218,7 +218,7 @@ void de::andruav_servers::CAndruavFacade::API_loadTasksByScopeGlobal(const int t
 }
 
 
-void de::andruav_servers::CAndruavFacade::API_loadTasksByScopeAccount(const int task_type) const
+void CAndruavFacade::API_loadTasksByScopeAccount(const int task_type) const
 {
     
     PLOG(plog::info) << "API_loadTasksByScopeAccount called"; 
@@ -235,7 +235,7 @@ void de::andruav_servers::CAndruavFacade::API_loadTasksByScopeAccount(const int 
 }
 
 
-void de::andruav_servers::CAndruavFacade::API_loadTasksByScopeGroup(const int task_type) const
+void CAndruavFacade::API_loadTasksByScopeGroup(const int task_type) const
 {
     PLOG(plog::info) << "API_loadTasksByScopeGroup called"; 
     
@@ -251,7 +251,7 @@ void de::andruav_servers::CAndruavFacade::API_loadTasksByScopeGroup(const int ta
 }
 
 
-void de::andruav_servers::CAndruavFacade::API_loadTasksByScopePartyID(const int task_type) const
+void CAndruavFacade::API_loadTasksByScopePartyID(const int task_type) const
 {
     PLOG(plog::info) << "API_loadTasksByScopePartyID called"; 
     
@@ -267,7 +267,7 @@ void de::andruav_servers::CAndruavFacade::API_loadTasksByScopePartyID(const int 
 }
 
 
-void de::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_SID, const std::string& account_id, const std::string& party_sid, const std::string& group_name, const std::string& sender, const std::string& receiver, const int msg_type, bool is_permanent ) const
+void CAndruavFacade::API_loadTask(const int larger_than_SID, const std::string& account_id, const std::string& party_sid, const std::string& group_name, const std::string& sender, const std::string& receiver, const int msg_type, bool is_permanent ) const
 {
 
     PLOG(plog::info) << "API_loadTask called"; 
@@ -285,7 +285,7 @@ void de::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_SID
         };
 
     
-    de::andruav_servers::CAndruavCommServer::getInstance().API_sendSystemMessage (TYPE_AndruavSystem_LoadTasks, message);
+    CAndruavCommServer::getInstance().API_sendSystemMessage (TYPE_AndruavSystem_LoadTasks, message);
 
     #ifdef DEBUG
     std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "API_sendSystemMessage " << _NORMAL_CONSOLE_TEXT_ << message.dump() << std::endl;
@@ -295,7 +295,7 @@ void de::andruav_servers::CAndruavFacade::API_loadTask(const int larger_than_SID
 }
 
 // NOT USED .... ENABLE IT
-void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string& target_party_id) const 
+void CAndruavFacade::API_sendPrepherals (const std::string& target_party_id) const 
 {
     
 
@@ -353,7 +353,7 @@ void de::andruav_servers::CAndruavFacade::API_sendPrepherals (const std::string&
 
 
 
-void de::andruav_servers::CAndruavFacade::API_sendCommunicationLineStatus(const std::string&  target_party_id, const bool on_off) const
+void CAndruavFacade::API_sendCommunicationLineStatus(const std::string&  target_party_id, const bool on_off) const
 {
     /*
         [ws]: bool
@@ -368,4 +368,24 @@ void de::andruav_servers::CAndruavFacade::API_sendCommunicationLineStatus(const 
  
 
     CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_Communication_Line_Status, jMsg);
+}
+
+
+
+void CAndruavFacade::API_sendConfigTemplate(const std::string& target_party_id, const std::string& module_key, const Json_de& json_file_content_json, const bool reply)
+{
+   // Create JSON message
+    Json_de jMsg = {
+        {"a", CONFIG_STATUS_FETCH_CONFIG_TEMPLATE},
+        {"b", json_file_content_json},
+        {"k", module_key},
+        {"R", reply}
+    };
+
+    // Send command
+    CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_CONFIG_STATUS, jMsg);
+
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << " -- Config Status " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    
+    return ;
 }

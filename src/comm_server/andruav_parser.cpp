@@ -199,8 +199,36 @@ void de::andruav_servers::CAndruavParser::parseCommand(const std::string &sender
         int action = cmd["a"].get<int>();
         switch (action)
         {
+        case CONFIG_ACTION_SHUT_DOWN:
+        {
+            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL))
+            {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "DroneEngage Mission-Upload: " << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                break;
+            }
+
+            // Launch a detached thread to run the script
+            std::thread([=]()
+                        {
+                    int result = std::system("./scripts/sh_shutdown.sh");
+                    if (result != 0) {
+                        PLOG(plog::error) << "Failed to execute sh_shutdown.sh, return code: " << result;
+                        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Failed to execute sh_shutdown.sh, return code: " << result << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    } else {
+                        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Shutdown script executed successfully" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    } })
+                .detach();
+
+            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Shutdown script launched in background" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+        break;
         case CONFIG_ACTION_Restart:
         { /* code */
+            if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) != PERMISSION_ALLOW_GCS_FULL_CONTROL))
+            {
+                std::cout << _INFO_CONSOLE_BOLD_TEXT << "DroneEngage Mission-Upload: " << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                break;
+            }
             exit(0);
         }
         break;

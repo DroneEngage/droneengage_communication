@@ -552,6 +552,8 @@
 #define CONFIG_ACTION_APPLY_CONFIG                          1
 #define CONFIG_REQUEST_FETCH_CONFIG_TEMPLATE                2
 #define CONFIG_REQUEST_FETCH_CONFIG                         3
+#define CONFIG_ACTION_SHUT_DOWN                             4
+
 
 #define CONFIG_STATUS_FETCH_CONFIG_TEMPLATE                 0
 #define CONFIG_STATUS_FETCH_CONFIG                          1

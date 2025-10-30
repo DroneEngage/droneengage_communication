@@ -347,7 +347,7 @@ void CAndruavCommServerLocal::onTextMessageRecieved(const std::string& jsonMessa
 {
     m_lasttime_access = get_time_usec();
 
-    #ifdef DDEBUG || DDEBUG_PARSER
+    #if defined(DDEBUG) || defined(DDEBUG_PARSER)
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: onMessageRecieved " << jsonMessage << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 

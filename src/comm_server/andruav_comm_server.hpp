@@ -10,7 +10,7 @@ namespace de
 {
 namespace andruav_servers
 {
-    class CAndruavCommServer : public std::enable_shared_from_this<CAndruavCommServerBase>, public CCallBack_WSASession, public CAndruavCommServerBase
+    class CAndruavCommServer : public CCallBack_WSASession, public CAndruavCommServerBase
     {
     public:
         static CAndruavCommServer& getInstance()

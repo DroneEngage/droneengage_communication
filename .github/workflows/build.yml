@@ -1,0 +1,95 @@
+name: Build (amd64 and arm64)
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.os-name }} - ${{ matrix.arch }} (Bookworm)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            os-name: Ubuntu 24.04
+            arch: amd64
+            runner: ubuntu-24.04
+          - os: ubuntu-24.04-arm64
+            os-name: Ubuntu 24.04 (ARM64)
+            arch: arm64
+            runner: ubuntu-24.04-arm64
+    runs-on: ${{ matrix.runner }}
+    container:
+      image: debian:bookworm
+      options: --cpus=2
+
+    env:
+      BOOST_VERSION: 1.86.0
+      BOOST_DIR: ${{ env.HOME }}/boost_1_86_0
+      DEBIAN_FRONTEND: noninteractive
+
+    steps:
+      - name: Install essential packages
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            git ca-certificates curl xz-utils \
+            build-essential cmake pkg-config \
+            libssl-dev libcurl4-openssl-dev \
+            file
+          update-ca-certificates
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Prepare Boost ${{ env.BOOST_VERSION }} (static)
+        run: |
+          set -euxo pipefail
+          cd "$HOME"
+          curl -L -o boost.tar.gz "https://archives.boost.io/release/${BOOST_VERSION}/source/boost_1_86_0.tar.gz"
+          tar -xf boost.tar.gz
+          cd boost_1_86_0
+          ./bootstrap.sh
+          ./b2 -j"$(nproc)" \
+            link=static runtime-link=static threading=multi \
+            cxxstd=17 variant=release \
+            --with-chrono --with-context --with-coroutine --with-system --with-thread \
+            stage
+
+      - name: Configure (CMake)
+        env:
+          BOOST_ROOT: ${{ env.BOOST_DIR }}
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build (CMake)
+        run: |
+          cmake --build build --config Release -j"$(nproc)"
+
+      - name: List build outputs
+        run: |
+          ls -la bin || true
+          file bin/* || true
+
+      - name: Prepare per-arch filenames
+        run: |
+          cp bin/de_comm bin/de_comm-${{ matrix.arch }}
+
+      - name: Upload to GitHub Release (on tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            bin/de_comm-${{ matrix.arch }}
+            bin/de_comm.config.module.json
+            bin/template.json
+            bin/root.crt
+          draft: false
+          prerelease: false

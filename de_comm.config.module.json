@@ -13,15 +13,15 @@
 
     
     // Drone-Engage Communication Server Connection
-    "auth_ip"                       : "127.0.0.1",
+    "auth_ip"                       : "cloud.ardupilot.org",
     "auth_port"                     : 19408,
     "auth_verify_ssl"               : false,
     "ignore_original_comm_server"   : false,  // dont authenticate and connect directly to a drone server.
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
     "root_certificate_path"         : "./root.crt",
 
-    "userName"                  :"mhefny@andruav.com", 
-    "accessCode"                :"mhefny",
+    "userName"                  :"ENTER_USERNAME", 
+    "accessCode"                :"ENTER_PASSWORD",
     "unitID"                    :"drone_cairo",
     "groupID"                   :"1",
     "unitDescription"           :"de_unit 1",

@@ -207,25 +207,18 @@ void de::andruav_servers::CAndruavParser::parseCommand(
 
     int action = cmd["a"].get<int>();
     switch (action) {
-    case CONFIG_ACTION_SHUT_DOWN: {
+    case CONFIG_ACTION_SHUT_DOWN_HW: {
       if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) !=
                            PERMISSION_ALLOW_GCS_FULL_CONTROL)) {
-        std::cout << _INFO_CONSOLE_BOLD_TEXT
-                  << "DroneEngage Mission-Upload: " << _ERROR_CONSOLE_BOLD_TEXT_
-                  << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DroneEngage SHUTDOWN SCRIPT: "
+                  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied."
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
         break;
       }
 
-      int reboot_board = 0;
-      if (cmd.contains("b")) {
-        reboot_board = cmd["b"].get<int>();
-      }
-
-      // Launch a detached thread to run the script
       // Launch a detached thread to run the script
       std::thread([=]() {
-        const std::string cmdStr =
-            "./scripts/sh_shutdown.sh " + std::to_string(reboot_board);
+        const std::string cmdStr = "./scripts/sh_shutdown.sh ";
         int result = std::system(cmdStr.c_str());
         if (result != 0) {
           PLOG(plog::error)
@@ -242,6 +235,36 @@ void de::andruav_servers::CAndruavParser::parseCommand(
 
       std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_
                 << "Shutdown script launched in background"
+                << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    } break;
+    case CONFIG_ACTION_RESTART_HW: {
+      if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) !=
+                           PERMISSION_ALLOW_GCS_FULL_CONTROL)) {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT
+                  << "DroneEngage REBOOT SCRIPT: " << _ERROR_CONSOLE_BOLD_TEXT_
+                  << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        break;
+      }
+
+      // Launch a detached thread to run the script
+      std::thread([=]() {
+        const std::string cmdStr = "./scripts/sh_reboot.sh ";
+        int result = std::system(cmdStr.c_str());
+        if (result != 0) {
+          PLOG(plog::error)
+              << "Failed to execute sh_reboot.sh, return code: " << result;
+          std::cout << _ERROR_CONSOLE_BOLD_TEXT_
+                    << "Failed to execute sh_reboot.sh, return code: " << result
+                    << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        } else {
+          std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_
+                    << "Reboot script executed successfully"
+                    << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+      }).detach();
+
+      std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_
+                << "Reboot script launched in background"
                 << _NORMAL_CONSOLE_TEXT_ << std::endl;
     } break;
     case CONFIG_ACTION_Restart: { /* code */

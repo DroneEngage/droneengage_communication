@@ -137,6 +137,11 @@ configure_file(de_comm.config.module.json ${OUTPUT_DIRECTORY}/de_comm.config.mod
 configure_file(root.crt ${OUTPUT_DIRECTORY}/root.crt COPYONLY)
 configure_file(template.json ${OUTPUT_DIRECTORY}/template.json COPYONLY)
 
+file(GLOB _SCRIPT_FILES "${PROJECT_SOURCE_DIR}/scripts/*")
+foreach(_SCRIPT_FILE IN LISTS _SCRIPT_FILES)
+  get_filename_component(_SCRIPT_NAME "${_SCRIPT_FILE}" NAME)
+  configure_file("${_SCRIPT_FILE}" "${OUTPUT_DIRECTORY}/scripts/${_SCRIPT_NAME}" COPYONLY)
+endforeach()
 # Highlight if DDEBUG or TEST_MODE_NO_HAILO_LINK are enabled
 if (DDEBUG)
     message(STATUS "${Red}Option DDEBUG is ENABLED.${ColourReset}")

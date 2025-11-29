@@ -17,11 +17,13 @@ echo -e "${BOLD}==================================================="
 echo -e "${BLUE_BG}${WHITE_FG}${BOLD}           Command Line Analysis Tool              ${NC}"
 echo -e "${BOLD}===================================================${NC}"
 
+# $0 holds the name of the script or command as it was called
 echo -e "${CYAN}${BOLD}1. Command/Script Name:${NC}"
 echo -e "   ${GREEN}${BOLD}$0${NC}"
 
 echo ""
 
+# $@ holds all positional parameters starting from $1
 echo -e "${CYAN}${BOLD}2. Total Number of Parameters:${NC}"
 echo -e "   ${YELLOW}${BOLD}$#${NC}"
 
@@ -29,24 +31,20 @@ echo ""
 
 echo -e "${CYAN}${BOLD}3. Listing All Parameters:${NC}"
 
+# Check if there are any arguments
 if [ "$#" -eq 0 ]; then
     echo -e "   ${GRAY}(No parameters provided)${NC}"
 else
+    # Loop through all arguments to display them clearly with their index
+    
+    # Start argument indexing from 1 (since $0 is the command name)
     arg_index=1
+    
     for arg in "$@"; do
+        # printf is used for controlled output formatting, coloring the index white/bold and the value magenta
         printf "   ${WHITE_FG}${BOLD}Arg %-2d:${NC} ${MAGENTA}%s${NC}\n" $arg_index "$arg"
         arg_index=$((arg_index + 1))
     done
 fi
 
 echo -e "${BOLD}===================================================${NC}"
-
-b="$1"
-
-if [ "$b" = "1" ]; then
-    echo -e "${BOLD}Reboot requested (b=$b). Executing: sudo reboot now${NC}"
-    sudo reboot now
-else
-    echo -e "${BOLD}Shutdown requested (b=$b). Executing: sudo shutdown now${NC}"
-    sudo shutdown now
-fi

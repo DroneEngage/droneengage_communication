@@ -207,17 +207,25 @@ void de::andruav_servers::CAndruavParser::parseCommand(const std::string &sender
                 break;
             }
 
+            int reboot_board = 0;
+            if (cmd.contains("b"))
+            {
+                reboot_board = cmd["b"].get<int>();
+            }
+        
             // Launch a detached thread to run the script
-            std::thread([=]()
-                        {
-                    int result = std::system("./scripts/sh_shutdown.sh");
-                    if (result != 0) {
-                        PLOG(plog::error) << "Failed to execute sh_shutdown.sh, return code: " << result;
-                        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Failed to execute sh_shutdown.sh, return code: " << result << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                    } else {
-                        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Shutdown script executed successfully" << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                    } })
-                .detach();
+            // Launch a detached thread to run the script
+    std::thread([=]()
+    {
+        const std::string cmdStr = "./scripts/sh_shutdown.sh " + std::to_string(reboot_board);
+        int result = std::system(cmdStr.c_str());
+        if (result != 0) {
+            PLOG(plog::error) << "Failed to execute sh_shutdown.sh, return code: " << result;
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Failed to execute sh_shutdown.sh, return code: " << result << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        } else {
+            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Shutdown script executed successfully" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+    }).detach();
 
             std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Shutdown script launched in background" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         }

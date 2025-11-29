@@ -41,5 +41,5 @@ fi
 
 echo -e "${BOLD}===================================================${NC}"
 
-echo -e "${BOLD}Shutdown requested. Executing: sudo shutdown now${NC}"
-#sudo shutdown now
+echo -e "${BOLD}Reboot requested. Executing: sudo reboot now${NC}"
+#sudo reboot now

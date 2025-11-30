@@ -42,4 +42,4 @@ fi
 echo -e "${BOLD}===================================================${NC}"
 
 echo -e "${BOLD}Shutdown requested. Executing: sudo shutdown now${NC}"
-#sudo shutdown now
+sudo shutdown now

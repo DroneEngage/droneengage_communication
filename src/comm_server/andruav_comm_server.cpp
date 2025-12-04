@@ -222,6 +222,7 @@ void CAndruavCommServer::connectToCommServer (const std::string& server_ip, cons
     {
         std::cerr << "Error: " << e.what() << std::endl;
         PLOG(plog::error) << "Connecting to Communication Server IP (" << m_host << ") Port(" << m_port << ") PartyID (" << m_party_id << ") failed with error:" << e.what(); 
+        m_status = SOCKET_STATUS_ERROR;
         if (_cwsa_session) {
             _cwsa_session.reset();
         }

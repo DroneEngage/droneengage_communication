@@ -526,6 +526,32 @@ void de::comm::CUavosModulesManager::checkLicenseStatus (MODULE_ITEM_TYPE * modu
 }
 
 /**
+ * @brief Check if any module of a given class is still alive.
+ * @details Used to determine if status flags should be set to false when a module dies.
+ *          For example, with multiple camera modules, we only set is_camera_module_connected(false)
+ *          if ALL camera modules are dead.
+ * @param module_class The module class to check (e.g., MODULE_CLASS_VIDEO)
+ * @param exclude_module_id Module ID to exclude from check (the one being marked dead)
+ * @return true if at least one alive module of the class exists (excluding the specified one)
+ */
+bool de::comm::CUavosModulesManager::hasAliveModuleOfClass(const std::string& module_class, const std::string& exclude_module_id) const
+{
+    for (const auto& [module_id, module_ptr] : m_modules_list)
+    {
+        if (module_id == exclude_module_id)
+        {
+            continue; // Skip the module being marked dead
+        }
+        
+        if (module_ptr->module_class.find(module_class) == 0 && !module_ptr->is_dead)
+        {
+            return true; // Found another alive module of this class
+        }
+    }
+    return false;
+}
+
+/**
 * @brief handle TYPE_AndruavModule_ID messages.
 * Add/Update module definitions.
 * @param msg_cmd 
@@ -1193,28 +1219,44 @@ bool de::comm::CUavosModulesManager::handleDeadModules ()
                     PLOG(plog::error)<< log_msg ;
                 }
 
+                // Only set status to false if no other alive module of the same class exists
                 if (module_item->module_class.find(MODULE_CLASS_FCB)==0)
                 {
-                    CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
-                    ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
-                    andruav_unit_info.use_fcb = false;
-                    m_status.is_fcb_module_connected (false); //TODO: fix when offline
+                    if (!hasAliveModuleOfClass(MODULE_CLASS_FCB, module_item->module_id))
+                    {
+                        CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
+                        ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
+                        andruav_unit_info.use_fcb = false;
+                        m_status.is_fcb_module_connected(false);
+                    }
                 }
                 else if (module_item->module_class.find(MODULE_CLASS_VIDEO)==0)
                 {
-                    m_status.is_camera_module_connected (false); //TODO: fix when offline
+                    if (!hasAliveModuleOfClass(MODULE_CLASS_VIDEO, module_item->module_id))
+                    {
+                        m_status.is_camera_module_connected(false);
+                    }
                 }
                 else if (module_item->module_class.find(MODULE_CLASS_P2P)==0)
                 {
-                    m_status.is_p2p_module_connected(false);
+                    if (!hasAliveModuleOfClass(MODULE_CLASS_P2P, module_item->module_id))
+                    {
+                        m_status.is_p2p_module_connected(false);
+                    }
                 }
                 else if (module_item->module_class.find(MODULE_CLASS_SDR)==0)
                 {
-                    m_status.is_sdr_module_connected(false);
+                    if (!hasAliveModuleOfClass(MODULE_CLASS_SDR, module_item->module_id))
+                    {
+                        m_status.is_sdr_module_connected(false);
+                    }
                 }
                 else if (module_item->module_class.find(MODULE_CLASS_SOUND)==0)
                 {
-                    m_status.is_sound_module_connected(false);
+                    if (!hasAliveModuleOfClass(MODULE_CLASS_SOUND, module_item->module_id))
+                    {
+                        m_status.is_sound_module_connected(false);
+                    }
                 }
             }
         }

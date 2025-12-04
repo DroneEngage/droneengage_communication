@@ -14,8 +14,6 @@
 
 using namespace de::andruav_servers;
 
-std::thread g1;
-
 /**
  * @brief Disconnect websocket for a time duration
  * 
@@ -29,8 +27,8 @@ void CAndruavCommServerBase::turnOnOff(const bool on_off, const uint32_t duratio
     {
         std::cout << _INFO_CONSOLE_BOLD_TEXT << "WS Module:" << _LOG_CONSOLE_TEXT << " Set Communication Line " << _SUCCESS_CONSOLE_BOLD_TEXT_ <<  " Switched Online" << _LOG_CONSOLE_TEXT <<  " duration (sec): "  << _SUCCESS_CONSOLE_BOLD_TEXT_ << std::to_string(duration_seconds) << _NORMAL_CONSOLE_TEXT_ << std::endl;
 
-        // Create and immediately detach the thread
-        g1 = std::thread{[this]() { 
+        // Create detached thread - no need for global variable since we detach immediately
+        std::thread([this]() { 
             try
             {
                 // Switch online
@@ -47,8 +45,7 @@ void CAndruavCommServerBase::turnOnOff(const bool on_off, const uint32_t duratio
             {
                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
             }
-        }};
-        g1.detach(); // Detach immediately after creation
+        }).detach();
     }
     else
     {
@@ -56,8 +53,8 @@ void CAndruavCommServerBase::turnOnOff(const bool on_off, const uint32_t duratio
         
         CAndruavFacade::getInstance().API_sendCommunicationLineStatus(std::string(), false);
     
-        // Create and immediately detach the thread
-        g1 = std::thread{[this]() { 
+        // Create detached thread - no need for global variable since we detach immediately
+        std::thread([this]() { 
             try
             {
                 std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for message to be sent.
@@ -77,8 +74,7 @@ void CAndruavCommServerBase::turnOnOff(const bool on_off, const uint32_t duratio
             {
                 std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION" <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
             }
-        }};
-        g1.detach(); // Detach immediately after creation
+        }).detach();
     }
 }
 

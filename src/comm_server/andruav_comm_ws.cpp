@@ -24,14 +24,14 @@ void de::andruav_servers::CWSASession::run()
         if (endpoints.empty())
         {
             PLOG(plog::error) << "Failed to resolve endpoint: " << host_ << ":" << port_;
-            m_connected = false;
+            m_connected.store(false);
             m_callback.onSocketError(); // Notify of initial connection failure
             return;
         }
 
         // Connect to the server
         auto ep = net::connect(get_lowest_layer(ws_), endpoints);
-        m_connected = true;
+        m_connected.store(true);
         PLOG(plog::info) << "Connected to " << host_ << ":" << port_;
 
         // Perform the SSL handshake
@@ -43,7 +43,7 @@ void de::andruav_servers::CWSASession::run()
             boost::system::error_code ec;
             int ssl_error = SSL_get_error(ws_.next_layer().native_handle(), 0);
             PLOG(plog::error) << "SSL error setting SNI: " << ERR_error_string(ssl_error, nullptr);
-            m_connected = false;
+            m_connected.store(false);
             m_callback.onSocketError();
             return;
         }
@@ -63,7 +63,7 @@ void de::andruav_servers::CWSASession::run()
         if (ec)
         {
             PLOG(plog::error) << "WebSocket handshake failed: " << ec.message();
-            m_connected = false;
+            m_connected.store(false);
             m_callback.onSocketError();
             return;
         }
@@ -77,7 +77,7 @@ void de::andruav_servers::CWSASession::run()
     catch (const std::exception& e)
     {
         PLOG(plog::error) << "Error during connection setup: " << e.what();
-        m_connected = false;
+        m_connected.store(false);
         m_callback.onSocketError();
         return;
     }
@@ -118,7 +118,7 @@ void de::andruav_servers::CWSASession::receive_message()
                     PLOG(plog::error) << "WebSocket read error: " << ec.message();
                     std::cout <<  "WebSocket read error: " << ec.message() << std::endl;
                 }
-                m_connected = false;
+                m_connected.store(false);
                 break; // Exit the loop on read error
             }
 
@@ -145,18 +145,18 @@ void de::andruav_servers::CWSASession::receive_message()
         }
         catch (const boost::system::system_error& e) {
             PLOG(plog::error) << "Boost system error during read: " << e.what();
-            m_connected = false;
+            m_connected.store(false);
             break;
         }
         catch (const std::exception& ex) {
             PLOG(plog::error) << "Exception during read: " << ex.what();
-            m_connected = false;
+            m_connected.store(false);
             break;
         }
         catch (...) {
             PLOG(plog::error) << "Unknown exception during read.";
             std::cout << "Unknown exception during read." << std::endl;
-            m_connected = false;
+            m_connected.store(false);
             break;
         }
     }
@@ -228,23 +228,23 @@ void de::andruav_servers::CWSASession::writeText (const std::string& message)
         {
             std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeText: " << ec.message() << _NORMAL_CONSOLE_TEXT_ << std::endl;
             PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeText: " << ec.message();
-            m_connected = false;
+            m_connected.store(false);
             m_callback.onSocketError();
             return;
         }
     } catch (const boost::exception& ex) {
         PLOG(plog::error) << "Caught BOOST_THROW_EXCEPTION on writeText";
-        m_connected = false;
+        m_connected.store(false);
         m_callback.onSocketError();
         return ;
     } catch (const std::exception& ex) {
         PLOG(plog::error) << "Caught std::exception on writeText: " << ex.what();
-        m_connected = false;
+        m_connected.store(false);
         m_callback.onSocketError();
         return ;
     } catch (...) {
         PLOG(plog::error) << "Caught unknown exception on writeText";
-        m_connected = false;
+        m_connected.store(false);
         m_callback.onSocketError();
         return ;
     }
@@ -265,23 +265,23 @@ void de::andruav_servers::CWSASession::writeBinary (const char * bmsg, const int
         {
             std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeBinary: " << ec.message() << _NORMAL_CONSOLE_TEXT_ << std::endl;
             PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeBinary: " << ec.message();
-            m_connected = false;
+            m_connected.store(false);
             m_callback.onSocketError();
             return;
         }
     } catch (const boost::exception& ex) {
         PLOG(plog::error) << "Caught BOOST_THROW_EXCEPTION on writeBinary";
-        m_connected = false;
+        m_connected.store(false);
         m_callback.onSocketError();
         return ;
     } catch (const std::exception& ex) {
         PLOG(plog::error) << "Caught std::exception on writeBinary: " << ex.what();
-        m_connected = false;
+        m_connected.store(false);
         m_callback.onSocketError();
         return ;
     } catch (...) {
         PLOG(plog::error) << "Caught unknown exception on writeBinary";
-        m_connected = false;
+        m_connected.store(false);
         m_callback.onSocketError();
         return ;
     }

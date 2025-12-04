@@ -45,6 +45,7 @@ void CAndruavCommServerLocal::startWatchDogThread()
     
     uint64_t ping_server_rate_in_us = DEFAULT_PING_RATE_US; 
     uint64_t reconnect_rate = MIN_RECONNECT_RATE_US;
+    uint32_t max_offline_count = 5; // default value
     
 
     if (validateField(jsonConfig,"ping_server_rate_in_ms", Json_de::value_t::number_unsigned))
@@ -55,6 +56,11 @@ void CAndruavCommServerLocal::startWatchDogThread()
     if (validateField(jsonConfig,"max_allowed_ping_delay_in_ms", Json_de::value_t::number_unsigned))
     {
         reconnect_rate = jsonConfig["max_allowed_ping_delay_in_ms"].get<int>() * 1000l;
+    }
+
+    if (validateField(jsonConfig,"max_offline_count", Json_de::value_t::number_unsigned))
+    {
+        max_offline_count = jsonConfig["max_offline_count"].get<int>();
     }
 
     reconnect_rate = (reconnect_rate < MIN_RECONNECT_RATE_US)?MIN_RECONNECT_RATE_US:reconnect_rate;
@@ -76,11 +82,8 @@ void CAndruavCommServerLocal::startWatchDogThread()
         {
             std::cout  << _LOG_CONSOLE_BOLD_TEXT <<  "local: you are " << _ERROR_CONSOLE_BOLD_TEXT_  " OFFLINE " << _INFO_CONSOLE_TEXT << diff << _LOG_CONSOLE_BOLD_TEXT << " us" << _NORMAL_CONSOLE_TEXT_  << std::endl;
         }
-#ifdef DEBUG
-        if (off_count > 500) abort();
-#else
-        if (off_count > 5) abort();
-#endif
+        
+        if (off_count > max_offline_count) abort();
         if (diff > reconnect_rate)
         {          
             off_count++;

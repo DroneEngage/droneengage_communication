@@ -31,8 +31,6 @@
 //  Pthread Starter Helper Functions
 // ------------------------------------------------------------------------------
 
-std::thread gl;
-
 using namespace de::andruav_servers;
 
 
@@ -696,8 +694,8 @@ void CAndruavCommServerLocal::reconnectToCommServer(const std::string server_ip,
     m_url_param = "/?f=" + key + "&s=" + m_party_id + "&at=d";
     m_exit = false;
     isLocalCommServer(true);        
-    // Create and immediately detach the thread
-    gl = std::thread{[&]() { 
+    // Create detached thread - no need for global variable since we detach immediately
+    std::thread([this]() { 
         try
         {
             std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for message to be sent.
@@ -712,14 +710,10 @@ void CAndruavCommServerLocal::reconnectToCommServer(const std::string server_ip,
             //     // re-enable.
             //     m_exit = false;
             // }
-
-            
-    
         }
         catch (const std::system_error& e)
         {
             std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "LWS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " EXCEPTION: " << e.what() << _NORMAL_CONSOLE_TEXT_ << std::endl;
         }
-    }};
-    gl.detach(); // Detach immediately after creation
+    }).detach();
 }

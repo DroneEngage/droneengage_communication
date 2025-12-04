@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <thread>         // std::thread
+#include <atomic>
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/ssl.hpp>
@@ -72,7 +73,7 @@ class CWSASession
             void shutdown ();
 
         private:
-            bool m_connected = false;
+            std::atomic<bool> m_connected{false};
             boost::asio::io_context& io_context_;
             const std::string host_;
             const std::string port_;

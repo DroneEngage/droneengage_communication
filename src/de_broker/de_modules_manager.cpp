@@ -31,8 +31,6 @@
 
 
 
-std::thread t;
-
 static std::mutex g_i_mutex; 
 static std::mutex g_i_mutex_process; 
 static std::mutex g_i_mutex_process2; 

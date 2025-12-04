@@ -88,9 +88,12 @@ void de::andruav_servers::CWSASession::receive_message()
     beast::flat_buffer buffer;
     beast::error_code ec;
 
-    while (m_connected) {
-        if (!m_connected) break; // Check again at the beginning of the loop
+    while (m_connected.load()) {
         std::lock_guard<std::mutex> lock(g_i_mutex_on_read); // Lock the mutex
+        
+        // Check again after acquiring lock
+        if (!m_connected.load()) break;
+        
         try
         {
             ws_.read(buffer, ec);
@@ -165,19 +168,30 @@ void de::andruav_servers::CWSASession::receive_message()
 
 void de::andruav_servers::CWSASession::close(beast::websocket::close_code code)
 {
-    if (!m_connected) return;
-
-    m_connected = false;
+    // Use exchange to atomically set to false and check previous value
+    // This ensures close() is only executed once even if called from multiple threads
+    if (!m_connected.exchange(false)) return;
 
     beast::error_code ec;
     try
     {
+        // Cancel any pending async operations on the underlying socket first
+        // This will cause ws_.read() to return with operation_aborted error
+        auto& lowest_layer = get_lowest_layer(ws_);
+        if (lowest_layer.is_open())
+        {
+            lowest_layer.cancel(ec);
+            if (ec) {
+                PLOG(plog::warning) << "Error canceling socket operations: " << ec.message();
+            }
+        }
+
+        // Now close the WebSocket gracefully if it's still open
         if (ws_.is_open())
         {
             ws_.close(code, ec);
             if (ec) {
                 PLOG(plog::warning) << "Error closing WebSocket: " << ec.message();
-                // Don't necessarily call onSocketError here, as it's a planned close
             } else {
                 PLOG(plog::info) << "WebSocket closed with code: " << static_cast<int>(code);
             }
@@ -192,7 +206,6 @@ void de::andruav_servers::CWSASession::close(beast::websocket::close_code code)
     catch (...) {
         PLOG(plog::error) << "Caught unknown exception during close.";
     }
-    // Note: We don't explicitly cancel the underlying socket here as `ws_.close()` should handle it.
 }
 
 void de::andruav_servers::CWSASession::close()
@@ -202,37 +215,36 @@ void de::andruav_servers::CWSASession::close()
 
 void de::andruav_servers::CWSASession::writeText (const std::string& message)
 {
-    
     const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     
-    if (!m_connected) return ;
+    if (!m_connected.load()) return ;
     
     try
     {
         boost::system::error_code ec;
         ws_.binary(false);
-        ws_.write(net::buffer(message));
+        ws_.write(boost::asio::buffer(message), ec);  // Pass ec to capture errors
         if (ec)
         {
-            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeBinary: " << ec.message() << _NORMAL_CONSOLE_TEXT_ << std::endl;
-            PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeBinary: " << ec.message();
-            close(websocket::close_code::going_away);
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeText: " << ec.message() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeText: " << ec.message();
+            m_connected = false;
             m_callback.onSocketError();
             return;
         }
     } catch (const boost::exception& ex) {
-        // Handle the exception
-        std::cerr << "Caught BOOST_THROW_EXCEPTION: "  << std::endl;
+        PLOG(plog::error) << "Caught BOOST_THROW_EXCEPTION on writeText";
+        m_connected = false;
         m_callback.onSocketError();
         return ;
     } catch (const std::exception& ex) {
-        // Handle other exceptions derived from std::exception
-        std::cerr << "Caught std::exception: " << ex.what() << std::endl;
+        PLOG(plog::error) << "Caught std::exception on writeText: " << ex.what();
+        m_connected = false;
         m_callback.onSocketError();
         return ;
     } catch (...) {
-        // Handle any other uncaught exceptions
-        std::cerr << "Caught unknown exception" << std::endl;
+        PLOG(plog::error) << "Caught unknown exception on writeText";
+        m_connected = false;
         m_callback.onSocketError();
         return ;
     }
@@ -242,7 +254,8 @@ void de::andruav_servers::CWSASession::writeBinary (const char * bmsg, const int
 {
     const std::lock_guard<std::mutex> lock(g_i_mutex_writeText);
     
-    if (!m_connected) return ;
+    if (!m_connected.load()) return ;
+    
     try
     {
         boost::system::error_code ec;
@@ -252,28 +265,26 @@ void de::andruav_servers::CWSASession::writeBinary (const char * bmsg, const int
         {
             std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket Disconnected with Communication Server on writeBinary: " << ec.message() << _NORMAL_CONSOLE_TEXT_ << std::endl;
             PLOG(plog::error) << "WebSocket Disconnected with Communication Server on writeBinary: " << ec.message();
-            close(websocket::close_code::going_away);
+            m_connected = false;
             m_callback.onSocketError();
             return;
         }
-    
     } catch (const boost::exception& ex) {
-        // Handle the exception
-        std::cerr << "Caught BOOST_THROW_EXCEPTION: "  << std::endl;
+        PLOG(plog::error) << "Caught BOOST_THROW_EXCEPTION on writeBinary";
+        m_connected = false;
         m_callback.onSocketError();
         return ;
     } catch (const std::exception& ex) {
-        // Handle other exceptions derived from std::exception
-        std::cerr << "Caught std::exception: " << ex.what() << std::endl;
+        PLOG(plog::error) << "Caught std::exception on writeBinary: " << ex.what();
+        m_connected = false;
         m_callback.onSocketError();
         return ;
     } catch (...) {
-        // Handle any other uncaught exceptions
-        std::cerr << "Caught unknown exception" << std::endl;
+        PLOG(plog::error) << "Caught unknown exception on writeBinary";
+        m_connected = false;
         m_callback.onSocketError();
         return ;
     }
-
 }
 
 void de::andruav_servers::CWSASession::shutdown ()

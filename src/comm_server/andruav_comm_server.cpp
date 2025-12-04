@@ -436,9 +436,6 @@ void CAndruavCommServer::onTextMessageRecieved(const std::string& jsonMessage)
 
 void CAndruavCommServer::uninit(const bool exit_mode)
 {
-    try
-    {
-    
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
@@ -447,69 +444,44 @@ void CAndruavCommServer::uninit(const bool exit_mode)
         
     m_exit = exit_mode;
     
-    struct timespec ts;
-    
+    // Shutdown WebSocket session first
     try
     {
         if (_cwsa_session) {
-            boost::asio::io_context io;
-            boost::asio::steady_timer timer(io, std::chrono::seconds(5)); // 5-second timeout
-
-            bool shutdown_completed = false;
-
-            // Start the timer
-            timer.async_wait([&](boost::system::error_code ec) {
-                if (!ec) {
-                    // Timeout occurred
-                    if (!shutdown_completed) {
-                        std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "Shutdown timed out! Forcefully closing." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                        _cwsa_session->close(); // Forcefully close
-                    }
-                }
-            });
-
-            // Perform the shutdown
             _cwsa_session->shutdown();
-            shutdown_completed = true;
-            timer.cancel(); // Cancel the timer if shutdown succeeds.
-
             _cwsa_session.reset();
         } 
-    }   catch(const std::exception& e)
+    }
+    catch(const std::exception& e)
     {
-        std::cerr << __PRETTY_FUNCTION__ << " line 1:" << __LINE__ << e.what() << '\n';
+        PLOG(plog::error) << "Exception during session shutdown: " << e.what();
+        // Force reset even on exception
+        if (_cwsa_session) {
+            _cwsa_session.reset();
+        }
     }
     
     #ifdef DEBUG
-    std::cout <<__PRETTY_FUNCTION__ << " line 2:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-            exit(0);
-    }
-    
-    #ifdef DEBUG
-    std::cout <<__PRETTY_FUNCTION__ << " line:3" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        std::cout <<__PRETTY_FUNCTION__ << " line 2:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
     
-    ts.tv_sec += 10;
-    if (m_watch_dog && m_watch_dog->joinable())
+    // Wait for watchdog thread to exit
+    try
     {
-        m_watch_dog->join(); // Wait for the thread to exit
+        if (m_watch_dog && m_watch_dog->joinable())
+        {
+            m_watch_dog->join();
+        }
+        m_watch_dog.reset();
     }
-    
-    if (m_watch_dog)
+    catch(const std::exception& e)
     {
-        m_watch_dog.release();
+        PLOG(plog::error) << "Exception joining watchdog thread: " << e.what();
     }
+
     #ifdef DEBUG
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 1" << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
-    
-    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
-        exit(0);
-    }
-    ts.tv_sec += 10;
-
     
     #ifdef DEBUG
         std::cout << __PRETTY_FUNCTION__ <<  _LOG_CONSOLE_TEXT << "DEBUG: m_watch_dog 2" << _NORMAL_CONSOLE_TEXT_ << std::endl;
@@ -522,15 +494,6 @@ void CAndruavCommServer::uninit(const bool exit_mode)
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: uninit OUT " << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
-     }
-    catch(const std::exception& e)
-    {
-        #ifdef DEBUG
-            std::cerr << "Unint ERROR " << e.what() << '\n';
-        #endif
-    }
-    
-    
 }
 
 

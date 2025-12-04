@@ -219,7 +219,13 @@ namespace comm
             
             void checkLicenseStatus(MODULE_ITEM_TYPE * module_item);
 
-            
+            /**
+             * @brief Check if any module of a given class is still alive (not dead).
+             * @param module_class The module class to check (e.g., MODULE_CLASS_VIDEO)
+             * @param exclude_module_id Optional module ID to exclude from the check
+             * @return true if at least one alive module of the class exists
+             */
+            bool hasAliveModuleOfClass(const std::string& module_class, const std::string& exclude_module_id = "") const;
             
         private:
 

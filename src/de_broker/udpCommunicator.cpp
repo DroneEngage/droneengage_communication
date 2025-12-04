@@ -125,7 +125,7 @@ void de::comm::CUDPCommunicator::start()
 
 void de::comm::CUDPCommunicator::startReceiver ()
 {
-    m_threadCreateUDPSocket = std::thread {[&](){ InternalReceiverEntry(); }};
+    m_threadCreateUDPSocket = std::thread {[this](){ InternalReceiverEntry(); }};
 };
 
 void de::comm::CUDPCommunicator::stop()

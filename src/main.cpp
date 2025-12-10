@@ -144,6 +144,12 @@ void scheduler ()
         {
             cUavosModulesManager.handleDeadModules(); //TODO: Why when online only ??
             
+            de::CConfigFile &cConfigFile = de::CConfigFile::getInstance();
+            const bool updated = cConfigFile.fileUpdated();
+            if (updated) {
+                
+            }
+
             if (helpers::CUtil_Rpi::getInstance().get_rpi_model() != -1)
             {
                 uint32_t cpu_status=0;

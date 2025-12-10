@@ -3,6 +3,8 @@
 #define CCONFIGFILE_H
 
 #include <sstream>
+#include <fstream>     
+#include <filesystem>  
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
@@ -39,8 +41,11 @@ namespace de
         public:
             void initConfigFile (const char* fileURL);
             void reloadFile ();
+            bool fileUpdated ();
             const Json_de& GetConfigJSON();
             std::string getFileName () const {return m_file_url;};
+            void updateJSON(const std::string& jsonString);
+            void saveConfigFile();
             
         protected:
             void ReadFile (const char * fileURL);
@@ -51,7 +56,7 @@ namespace de
             std::string m_file_url;
             std::stringstream m_fileContents;
             Json_de m_ConfigJSON;
-        
+            std::filesystem::file_time_type m_lastWriteTime;
 
     };
 }

@@ -40,67 +40,107 @@ For more Information Please Goto [Cloud.Ardupilot.org](https://cloud.ardupilot.o
 
 # Build the Code
 
-**Prerequisits**
+## Prerequisites
 
-    sudo apt update
-    
-    sudo apt install git
-    
-    sudo apt install cmake
-   
-    sudo apt-get install libcurl4-openssl-dev
-   
-    sudo apt-get install libssl-dev
-    
-    cd ~
-    
-    mkdir boost
-    
-    cd boost
-    
-    wget https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.bz2
-    
-    tar -xvjf boost_1_86_0.tar.bz2
-    
-    cd boost_1_86_0
-    
-    ./bootstrap.sh
-    
-    ./b2
-    
-    sudo ./b2 install
-    
-      
-      
-    
-    
+### System Dependencies
+```bash
+sudo apt update
+sudo apt install git cmake build-essential
+sudo apt install libcurl4-openssl-dev libssl-dev
+```
 
-  
-  
-  
+### Boost Library (Required)
+The project requires Boost 1.74.0 or higher. You have two options:
 
-**Building**
+#### Option 1: Install from Package Manager (Recommended)
+```bash
+sudo apt install libboost-all-dev
+```
 
+#### Option 2: Build from Source
+```bash
+cd ~
+mkdir boost && cd boost
+wget https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.bz2
+tar -xvjf boost_1_86_0.tar.bz2
+cd boost_1_86_0
+./bootstrap.sh
+./b2
+sudo ./b2 install
+```
 
-	cd ~
-    
-    mkdir de_droneengage_code
-    
-    cd de_droneengage_code
-    
-      
-    
-    git clone https://github.com/DroneEngage/droneengage_communication.git
-    
-    cd droneengage_communication
-    
-    rm -rf ./build
-    
-    mkdir build
-    
-    cd build
-    
-    cmake -D CMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ../
-    
-    make
-    
+## Building the Project
+
+### Clone and Build
+```bash
+# Clone the repository
+git clone https://github.com/DroneEngage/droneengage_communication.git
+cd droneengage_communication
+
+# Clean previous build (if exists)
+rm -rf ./build
+mkdir build && cd build
+
+# Configure CMake
+cmake -D CMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ../
+
+# Build the project
+make -j$(nproc)  # Use all available CPU cores
+
+# Generate Debian package (optional)
+cpack
+```
+
+### Build Types
+- **DEBUG**: Includes debug symbols and additional logging
+  ```bash
+  cmake -D CMAKE_BUILD_TYPE=DEBUG ../
+  ```
+- **RELEASE**: Optimized build with version increment
+  ```bash
+  cmake -D CMAKE_BUILD_TYPE=RELEASE ../
+  ```
+
+### Additional Build Options
+- **Detailed Debug**: Enable additional debug output
+  ```bash
+  cmake -D CMAKE_BUILD_TYPE=DEBUG -DDDEBUG=ON ../
+  ```
+
+## Installation
+
+### From Debian Package (Recommended)
+```bash
+# Install the generated .deb package
+sudo dpkg -i de-communicator-pro-*.deb
+```
+
+### Manual Installation
+The build process creates the binary in `bin/de_comm`. You can copy it manually:
+```bash
+# Create deployment directory
+mkdir -p $HOME/drone_engage/de_comm
+
+# Copy binary and configuration files
+cp bin/de_comm $HOME/drone_engage/de_comm/
+cp de_comm.config.module.json template.json $HOME/drone_engage/de_comm/
+
+# Copy scripts if they exist
+if [ -d "scripts" ]; then
+    cp -r scripts $HOME/drone_engage/de_comm/
+fi
+```
+
+## Build Output
+
+After successful build, you'll see:
+```
+=========================================================================
+BUILD COMPLETED SUCCESSFULLY
+Version: 3.10.0.x
+Build Number: x
+Dependency Files: /path/to/build/src/CMakeFiles/OUTPUT_BINARY.dir/*.d
+=========================================================================
+```
+
+The binary will be available at `bin/de_comm` and Debian packages in the `build/` directory.

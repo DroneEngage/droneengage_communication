@@ -74,7 +74,7 @@ void quit_handler( int sig );
 
 void _version (void)
 {
-    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ "Drone-Engage Communicator Server version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << std::endl << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Drone-Engage Communicator Server version " << _INFO_CONSOLE_TEXT << version_string << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #ifdef DEBUG
     std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_BOLD_TEXT << __DATE__ << " --- " << __TIME__ << std::endl;
     #endif

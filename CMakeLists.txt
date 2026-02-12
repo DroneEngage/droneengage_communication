@@ -27,7 +27,55 @@ message( FATAL_ERROR “In-source builds not allowed! Create a build directory a
 exit(1)
 endif()
 
-SET (__APP__VERSION__ "3.10.0")
+# Auto-increment version on each build
+set(VERSION_FILE "${CMAKE_SOURCE_DIR}/.version")
+
+# Manually set major, minor, and bugfix versions (you can change these)
+set(MAJOR_VERSION 3)
+set(MINOR_VERSION 10)
+set(BUGFIX_VERSION 0)
+
+if(EXISTS ${VERSION_FILE})
+    file(READ ${VERSION_FILE} CURRENT_VERSION)
+    string(STRIP "${CURRENT_VERSION}" CURRENT_VERSION)
+    # Extract current version components
+    string(REPLACE "." ";" VERSION_LIST ${CURRENT_VERSION})
+    list(LENGTH VERSION_LIST LIST_LENGTH)
+    if(LIST_LENGTH EQUAL 4)
+        list(GET VERSION_LIST 0 STORED_MAJOR)
+        list(GET VERSION_LIST 1 STORED_MINOR)
+        list(GET VERSION_LIST 2 STORED_BUGFIX)
+        list(GET VERSION_LIST 3 STORED_BUILD)
+        
+        # Check if major, minor, or bugfix version changed
+        if(NOT (${STORED_MAJOR} EQUAL ${MAJOR_VERSION} AND ${STORED_MINOR} EQUAL ${MINOR_VERSION} AND ${STORED_BUGFIX} EQUAL ${BUGFIX_VERSION}))
+            set(BUILD_VERSION 0)  # Reset build when major/minor/bugfix changes
+            message(STATUS "Version changed from ${STORED_MAJOR}.${STORED_MINOR}.${STORED_BUGFIX}.${STORED_BUILD} to ${MAJOR_VERSION}.${MINOR_VERSION}.${BUGFIX_VERSION}, resetting build to 0")
+        else()
+            set(BUILD_VERSION ${STORED_BUILD})  # Continue with existing build
+        endif()
+    else()
+        set(BUILD_VERSION 0)  # Default build version
+    endif()
+else()
+    set(BUILD_VERSION 0)  # Default build version
+endif()
+
+# Increment build version only for RELEASE builds
+IF(CMAKE_BUILD_TYPE MATCHES RELEASE)
+    math(EXPR BUILD_VERSION "${BUILD_VERSION} + 1")
+    message(STATUS "Incrementing build version for RELEASE build")
+ELSE()
+    message(STATUS "Non-release build - keeping current build version")
+ENDIF()
+
+# Create new version string
+set(__APP__VERSION__ "${MAJOR_VERSION}.${MINOR_VERSION}.${BUGFIX_VERSION}.${BUILD_VERSION}")
+
+message(STATUS "Building version: ${__APP__VERSION__}")
+message(STATUS "To change major/minor/bugfix versions, edit MAJOR_VERSION, MINOR_VERSION, and BUGFIX_VERSION above")
+
+SET (__APP__VERSION__ "${__APP__VERSION__}")
 add_definitions( -D__APP__VERSION__="${__APP__VERSION__}")
 project(DE_COMMUNICATOR_PRO VERSION "${__APP__VERSION__}")
 
@@ -51,33 +99,23 @@ find_package(OpenSSL REQUIRED)
 #set(Boost_NO_SYSTEM_PATHS TRUE)
 #set(Boost_NO_BOOST_CMAKE TRUE)
 
-SET(Boost_USE_STATIC_LIBS   ON)
-SET(Boost_USE_STATIC_RUNTIME ON)
+SET(Boost_USE_STATIC_LIBS   OFF)
+SET(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_USE_MULTITHREADED ON)
-SET (BOOST_ROOT $ENV{HOME}/boost_1_86_0)
-SET (Boost_INCLUDE_DIRS ${BOOST_ROOT}/boost)
-SET (Boost_LIBRARY_DIRS ${BOOST_ROOT}/stage/lib)
 
-SET (BOOST_MIN_VERSION "1.86.0")
-SET (Boost_NO_BOOST_CMAKE ON)
-FIND_PACKAGE(Boost ${BOOST_MIN_VERSION}  EXACT REQUIRED) 
+SET (BOOST_MIN_VERSION "1.74.0")
+FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS coroutine context thread system chrono)
 
 if(Boost_USE_STATIC_LIBS)
    message(STATUS "Linking against ${Yellow}boost static libraries${ColourReset}")
 else()
    message(STATUS "Linking against ${Yellow}boost dynamic libraries${ColourReset}")
 endif()
-SET (Boost_FOUND ON)
-if (NOT Boost_FOUND)
-  message(FATAL_ERROR "Fatal error: Boost (version 1.76.0 required).")
-  exit(1)
-else()
-  message(STATUS "Setting up BOOST")
-  message(STATUS "Includes - ${Yellow}${Boost_INCLUDE_DIRS}${ColourReset}")
-  message(STATUS "Library  - ${Yellow}${Boost_LIBRARY_DIRS}${ColourReset}")
-  include_directories(${Boost_INCLUDE_DIRS})
-  link_directories(${Boost_LIBRARY_DIRS})
-endif (NOT Boost_FOUND)
+message(STATUS "Setting up BOOST")
+message(STATUS "Includes - ${Yellow}${Boost_INCLUDE_DIRS}${ColourReset}")
+message(STATUS "Library  - ${Yellow}${Boost_LIBRARY_DIRS}${ColourReset}")
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
 
 # Define an option for user control over DETAILED_DEBUG
 option(DDEBUG "Detailed Debug" OFF) # Default is OFF
@@ -148,4 +186,42 @@ if (DDEBUG)
 endif()
 
 message ("${Yellow}=========================================================================${ColourReset}")
+
+# CPack configuration for Debian package generation
+set(CPACK_PACKAGE_NAME "DE_COMMUNICATOR_PRO")
+set(CPACK_PACKAGE_VERSION "${__APP__VERSION__}")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DroneEngage Team")
+include(CPack)
+
+# Installation configuration
+install(TARGETS OUTPUT_BINARY
+    RUNTIME DESTINATION $ENV{HOME}/drone_engage/de_communicator
+    COMPONENT runtime
+)
+
+install(FILES 
+    ${PROJECT_SOURCE_DIR}/de_comm.config.module.json
+    ${PROJECT_SOURCE_DIR}/root.crt
+    ${PROJECT_SOURCE_DIR}/template.json
+    DESTINATION $ENV{HOME}/drone_engage/de_communicator
+    COMPONENT runtime
+)
+
+# Install scripts directory
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/scripts/
+    DESTINATION $ENV{HOME}/drone_engage/de_communicator/scripts
+    COMPONENT runtime
+)
+
+# Set CPack to install in user home directory
+set(CPACK_SET_DESTDIR FALSE)
+set(CPACK_INSTALL_PREFIX "\${HOME}")
+
+# Write version file after successful RELEASE build
+IF(CMAKE_BUILD_TYPE MATCHES RELEASE)
+    file(WRITE "${VERSION_FILE}" "${__APP__VERSION__}")
+    message(STATUS "Version file updated: ${VERSION_FILE} = ${__APP__VERSION__}")
+ENDIF()
 

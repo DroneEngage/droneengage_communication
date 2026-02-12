@@ -187,17 +187,9 @@ endif()
 
 message ("${Yellow}=========================================================================${ColourReset}")
 
-# CPack configuration for Debian package generation
-set(CPACK_PACKAGE_NAME "DE_COMMUNICATOR_PRO")
-set(CPACK_PACKAGE_VERSION "${__APP__VERSION__}")
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DroneEngage Team")
-include(CPack)
-
-# Installation configuration
+# Installation configuration for Debian package only
 install(TARGETS OUTPUT_BINARY
-    RUNTIME DESTINATION $ENV{HOME}/drone_engage/de_communicator
+    RUNTIME DESTINATION usr/bin
     COMPONENT runtime
 )
 
@@ -205,23 +197,59 @@ install(FILES
     ${PROJECT_SOURCE_DIR}/de_comm.config.module.json
     ${PROJECT_SOURCE_DIR}/root.crt
     ${PROJECT_SOURCE_DIR}/template.json
-    DESTINATION $ENV{HOME}/drone_engage/de_communicator
+    DESTINATION etc/drone_engage/de_communicator
     COMPONENT runtime
 )
 
 # Install scripts directory
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/scripts/
-    DESTINATION $ENV{HOME}/drone_engage/de_communicator/scripts
+    DESTINATION usr/share/drone_engage/de_communicator/scripts
     COMPONENT runtime
 )
 
-# Set CPack to install in user home directory
-set(CPACK_SET_DESTDIR FALSE)
-set(CPACK_INSTALL_PREFIX "\${HOME}")
+# CPack configuration for Debian package generation
+set(CPACK_PACKAGE_NAME "de-communicator-pro")
+set(CPACK_PACKAGE_VERSION "${__APP__VERSION__}")
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6, libssl-dev, libcurl4-openssl-dev")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DroneEngage Team")
+set(CPACK_DEBIAN_PACKAGE_SECTION "misc")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DroneEngage Communication Pro Module")
+
+# Optional description file if it exists
+if(EXISTS "${PROJECT_SOURCE_DIR}/README.md")
+    set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/README.md")
+endif()
+
+include(CPack)
+
+# Set CPack for proper Debian packaging
+set(CPACK_SET_DESTDIR TRUE)
+set(CPACK_INSTALL_PREFIX "/")
 
 # Write version file after successful RELEASE build
 IF(CMAKE_BUILD_TYPE MATCHES RELEASE)
     file(WRITE "${VERSION_FILE}" "${__APP__VERSION__}")
     message(STATUS "Version file updated: ${VERSION_FILE} = ${__APP__VERSION__}")
 ENDIF()
+
+# Generate build success script for dependency report
+set(BUILD_SUCCESS_SCRIPT "${CMAKE_BINARY_DIR}/build_success.cmake")
+file(WRITE "${BUILD_SUCCESS_SCRIPT}" "")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E echo \"\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --green --bold \"=========================================================================\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --green --bold \"BUILD COMPLETED SUCCESSFULLY\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --cyan --bold \"Version: ${__APP__VERSION__}\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --cyan --bold \"Build Number: ${BUILD_VERSION}\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --cyan --bold \"Dependency Files: ${CMAKE_BINARY_DIR}/src/CMakeFiles/OUTPUT_BINARY.dir/*.d\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E cmake_echo_color --green --bold \"=========================================================================\")\n")
+file(APPEND "${BUILD_SUCCESS_SCRIPT}" "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E echo \"\")\n")
+
+# Add custom target to run the build success script
+add_custom_target(build_report ALL
+    COMMAND ${CMAKE_COMMAND} -P "${BUILD_SUCCESS_SCRIPT}"
+    DEPENDS OUTPUT_BINARY
+)
 

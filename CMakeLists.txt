@@ -103,25 +103,19 @@ SET(Boost_USE_STATIC_LIBS   OFF)
 SET(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_USE_MULTITHREADED ON)
 
-SET (BOOST_MIN_VERSION "1.83.0")
-FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED) 
+SET (BOOST_MIN_VERSION "1.74.0")
+FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS coroutine context thread system chrono)
 
 if(Boost_USE_STATIC_LIBS)
    message(STATUS "Linking against ${Yellow}boost static libraries${ColourReset}")
 else()
    message(STATUS "Linking against ${Yellow}boost dynamic libraries${ColourReset}")
 endif()
-SET (Boost_FOUND ON)
-if (NOT Boost_FOUND)
-  message(FATAL_ERROR "Fatal error: Boost (version 1.83.0 required).")
-  exit(1)
-else()
-  message(STATUS "Setting up BOOST")
-  message(STATUS "Includes - ${Yellow}${Boost_INCLUDE_DIRS}${ColourReset}")
-  message(STATUS "Library  - ${Yellow}${Boost_LIBRARY_DIRS}${ColourReset}")
-  include_directories(${Boost_INCLUDE_DIRS})
-  link_directories(${Boost_LIBRARY_DIRS})
-endif (NOT Boost_FOUND)
+message(STATUS "Setting up BOOST")
+message(STATUS "Includes - ${Yellow}${Boost_INCLUDE_DIRS}${ColourReset}")
+message(STATUS "Library  - ${Yellow}${Boost_LIBRARY_DIRS}${ColourReset}")
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
 
 # Define an option for user control over DETAILED_DEBUG
 option(DDEBUG "Detailed Debug" OFF) # Default is OFF
@@ -196,7 +190,8 @@ message ("${Yellow}=============================================================
 # CPack configuration for Debian package generation
 set(CPACK_PACKAGE_NAME "DE_COMMUNICATOR_PRO")
 set(CPACK_PACKAGE_VERSION "${__APP__VERSION__}")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6, libcurl4, libssl-dev") # Dependencies based on your project
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "DroneEngage Team")
 include(CPack)
 

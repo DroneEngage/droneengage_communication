@@ -20,10 +20,5 @@ set_target_properties( OUTPUT_BINARY
                 )
 
 include_directories(./3rdparty)
- target_link_libraries(OUTPUT_BINARY   OpenSSL::Crypto OpenSSL::SSL CURL::libcurl Threads::Threads )
- target_link_libraries(OUTPUT_BINARY boost_coroutine)
- target_link_libraries(OUTPUT_BINARY boost_thread)
- target_link_libraries(OUTPUT_BINARY boost_system)
- target_link_libraries(OUTPUT_BINARY boost_chrono)
- target_link_libraries(OUTPUT_BINARY boost_context)
-
+target_link_libraries(OUTPUT_BINARY   OpenSSL::Crypto OpenSSL::SSL CURL::libcurl Threads::Threads )
+target_link_libraries(OUTPUT_BINARY ${Boost_LIBRARIES})

@@ -187,9 +187,9 @@ endif()
 
 message ("${Yellow}=========================================================================${ColourReset}")
 
-# Installation configuration for Debian package only
+# Installation configuration for Debian package
 install(TARGETS OUTPUT_BINARY
-    RUNTIME DESTINATION usr/bin
+    RUNTIME DESTINATION drone_engage/de_comm
     COMPONENT runtime
 )
 
@@ -197,13 +197,13 @@ install(FILES
     ${PROJECT_SOURCE_DIR}/de_comm.config.module.json
     ${PROJECT_SOURCE_DIR}/root.crt
     ${PROJECT_SOURCE_DIR}/template.json
-    DESTINATION etc/drone_engage/de_communicator
+    DESTINATION drone_engage/de_comm
     COMPONENT runtime
 )
 
 # Install scripts directory
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/scripts/
-    DESTINATION usr/share/drone_engage/de_communicator/scripts
+    DESTINATION drone_engage/de_comm
     COMPONENT runtime
 )
 
@@ -225,9 +225,9 @@ endif()
 
 include(CPack)
 
-# Set CPack for proper Debian packaging
-set(CPACK_SET_DESTDIR TRUE)
-set(CPACK_INSTALL_PREFIX "/")
+# Set CPack for user home directory installation
+set(CPACK_SET_DESTDIR FALSE)
+set(CPACK_INSTALL_PREFIX "\${HOME}")
 
 # Write version file after successful RELEASE build
 IF(CMAKE_BUILD_TYPE MATCHES RELEASE)

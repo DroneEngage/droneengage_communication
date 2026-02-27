@@ -248,6 +248,8 @@
 #define TYPE_AndruavMessage_AI_Recognition_STATUS               1077
 #define TYPE_AndruavMessage_AI_Recognition_TargetLocation       1078
 
+#define TYPE_AndruavMessage_Viewlink_ACTION                    1079
+#define TYPE_AndruavMessage_Viewlink_STATUS                    1080
 
 
 

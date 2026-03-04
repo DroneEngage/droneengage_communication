@@ -65,7 +65,15 @@ The system reads from `de_comm.config.module.json` which contains:
     "logger_debug": false,
     
     // SSL Certificate (optional)
-    "root_certificate_path": "./root.crt"
+    "root_certificate_path": "./root.crt",
+    
+    // Static Location Configuration (for Stationary Units)
+    "location": {
+        "lng": 491659260,
+        "lat": -353538460,
+        "alt_abs": 120000,
+        "alt_rel": 120000
+    }
 }
 ```
 
@@ -92,6 +100,10 @@ cConfigFile.initConfigFile(configName.c_str()); // "de_comm.config.module.json"
 - `buzzer_pins_enabled` - Enable buzzer notification pins
 - `local_comm_server_ip` - Local communication server IP (optional)
 - `local_comm_server_port` - Local communication server port (optional)
+- `location.lng` - Longitude in degE7 format for Stationary Units (optional)
+- `location.lat` - Latitude in degE7 format for Stationary Units (optional)
+- `location.alt_abs` - Absolute altitude in millimeters for Stationary Units (optional)
+- `location.alt_rel` - Relative altitude in millimeters for Stationary Units (optional)
 
 ### 2. **andruav_auth.cpp** - Authentication System
 ```cpp
@@ -140,6 +152,50 @@ const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
 **Usage context:**
 - Local communication server watchdog
 - Same monitoring logic as remote but for local connections
+
+### 5. **Stationary Units Location Configuration** - Static GPS Position
+```cpp
+de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
+const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
+```
+
+**Values accessed:**
+- `location.lng` - Longitude in degE7 format (required for location)
+- `location.lat` - Latitude in degE7 format (required for location)
+- `location.alt_abs` - Absolute altitude in millimeters (optional)
+- `location.alt_rel` - Relative altitude in millimeters (optional)
+
+**Usage context:**
+- **Stationary Units**: Control units, ground stations, fixed installations
+- **Periodic GPS Reporting**: Sends location every 10 seconds when online
+- **Vehicle Type Check**: Only sends when `unit_info.vehicle_type == CONTROL_UNIT`
+- **Coordinate Format**: Uses degE7 (degrees * 10^7) and millimeters for precision
+- **Optional Altitudes**: Both alt_abs and alt_rel are completely optional
+
+**Implementation Details:**
+```cpp
+// Location initialization (main.cpp - initBaseLocation)
+if (jsonConfig.contains("location") && jsonConfig["location"].is_object()) {
+    const auto& location = jsonConfig["location"];
+    if (location.contains("lng") && location.contains("lat")) {
+        location_info.longitude = location["lng"].get<int>();
+        location_info.latitude = location["lat"].get<int>();
+        // Optional altitude handling
+        if (location.contains("alt_abs")) {
+            location_info.altitude = location["alt_abs"].get<int>();
+        }
+        if (location.contains("alt_rel")) {
+            location_info.altitude_relative = location["alt_rel"].get<int>();
+        }
+        location_info.is_valid = true;
+    }
+}
+
+// Periodic sending (main.cpp - scheduler)
+if (unit_info.vehicle_type == de::ANDRUAV_UNIT_TYPE::CONTROL_UNIT && location_info.is_valid) {
+    andruav_facade.sendLocationInfo("");
+}
+```
 
 ## Configuration Flow Logic
 

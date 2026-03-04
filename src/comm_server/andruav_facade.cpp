@@ -389,3 +389,36 @@ void CAndruavFacade::API_sendConfigTemplate(const std::string& target_party_id, 
     
     return ;
 }
+
+
+void CAndruavFacade::sendLocationInfo (const std::string& target_party_id) const
+{
+    /*
+        la          : latitude   [degE7]
+        ln          : longitude  [degE7]
+        a           : absolute altitude
+        r           : relative altitude
+    */
+    
+    de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
+    ANDRUAV_UNIT_LOCATION& location_info = andruavMe.getUnitLocationInfo();
+    ANDRUAV_UNIT_INFO& unit_info = andruavMe.getUnitInfo();
+    
+    // Only send location if this is a control unit and location is valid
+    if (unit_info.vehicle_type != de::ANDRUAV_UNIT_TYPE::CONTROL_UNIT) return ;
+    if (!location_info.is_valid) return ;
+
+    Json_de message=
+    {
+        {"la", location_info.latitude * 1e-7},          // latitude   [degE7]
+        {"ln", location_info.longitude * 1e-7},         // longitude  [degE7]
+        {"a",  location_info.altitude==INT32_MIN?0:location_info.altitude * 0.001},         // absolute altitude in mm to meter
+        {"r",  location_info.altitude_relative==INT32_MIN?0:location_info.altitude_relative * 0.001},         // relative altitude in mm to meter
+        {"y", 0},                                       // yaw in cdeg
+        {"3D",0},
+        {"SC",0},
+        {"p",0}
+    };
+
+    CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_GPS, message);
+}

@@ -138,6 +138,16 @@ void scheduler ()
                     
                 }
             }
+
+            // Send location info periodically if this is a control unit and location is valid
+            de::CAndruavUnitMe& andruavMe = de::CAndruavUnitMe::getInstance();
+            de::ANDRUAV_UNIT_INFO& unit_info = andruavMe.getUnitInfo();
+            de::ANDRUAV_UNIT_LOCATION& location_info = andruavMe.getUnitLocationInfo();
+            
+            if (unit_info.vehicle_type == de::ANDRUAV_UNIT_TYPE::CONTROL_UNIT && location_info.is_valid)
+            {
+                andruav_facade.sendLocationInfo("");
+            }
         }
 
         if (hz_10 % every_sec_5 == 0)
@@ -185,6 +195,8 @@ void scheduler ()
             {
                 andruav_facade.API_sendID("");
             }
+            
+            
         }
 
         if (hz_10 % every_sec_15 == 0)
@@ -345,6 +357,68 @@ void initModuleManager()
 }
 
 
+void initBaseLocation()
+{
+    const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
+    de::CAndruavUnitMe& m_andruavMe = de::CAndruavUnitMe::getInstance();
+    de::ANDRUAV_UNIT_LOCATION& location_info = m_andruavMe.getUnitLocationInfo();
+    
+    // Check if location is configured
+    if (jsonConfig.contains("location") && jsonConfig["location"].is_object())
+    {
+        const auto& location = jsonConfig["location"];
+        
+        // Only initialize if values are meaningful (non-zero or properly configured)
+        if (location.contains("lng") && location.contains("lat"))
+        {
+            try
+            {
+                location_info.longitude = location["lng"].get<int>();
+                location_info.latitude = location["lat"].get<int>();
+                location_info.altitude = INT32_MIN; // invalid by default
+                location_info.altitude_relative = INT32_MIN; // invalid by default
+                
+                // Only set altitude values if they exist in config
+                if (location.contains("alt_abs"))
+                {
+                    location_info.altitude = location["alt_abs"].get<int>();
+                }
+                
+                if (location.contains("alt_rel"))
+                {
+                    location_info.altitude_relative = location["alt_rel"].get<int>();
+                }
+                
+                location_info.is_new = true;
+                location_info.is_valid = true;
+                
+                std::cout << _LOG_CONSOLE_BOLD_TEXT << "Static Location initialized: " 
+                          << _INFO_CONSOLE_TEXT << "lat=" << location_info.latitude 
+                          << ", lng=" << location_info.longitude 
+                          << ", alt=" << location_info.altitude_relative << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            }
+            catch (...)
+            {
+                std::cout << _INFO_CONSOLE_TEXT << "Warning " << _LOG_CONSOLE_BOLD_TEXT 
+                          << " Invalid location format. No static location will be used." 
+                          << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            }
+        }
+        else
+        {
+            std::cout << _INFO_CONSOLE_TEXT << "Warning " << _LOG_CONSOLE_BOLD_TEXT 
+                      << " No static location is defined for the unit (location)" 
+                      << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+    }
+    else
+    {
+        std::cout << _INFO_CONSOLE_TEXT << "Warning " << _LOG_CONSOLE_BOLD_TEXT 
+                  << " No static location is defined for the unit (location)" 
+                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
+}
+
 void initGPIO()
 {
     const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
@@ -459,6 +533,8 @@ void init (int argc, char *argv[])
     initLogger();
 
     defineMe();
+    
+    initBaseLocation();
     
     initGPIO();
 

@@ -912,9 +912,35 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             CAndruavUnitMe& m_andruavMe = CAndruavUnitMe::getInstance();
             ANDRUAV_UNIT_LOCATION&  location_info = m_andruavMe.getUnitLocationInfo();
 
-            location_info.latitude                      = ms["la"].get<int>();
-            location_info.longitude                     = ms["ln"].get<int>();
-            location_info.altitude                      = ms.contains("a")?ms["a"].get<int>():0;
+            // Use base location from config if available, otherwise use message values
+            de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
+            const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
+            
+            if (jsonConfig.contains("baselocation") && jsonConfig["baselocation"].is_object())
+            {
+                const auto& baselocation = jsonConfig["baselocation"];
+                if (baselocation.contains("lat") && baselocation.contains("lng"))
+                {
+                    location_info.latitude                      = baselocation["lat"].get<int>();
+                    location_info.longitude                     = baselocation["lng"].get<int>();
+                    location_info.altitude                      = baselocation.contains("alt") ? baselocation["alt"].get<int>() : 0;
+                }
+                else
+                {
+                    // Fallback to message values if base location is not properly configured
+                    location_info.latitude                      = ms["la"].get<int>();
+                    location_info.longitude                     = ms["ln"].get<int>();
+                    location_info.altitude                      = ms.contains("a")?ms["a"].get<int>():0;
+                }
+            }
+            else
+            {
+                // Use message values if no base location is configured
+                location_info.latitude                      = ms["la"].get<int>();
+                location_info.longitude                     = ms["ln"].get<int>();
+                location_info.altitude                      = ms.contains("a")?ms["a"].get<int>():0;
+            }
+            
             location_info.altitude_relative             = ms.contains("r")?ms["r"].get<int>():0;
             location_info.h_acc                         = ms.contains("ha")?ms["ha"].get<int>():0;
             location_info.yaw                           = ms.contains("y")?ms["y"].get<int>():0;

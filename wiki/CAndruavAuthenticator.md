@@ -1,3 +1,5 @@
+# CAndruavAuthenticator Class
+
 `CAndruavAuthenticator` is a singleton class responsible for authenticating drone agents and validating hardware with a remote server.  
 It handles secure login and hardware verification using HTTPS requests, parsing JSON responses to configure communication parameters.
 

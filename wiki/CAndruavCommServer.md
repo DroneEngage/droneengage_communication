@@ -1,3 +1,5 @@
+# CAndruavCommServer Class 
+
 `CAndruavCommServer` is a singleton class managing WebSocket-based communication between a drone unit and a central server.  
 It orchestrates connection lifecycle, message routing, and system-level commands within the DroneEngage communication framework.
 

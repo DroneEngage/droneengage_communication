@@ -1,3 +1,4 @@
+# CAndruavFacade Class 
 `CAndruavFacade` is a singleton class providing high-level APIs for communication with the Andruav Communication Server.  
 It serves as the central interface for sending standardized messages and commands from internal modules to remote parties or the server.
 

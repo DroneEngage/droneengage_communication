@@ -1,3 +1,5 @@
+# Message Parser by CAndruavParser Class
+
 `CAndruavParser` is a singleton class responsible for parsing incoming JSON-based commands from remote parties in the DroneEngage communication system.  
 It decodes and routes command messages to appropriate handlers based on message type, acting as a central dispatcher for protocol-level instructions.
 

@@ -106,6 +106,9 @@ typedef struct ANDRUAV_UNIT_INFO_TAG{
   int swarm_follower_formation;
   std::string swarm_leader_I_am_following;
   
+  bool de_pilot_enabled;
+  uint16_t de_pilot_operation;
+  
   std::string permission;  
   std::string party_id;
   std::string unit_name;

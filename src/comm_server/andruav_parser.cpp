@@ -328,14 +328,24 @@ void de::andruav_servers::CAndruavParser::parseCommand(
   } break;
 
   case TYPE_AndruavMessage_Sync_EventFire: {
-    // Events received form another units.
+    // Events received from another units.
 
     const Json_de cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
 
     if (validateField(cmd, "d", Json_de::value_t::string)) {
       // string droneengage event format.
-      mission::CMissionManagerBase::getInstance().fireWaitingCommands(
-          cmd["d"].get<std::string>());
+      std::string event_id = cmd["d"].get<std::string>();
+      
+      // Check if there's additional message data
+      if (validateField(cmd, "m", Json_de::value_t::object)) {
+        // Fire event with message data
+        mission::CMissionManagerBase::getInstance().fireWaitingCommands(
+            event_id, cmd["m"]);
+      } else {
+        // Fire event without message data
+        mission::CMissionManagerBase::getInstance().fireWaitingCommands(
+            event_id);
+      }
     }
   } break;
 

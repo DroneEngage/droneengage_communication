@@ -60,6 +60,8 @@ void CAndruavFacade::API_sendID (const std::string& target_party_id) const
         {"DS", unit_info.description},                      // unit Description
         {"p",  unit_info.permission},                       // permissions
         {"dv", version_string},                             // de version
+        {"DE", andruav_vehicle_info.de_pilot_enabled},      //DE Pilot Mode
+        {"DO", andruav_vehicle_info.de_pilot_operation},    //DE Pilot Mode Operation
         {"m1", de::comm::CUavosModulesManager::getInstance().getModuleListAsJSON()},
         {"T", get_time_usec()}                              // This is a time sync so that any time difference sent by this module can be compared.    
     };

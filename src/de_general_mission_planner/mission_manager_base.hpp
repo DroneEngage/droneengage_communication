@@ -53,6 +53,7 @@ namespace mission
             
             //virtual void mavlinkMissionItemStartedEvent (const int mission_id);
             virtual void fireWaitingCommands (const std::string de_event_sid);
+            virtual void fireWaitingCommands (const std::string de_event_sid, const Json_de& event_data);
             virtual void getCommandsAttachedToMavlinkMission(const std::string mission_i);
 
         protected:

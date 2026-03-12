@@ -146,6 +146,14 @@ void CMissionManagerBase::fireWaitingCommands (const std::string de_event_sid)
     return ; 
 }
 
+void CMissionManagerBase::fireWaitingCommands (const std::string de_event_sid, const Json_de& event_data)
+{
+    // Store the event data for potential use by mission commands
+    // For now, delegate to the original method
+    // Future enhancement: make event_data available to commands that need it
+    fireWaitingCommands(de_event_sid);
+}
+
 void CMissionManagerBase::getCommandsAttachedToMavlinkMission(const std::string mission_i)
 {
     

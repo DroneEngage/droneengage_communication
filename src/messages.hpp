@@ -355,6 +355,10 @@
 #define TYPE_AndruavMessage_CONFIG_ACTION                      6525
 #define TYPE_AndruavMessage_CONFIG_STATUS                      6526
 
+
+#define TYPE_AndruavMessage_MAVLINK_EVENTS                     6527   
+
+
 #define TYPE_AndruavMessage_DUMMY                              9999
 
 

@@ -104,7 +104,38 @@ SET(Boost_USE_STATIC_RUNTIME OFF)
 set(Boost_USE_MULTITHREADED ON)
 
 SET (BOOST_MIN_VERSION "1.74.0")
+
+# Check if we're in a conda/anaconda environment and prefer system libraries
+# This fixes static initialization issues caused by mixing conda and system libraries
+if(DEFINED ENV{CONDA_PREFIX} OR DEFINED ENV{ANACONDA_PREFIX})
+    message(STATUS "Detected conda/anaconda environment, preferring system Boost libraries")
+    
+    # Temporarily modify search paths to prefer system directories
+    set(ORIGINAL_CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH})
+    set(ORIGINAL_CMAKE_SYSTEM_PREFIX_PATH ${CMAKE_SYSTEM_PREFIX_PATH})
+    
+    # Remove conda paths from search
+    if(DEFINED ENV{CONDA_PREFIX})
+        list(REMOVE_ITEM CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}")
+        list(REMOVE_ITEM CMAKE_SYSTEM_PREFIX_PATH "$ENV{CONDA_PREFIX}")
+    endif()
+    if(DEFINED ENV{ANACONDA_PREFIX})
+        list(REMOVE_ITEM CMAKE_PREFIX_PATH "$ENV{ANACONDA_PREFIX}")
+        list(REMOVE_ITEM CMAKE_SYSTEM_PREFIX_PATH "$ENV{ANACONDA_PREFIX}")
+    endif()
+    
+    # Add system paths to front
+    list(PREPEND CMAKE_PREFIX_PATH "/usr" "/usr/local")
+    list(PREPEND CMAKE_SYSTEM_PREFIX_PATH "/usr" "/usr/local")
+endif()
+
 FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS coroutine context thread system chrono)
+
+# Restore original paths if we modified them
+if(DEFINED ENV{CONDA_PREFIX} OR DEFINED ENV{ANACONDA_PREFIX})
+    set(CMAKE_PREFIX_PATH ${ORIGINAL_CMAKE_PREFIX_PATH})
+    set(CMAKE_SYSTEM_PREFIX_PATH ${ORIGINAL_CMAKE_SYSTEM_PREFIX_PATH})
+endif()
 
 if(Boost_USE_STATIC_LIBS)
    message(STATUS "Linking against ${Yellow}boost static libraries${ColourReset}")

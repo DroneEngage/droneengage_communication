@@ -983,8 +983,8 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
             unit_info.swarm_leader_I_am_following   = ms["q"].get<std::string>();
             if (ms.contains("DE"))
             {
-            unit_info.de_pilot_enabled              = ms["DE"].get<bool>();
-            unit_info.de_pilot_operation            = ms["DO"].get<int>();
+            unit_info.m_de_pilot_enabled              = ms["DE"].get<bool>();
+            unit_info.m_de_pilot_operation            = ms["DO"].get<int>();
             }
 
             andruav_servers::CAndruavFacade::getInstance().API_sendID(std::string());

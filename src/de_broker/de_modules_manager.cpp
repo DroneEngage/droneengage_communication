@@ -1014,7 +1014,7 @@ void de::comm::CUavosModulesManager::parseIntermoduleMessage (const char * full_
         }
         break;
 
-        case TYPE_AndruavMessage_TargetTracking_STATUS:
+        case TYPE_AndruavMessage_TrackingTarget_STATUS:
         {
             // TYPE_AndruavMessage_TargetTracking_STATUS is internal but also broadcast it.
             processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);

@@ -142,9 +142,9 @@
 #define TYPE_AndruavMessage_ConfigFCB               1039
 #define TYPE_AndruavMessage_ChangeSpeed             1040
 #define TYPE_AndruavMessage_Ctrl_Cameras            1041
-#define TYPE_AndruavMessage_TargetTracking_ACTION   1042
+#define TYPE_AndruavMessage_TrackingTarget_ACTION   1042
 #define TYPE_AndruavMessage_TrackingTargetLocation  1043
-#define TYPE_AndruavMessage_TargetTracking_STATUS   1044
+#define TYPE_AndruavMessage_TrackingTarget_STATUS   1044
 #define TYPE_AndruavMessage_UploadWayPoints         1046
 #define TYPE_AndruavMessage_RemoteControlSettings   1047
 #define TYPE_AndruavMessage_SET_HOME_LOCATION       1048
@@ -522,21 +522,21 @@
 #define SPECIAL_NAME_VEHICLE_RECEIVERS  "_drone_"
 #define SPECIAL_NAME_GCS_RECEIVERS      "_gcs_"
 
-// TYPE_AndruavMessage_TargetTracking_ACTION
+// TYPE_AndruavMessage_TrackingTarget_ACTION
 #define TargetTracking_ACTION_TRACKING_POINT    0
 #define TargetTracking_ACTION_TRACKING_REGION   1
 #define TargetTracking_ACTION_TRACKING_STOP     2
 #define TargetTracking_ACTION_TRACKING_PAUSE    3
 #define TargetTracking_ACTION_TRACKING_ENABLE   4 
 
-// TYPE_AndruavMessage_TargetTracking_STATUS
+// TYPE_AndruavMessage_TrackingTarget_STATUS
 #define TargetTracking_STATUS_TRACKING_LOST     0
 #define TargetTracking_STATUS_TRACKING_DETECTED 1
 #define TargetTracking_STATUS_TRACKING_ENABLED  2
 #define TargetTracking_STATUS_TRACKING_STOPPED  3
 
 
-// TYPE_AndruavMessage_TargetTracking_ACTION
+// TYPE_AndruavMessage_TrackingTarget_ACTION
 #define TargetTracking_ACTION_AI_Recognition_POINT          0
 #define TargetTracking_ACTION_AI_Recognition_SEARCH         1
 #define TargetTracking_ACTION_AI_Recognition_DISABLE        2

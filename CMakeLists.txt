@@ -127,9 +127,13 @@ if(DEFINED ENV{CONDA_PREFIX} OR DEFINED ENV{ANACONDA_PREFIX})
     # Add system paths to front
     list(PREPEND CMAKE_PREFIX_PATH "/usr" "/usr/local")
     list(PREPEND CMAKE_SYSTEM_PREFIX_PATH "/usr" "/usr/local")
+    
+    # Force use of /usr/local Boost (1.86.0) instead of broken system Boost (1.90.0)
+    set(BOOST_ROOT "/usr/local")
+    set(Boost_NO_SYSTEM_PATHS ON)
 endif()
 
-FIND_PACKAGE(Boost ${BOOST_MIN_VERSION} REQUIRED COMPONENTS coroutine context thread system chrono)
+FIND_PACKAGE(Boost REQUIRED COMPONENTS thread system chrono)
 
 # Restore original paths if we modified them
 if(DEFINED ENV{CONDA_PREFIX} OR DEFINED ENV{ANACONDA_PREFIX})

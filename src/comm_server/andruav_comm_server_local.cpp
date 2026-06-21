@@ -72,13 +72,13 @@ void CAndruavCommServerLocal::startWatchDogThread()
         {
             off_count = 0;
             #ifdef DDEBUG
-                std::cout << "local: you are ok" << std::endl;
+                std::cout << "Local Server: you are ok" << std::endl;
             #endif
             API_pingServer();
         }
         else
         {
-            std::cout  << _LOG_CONSOLE_BOLD_TEXT <<  "local: you are " << _ERROR_CONSOLE_BOLD_TEXT_  " OFFLINE " << _INFO_CONSOLE_TEXT << diff << _LOG_CONSOLE_BOLD_TEXT << " us" << _NORMAL_CONSOLE_TEXT_  << std::endl;
+            std::cout  << _LOG_CONSOLE_BOLD_TEXT <<  "Local Server: you are " << _ERROR_CONSOLE_BOLD_TEXT_  " OFFLINE " << _INFO_CONSOLE_TEXT << diff << _LOG_CONSOLE_BOLD_TEXT << " us" << _NORMAL_CONSOLE_TEXT_  << std::endl;
         }
         
         if (off_count > max_offline_count) abort();

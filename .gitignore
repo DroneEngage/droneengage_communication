@@ -16,3 +16,4 @@ checks.json
 local/
 wiki/local_wiki
 .version
+.code-workspace

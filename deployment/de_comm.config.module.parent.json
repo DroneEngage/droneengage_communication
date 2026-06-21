@@ -4,7 +4,7 @@
     */
     
     // A name and GUID for this module
-    "module_id"                 : "MT_1",
+    "module_id"                 : "MT_PARENT",
     "unit_type"                 : "control_unit",
     // IP & Port Communication Module is listening to.
     "s2s_udp_listening_ip"      : "0.0.0.0",
@@ -16,15 +16,17 @@
     "auth_ip"                       : "127.0.0.1",
     "auth_port"                     : 19408,
     "auth_verify_ssl"               : false,
-    "ignore_original_comm_server"   : false,  // dont authenticate and connect directly to a drone server.
+    "local_comm_server_ip"          : "127.0.0.1",
+    "local_comm_server_port"        : 9967,
+    "use_local_comm_server"        : false,   // use local comm server instead of main server
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
-    "root_certificate_path"         : "./root.crt",
+    "root_certificate_path"     : "./root.crt",
 
     "userName"                  :"mhefny@andruav.com", 
     "accessCode"                :"mhefny",
-    "unitID"                    :"drone_cairo",
+    "unitID"                    :"Cairo parent",
     "groupID"                   :"1",
-    "unitDescription"           :"de_unit 1",
+    "unitDescription"           :"de_unit parent",
 
     
     // Logger Section
@@ -34,23 +36,13 @@
     // sometimes you need to reconnect the app when connection is silent and not timedout yet:
     "ping_server_rate_in_ms": 1500,
     "max_allowed_ping_delay_in_ms": 5000,
-    // max failed reconnection attempts before app exits (for systemd restart)
-    "max_offline_count": 5,
 
     // "led_pins_enabled" is optional and default value is true                           
     "led_pins_enabled" : true,
    
     
     // "buzzer_pins_enabled" is optional and default value is true                           
-    "buzzer_pins_enabled" : true,
-    
-    // Static location configuration
-    "location": {
-        "lng": 1491659260,
-        "lat": -353538460,
-        "alt_abs": 120000,
-        "alt_rel": 120000
-    }
+    "buzzer_pins_enabled" : true
     
     //"allow_temp":               cat /sys/class/thermal/thermal_zone0
  

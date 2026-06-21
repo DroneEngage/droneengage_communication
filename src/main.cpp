@@ -524,10 +524,6 @@ void init (int argc, char *argv[])
     
     _version();
     
-    #ifdef DEBUG
-    std::cout << _INFO_CONSOLE_TEXT << "BUILD DATE:" << _LOG_CONSOLE_BOLD_TEXT << __DATE__ << " --- " << __TIME__ << _NORMAL_CONSOLE_TEXT_ << std::endl;
-    #endif
-
     std::cout << _INFO_CONSOLE_TEXT << std::asctime(std::localtime(&instance_time_stamp)) << instance_time_stamp << _LOG_CONSOLE_BOLD_TEXT << " seconds since the Epoch" << _NORMAL_CONSOLE_TEXT_  << std::endl;
 
     initLogger();
@@ -558,8 +554,24 @@ void loop() {
     std::string m_local_comm_server_ip = "";
     int m_local_comm_server_port = 0;
 
-    if ((validateField(jsonConfig,"local_comm_server_ip", Json_de::value_t::string))
-    && (validateField(jsonConfig,"local_comm_server_port", Json_de::value_t::number_unsigned)))
+    // STRICT POLICY:
+    // Connect to the local comm server ONLY if "use_local_comm_server" is true AND
+    // both "local_comm_server_ip" and "local_comm_server_port" exist.
+    // In every other case (flag false, flag absent, or local fields missing) the unit
+    // authenticates against the Auth server and uses the main comm server.
+    bool use_local_comm_server = false;
+    if (validateField(jsonConfig,"use_local_comm_server", Json_de::value_t::boolean))
+    {
+        use_local_comm_server = jsonConfig["use_local_comm_server"].get<bool>();
+    }
+
+    const bool has_local_comm_fields =
+           (validateField(jsonConfig,"local_comm_server_ip", Json_de::value_t::string))
+        && (validateField(jsonConfig,"local_comm_server_port", Json_de::value_t::number_unsigned));
+
+    const bool connect_local = use_local_comm_server && has_local_comm_fields;
+
+    if (connect_local)
     {
         andruav_server_local.isLocalCommServer(true);
         m_local_comm_server_ip = jsonConfig["local_comm_server_ip"].get<std::string>();
@@ -567,32 +579,22 @@ void loop() {
 
         andruav_server_local.start(m_local_comm_server_ip, m_local_comm_server_port, "my_key");
     }
-
-    
-
-    bool is_warning_notified = false; // Flag to track if we've encountered ignore_original_comm_server = true
+    else if (use_local_comm_server && !has_local_comm_fields)
+    {
+        std::cout << _INFO_CONSOLE_BOLD_TEXT << "WARNING:: use_local_comm_server is true but \"local_comm_server_ip\"/\"local_comm_server_port\" are missing. Falling back to Auth server." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
 
     while (!de::STATUS::getInstance().m_exit_me) {
-        
-        bool shouldIgnoreAuth = false;
-        if (validateField(jsonConfig, "ignore_original_comm_server", Json_de::value_t::boolean)) {
-            shouldIgnoreAuth = jsonConfig["ignore_original_comm_server"].get<bool>();
-        }
 
-        if (shouldIgnoreAuth) {
-            if (!is_warning_notified) {
-                std::cout << _INFO_CONSOLE_BOLD_TEXT << "WARNING:: ignore_original_comm_server is true. Main communication server channel will NOT be started." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-                is_warning_notified = true;
-            }
-            // Do not start the server if ignore_original_comm_server is true
-        } else {
-            andruav_server.start();
-            is_warning_notified = false; // Reset the flag if ignore_original_comm_server is false or absent
-        } 
-
-        if (andruav_server_local.isLocalCommServer())
+        if (connect_local)
         {
+            // Direct connection to the local comm server. Auth server is NOT used.
             andruav_server_local.start();
+        }
+        else
+        {
+            // Authenticate against the Auth server and use the main comm server.
+            andruav_server.start();
         }
 
         try {

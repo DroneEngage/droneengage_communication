@@ -18,6 +18,7 @@ using Json = nlohmann::json;
 #include "../global.hpp"
 #include "../status.hpp"
 #include "udpCommunicator.hpp"
+#include "unixDgramCommunicator.hpp"
 #include "andruav_message_buffer.hpp"
 
 
@@ -75,7 +76,9 @@ typedef struct MODULE_ITEM_TYPE_TAG
     uint64_t module_last_access_time = 0;
     bool is_dead = false;
     ENUM_LICENCE licence_status = ENUM_LICENCE::LICENSE_NO_DATA;
+    TRANSPORT_TYPE transport = TRANSPORT_TYPE::UDP;
     std::unique_ptr<struct sockaddr_in> m_module_address;
+    std::unique_ptr<struct sockaddr_un> m_module_unix_address;
     std::time_t time_stamp = 0;
 } MODULE_ITEM_TYPE;
 
@@ -116,7 +119,7 @@ namespace comm
      * @brief Handles different de modules registration, updating, message forwarding and calling back.
      * 
      */
-    class CUavosModulesManager : public CCallBack_UDPCommunicator
+    class CUavosModulesManager : public CCallBack_UDPCommunicator, public CCallBack_UnixDgramCommunicator
     {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
@@ -132,7 +135,7 @@ namespace comm
 
         private:
 
-            CUavosModulesManager():cUDPClient(this)
+            CUavosModulesManager():cUDPClient(this), cUnixClient(this)
             {
                 m_instance_time_stamp = std::time(nullptr);
                 
@@ -153,10 +156,11 @@ namespace comm
                             std::string group_id
                         );
             
-            bool init (const std::string host, int listenningPort, int chunkSize);
+            bool init (const std::string host, int listenningPort, int chunkSize, bool use_unix_socket = false);
             void uninit();
          
             void parseIntermoduleMessage (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_in* ssock);
+            void parseIntermoduleMessageUnix (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_un* ssock);
             Json createJSONID (const bool& reSend);
             
             void processModuleRemoteExecute (const Json ms);
@@ -188,12 +192,14 @@ namespace comm
             }
         
             void onReceive (const char * message, int len, struct sockaddr_in *  sock) override;
+            void onReceive (const char * message, int len, struct sockaddr_un *  sock) override;
             void (*m_OnReceive)(const char *, int len) = nullptr;
         
         private:
             void consumerThreadFunc();
             void forwardMessageToModule (const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item);
-            bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock);
+            bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock, TRANSPORT_TYPE transport = TRANSPORT_TYPE::UDP);
+            bool handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_un* ssock, TRANSPORT_TYPE transport = TRANSPORT_TYPE::UNIX_DGRAM);
 
             /**
              * @brief called by handleModuleRegistration to update subscribed messages for a module.
@@ -285,7 +291,8 @@ namespace comm
             
             de::STATUS &m_status = de::STATUS::getInstance();
             
-            CUDPCommunicator cUDPClient; 
+            CUDPCommunicator cUDPClient;
+            CUnixDgramCommunicator cUnixClient;
 
             bool m_exit = false;
 

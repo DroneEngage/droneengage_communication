@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <memory>
 
 #include <exception>
 #include <typeinfo>
@@ -18,6 +19,7 @@
 
 #include "../messages.hpp"
 #include "./udpCommunicator.hpp"
+#include "./unixDgramCommunicator.hpp"
 #include "../configFile.hpp"
 #include "../localConfigFile.hpp"
 #include "../comm_server/andruav_unit.hpp"
@@ -31,7 +33,7 @@
 
 
 
-static std::mutex g_i_mutex; 
+static std::recursive_mutex g_i_mutex; 
 static std::mutex g_i_mutex_process; 
 static std::mutex g_i_mutex_process2; 
 
@@ -47,7 +49,8 @@ void de::comm::CUavosModulesManager::onReceive (const char * message, int len, s
     
     // Use std::move to efficiently transfer the string data.
     msgWithSocket->message = std::string(message, len);
-    msgWithSocket->socket = *sock; // Copy the socket information
+    msgWithSocket->transport = TRANSPORT_TYPE::UDP;
+    msgWithSocket->socket_in = *sock; // Copy the socket information
 
     // Enqueue the unique_ptr. The buffer now owns the message.
     m_buffer.enqueue(std::move(msgWithSocket));
@@ -55,13 +58,42 @@ void de::comm::CUavosModulesManager::onReceive (const char * message, int len, s
 }
 
 
-bool de::comm::CUavosModulesManager::init (const std::string host, int listenningPort, int chunkSize)
+void de::comm::CUavosModulesManager::onReceive (const char * message, int len, struct sockaddr_un * sock)
 {
+    #ifdef DDEBUG
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "#####DEBUG:" << message << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
+    auto msgWithSocket = std::make_unique<MessageWithSocket>();
+
+    msgWithSocket->message = std::string(message, len);
+    msgWithSocket->transport = TRANSPORT_TYPE::UNIX_DGRAM;
+    msgWithSocket->socket_un = *sock;
+
+    m_buffer.enqueue(std::move(msgWithSocket));
+
+}
+
+
+bool de::comm::CUavosModulesManager::init (const std::string host, int listenningPort, int chunkSize, bool use_unix_socket)
+{
+#ifdef DEBUG
+    std::cout << _INFO_CONSOLE_TEXT << "CUavosModulesManager::init - use_unix_socket:" << use_unix_socket << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#endif
     m_consumerThread = std::thread(&CUavosModulesManager::consumerThreadFunc, this);
     
     cUDPClient.init (host.c_str(), listenningPort, chunkSize);
-
     cUDPClient.start();
+
+    // Start Unix socket listener if enabled
+    if (use_unix_socket) {
+#ifdef DEBUG
+        std::cout << _INFO_CONSOLE_TEXT << "CUavosModulesManager::init - Initializing Unix socket" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#endif
+        std::string brokerSocketPath = "/tmp/de_comm_broker.sock";
+        cUnixClient.init(brokerSocketPath.c_str(), chunkSize);
+        cUnixClient.start();
+    }
 
     return true;
 }
@@ -75,12 +107,14 @@ void de::comm::CUavosModulesManager::uninit ()
     
     m_exit = true;
     cUDPClient.stop();
+    cUnixClient.stop();
 
     // Create a new unique_ptr for the wake-up message.
     // The message itself doesn't need to be meaningful, just non-null.
     auto wakeUpMessage = std::make_unique<MessageWithSocket>();
     wakeUpMessage->message = "WAKE_UP";
-    wakeUpMessage->socket = sockaddr_in();
+    wakeUpMessage->transport = TRANSPORT_TYPE::UDP;
+    wakeUpMessage->socket_in = sockaddr_in();
 
     // Enqueue the unique_ptr to wake up the consumer thread.
     m_buffer.enqueue(std::move(wakeUpMessage));
@@ -109,7 +143,13 @@ void de::comm::CUavosModulesManager::consumerThreadFunc()
             const std::size_t len = msgWithSocket->message.length();
             const char* c_str = msgWithSocket->message.c_str();
             
-            parseIntermoduleMessage(c_str, len, &msgWithSocket->socket);
+            // Route based on transport type
+            if (msgWithSocket->transport == TRANSPORT_TYPE::UDP) {
+                parseIntermoduleMessage(c_str, len, &msgWithSocket->socket_in);
+            } else if (msgWithSocket->transport == TRANSPORT_TYPE::UNIX_DGRAM) {
+                // For Unix socket, use the same parsing logic but with Unix address
+                parseIntermoduleMessageUnix(c_str, len, &msgWithSocket->socket_un);
+            }
 
             if (m_OnReceive!= nullptr) m_OnReceive(c_str, len);
         }
@@ -560,14 +600,14 @@ bool de::comm::CUavosModulesManager::hasAliveModuleOfClass(const std::string& mo
 * @return true module has been added.
 * @return false no new modules.
 */
-bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock)
+bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_in* ssock, TRANSPORT_TYPE transport)
 {
 
     #ifdef DEBUG
         std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration: " << msg_cmd.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    const std::lock_guard<std::recursive_mutex> lock(g_i_mutex);
 
     bool updated = false;
 
@@ -594,6 +634,7 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
         module_item->module_id          = module_id;
         module_item->module_class       = msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>(); // fcb, video, ...etc.
         module_item->modules_features   = msg_cmd[JSON_INTERMODULE_MODULE_FEATURES];
+        module_item->transport          = transport;
         if (msg_cmd.contains(JSON_INTERMODULE_TIMESTAMP_INSTANCE))
         {   
             module_item->time_stamp         = msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>();
@@ -634,9 +675,15 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     }
     else
     {
+        // Module exists - update transport and address (handles transport switching)
         module_item = module_entry->second.get();
         module_item->is_dead = false;
+        module_item->transport = transport;
 
+        // Update UDP socket address
+        if (!module_item->m_module_address) {
+            module_item->m_module_address = std::make_unique<struct sockaddr_in>();
+        }
         struct sockaddr_in *module_address = module_item->m_module_address.get();
         memcpy(module_address, ssock, sizeof(struct sockaddr_in)); 
 
@@ -742,6 +789,503 @@ bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_c
     }
 
     return updated;
+}
+
+bool de::comm::CUavosModulesManager::handleModuleRegistration (const Json& msg_cmd, const struct sockaddr_un* ssock, TRANSPORT_TYPE transport)
+{
+    #ifdef DEBUG
+        std::cout <<__PRETTY_FUNCTION__ << " line:" << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: handleModuleRegistration (Unix): " << msg_cmd.dump() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    #endif
+
+    const std::lock_guard<std::recursive_mutex> lock(g_i_mutex);
+
+    bool updated = false;
+
+    const uint64_t &now = get_time_usec();
+            
+    MODULE_ITEM_TYPE * module_item;
+    const std::string& module_id = std::string(msg_cmd[JSON_INTERMODULE_MODULE_ID].get<std::string>()); 
+    
+    const Json& message_array = msg_cmd[JSON_INTERMODULE_MODULE_MESSAGES_LIST]; 
+        
+    auto module_entry = m_modules_list.find(module_id);
+    if (module_entry == m_modules_list.end()) 
+    {
+        // New Module not registered in m_modules_list
+
+        module_item = new MODULE_ITEM_TYPE();
+        module_item->module_key         = msg_cmd[JSON_INTERMODULE_MODULE_KEY].get<std::string>();
+        module_item->module_id          = module_id;
+        module_item->module_class       = msg_cmd[JSON_INTERMODULE_MODULE_CLASS].get<std::string>();
+        module_item->modules_features   = msg_cmd[JSON_INTERMODULE_MODULE_FEATURES];
+        module_item->transport          = transport;
+        if (msg_cmd.contains(JSON_INTERMODULE_TIMESTAMP_INSTANCE))
+        {   
+            module_item->time_stamp         = msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>();
+        }
+        if (msg_cmd.contains(JSON_INTERMODULE_HARDWARE_ID))
+        {
+            module_item->hardware_serial    = msg_cmd[JSON_INTERMODULE_HARDWARE_ID];
+            module_item->hardware_type      = msg_cmd[JSON_INTERMODULE_HARDWARE_TYPE].get<int>();
+            
+            checkLicenseStatus(module_item);
+        }
+        else
+        {
+            module_item->licence_status = ENUM_LICENCE::LICENSE_NO_DATA;
+        }
+
+        if (msg_cmd.contains(JSON_INTERMODULE_VERSION))
+        {
+            module_item->version = msg_cmd[JSON_INTERMODULE_VERSION].get<std::string>();;
+        }
+        else
+        {
+            module_item->version = std::string("na");
+        }
+
+        struct sockaddr_un * module_address = new (struct sockaddr_un)();  
+        memcpy(module_address, ssock, sizeof(struct sockaddr_un)); 
+                
+        module_item->m_module_unix_address = std::unique_ptr<struct sockaddr_un>(module_address);
+                
+        m_modules_list.insert(std::make_pair(module_item->module_id, std::unique_ptr<MODULE_ITEM_TYPE>(module_item)));
+        
+        updated |= updateModuleSubscribedMessages(module_id, message_array);
+
+        PLOG(plog::info)<<"Module Adding (Unix): " << module_item->module_id ; 
+        
+    }
+    else
+    {
+        // Module exists - update transport and address (handles transport switching)
+        module_item = module_entry->second.get();
+        module_item->is_dead = false;
+        module_item->transport = transport;
+
+        // Update Unix socket address
+        if (!module_item->m_module_unix_address) {
+            module_item->m_module_unix_address = std::make_unique<struct sockaddr_un>();
+        }
+        struct sockaddr_un *module_address = module_item->m_module_unix_address.get();
+        memcpy(module_address, ssock, sizeof(struct sockaddr_un)); 
+
+        if ((msg_cmd.contains(JSON_INTERMODULE_TIMESTAMP_INSTANCE)) && (module_item->time_stamp != msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>()))
+        {
+            if (msg_cmd.contains(JSON_INTERMODULE_VERSION))
+            {
+                module_item->version = msg_cmd[JSON_INTERMODULE_VERSION].get<std::string>();;
+            }
+            else
+            {
+                module_item->version = std::string("na");
+            }
+
+            module_item->time_stamp = msg_cmd[JSON_INTERMODULE_TIMESTAMP_INSTANCE].get<std::time_t>();
+            andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(std::string(), 0, ERROR_TYPE_ERROR_MODULE, NOTIFICATION_TYPE_ALERT, std::string("Module " + module_item->module_id + " has been restarted."));
+        
+            PLOG(plog::warning)<<"Module has been restarted: " << module_item->module_id ;
+        }
+        
+        if (module_item->licence_status == ENUM_LICENCE::LICENSE_NOT_VERIFIED)
+        {
+            checkLicenseStatus(module_item);
+        }
+    }
+
+    module_item->module_last_access_time = now;
+
+    const std::string module_class = module_item->module_class; 
+    if (module_class.find(MODULE_CLASS_VIDEO)==0)
+    {
+        updateCameraList(module_id, msg_cmd);
+        m_status.is_camera_module_connected (true);
+    }
+    else if ((!m_status.is_fcb_module_connected()) && (module_class.find(MODULE_CLASS_FCB)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_FCB << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        CAndruavUnitMe& andruav_unit_me = CAndruavUnitMe::getInstance();
+        ANDRUAV_UNIT_INFO& andruav_unit_info = andruav_unit_me.getUnitInfo();
+        andruav_unit_info.use_fcb = true;
+        m_status.is_fcb_module_connected (true); 
+    } 
+    else if ((!m_status.is_p2p_module_connected()) && (module_class.find(MODULE_CLASS_P2P)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_P2P << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_p2p_module_connected(true);
+    }
+    else if ((!m_status.is_sdr_module_connected()) && (module_class.find(MODULE_CLASS_SDR)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_SDR << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_sdr_module_connected(true);
+    }
+    else if ((!m_status.is_gpio_module_connected()) && (module_class.find(MODULE_CLASS_GPIO)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_GPIO << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_gpio_module_connected(true);
+    }
+    
+    else if ((!m_status.is_tracking_module_connected()) && (module_class.find(MODULE_CLASS_TRACKING)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_TRACKING << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_tracking_module_connected(true);
+    }
+    
+    else if ((!m_status.is_ai_identification_module_connected()) && (module_class.find(MODULE_CLASS_A_RECOGNITION)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_A_RECOGNITION << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_ai_identification_module_connected(true);
+    }
+    
+    else if ((!m_status.is_sound_module_connected()) && (module_class.find(MODULE_CLASS_SOUND)==0))
+    {
+        std::cout  << _LOG_CONSOLE_BOLD_TEXT << "Module Found: " << _SUCCESS_CONSOLE_BOLD_TEXT_ << MODULE_CLASS_SOUND << _INFO_CONSOLE_TEXT << "  id-" << module_id << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        
+        m_status.is_sound_module_connected(true);
+    }
+
+    updated |= updateUavosPermission(module_item->modules_features); 
+
+    if (validateField(msg_cmd, JSON_INTERMODULE_RESEND, Json::value_t::boolean))
+    {
+        if (msg_cmd[JSON_INTERMODULE_RESEND].get<bool>() == true)
+        {
+            const Json &msg = createJSONID(false);
+            std::string msg_dump = msg.dump();    
+            forwardMessageToModule(msg_dump.c_str(), msg_dump.length() ,module_item);
+        }
+    }
+
+    return updated;
+}
+
+/**
+ * @brief 
+ * Process messages received from module via Unix socket and may forward to DroneEngage Communication server.
+ * @details 
+ * @param full_message 
+ * @param full_message_length 
+ * @param ssock sender module Unix socket address
+ */
+void de::comm::CUavosModulesManager::parseIntermoduleMessageUnix (const char * full_message, const std::size_t full_message_length, const struct sockaddr_un* ssock)
+{
+    if (m_exit) return ;
+
+    Json jsonMessage;
+    try
+    {
+        jsonMessage = Json::parse(full_message);
+    }
+    catch (...)
+    {
+        // corrupted message.
+        #ifdef DEBUG
+            std::cout<< _ERROR_CONSOLE_BOLD_TEXT_ << "CORRUPTED" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
+        return ;
+    }
+
+    
+    const std::size_t first_string_length = strlen (full_message);
+
+    // IMPORTANT
+    // criteria: end of string part (json) is not end of the whole received data.
+    // -1 is used because there is always '/0' after the string.
+    // so if message is binary then you need to remobe the last character from the message
+    const bool is_binary =  !(first_string_length == full_message_length-1);
+    std::size_t actual_useful_size = is_binary?full_message_length-1:full_message_length;
+    
+    #ifdef DEBUG
+    #ifdef DEBUG_MSG        
+        std::cout<< jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE] << std::endl;
+    #endif
+    #endif
+
+    if ((!validateField(jsonMessage, INTERMODULE_ROUTING_TYPE, Json::value_t::string))
+        || (!validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_TYPE, Json::value_t::number_unsigned))
+        || !jsonMessage.contains(ANDRUAV_PROTOCOL_MESSAGE_CMD)
+        )
+    {
+        #ifdef DEBUG
+            std::cout<< _ERROR_CONSOLE_BOLD_TEXT_ << "BAD MESSAGE FORMAT" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        #endif
+        return ;
+    }
+    
+    std::string target_id = std::string();
+    std::string msg_routing_type = jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>();
+    
+    const bool is_system = (msg_routing_type.find(CMD_COMM_SYSTEM) != std::string::npos);
+    
+    if ((msg_routing_type.find(CMD_COMM_GROUP) == std::string::npos)
+        && (!is_system)
+        && jsonMessage.contains(ANDRUAV_PROTOCOL_TARGET_ID)
+        )
+    {   //CMD_COMM_GROUP  does not exist and a single target id is mentioned.
+        target_id =jsonMessage[ANDRUAV_PROTOCOL_TARGET_ID].get<std::string>();
+    }
+
+    // Intermodule Message
+    const bool intermodule_msg = (jsonMessage[INTERMODULE_ROUTING_TYPE].get<std::string>().find(CMD_TYPE_INTERMODULE) != std::string::npos);
+
+    const int message_type = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+    const Json ms = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+
+    std::string module_key = "";
+    
+    if (jsonMessage.contains(INTERMODULE_MODULE_KEY))
+    {
+        module_key = jsonMessage[INTERMODULE_MODULE_KEY];
+    }
+                        
+    switch (message_type)
+    {
+        case TYPE_AndruavModule_ID:
+        {
+            const bool updated = handleModuleRegistration (ms, ssock);
+            
+            if (updated == true)
+            {
+                andruav_servers::CAndruavFacade::getInstance().API_sendID(target_id);
+            }
+            
+        }
+        break;
+
+        case TYPE_AndruavMessage_Mission_Item_Sequence:
+        {
+
+            // events received from other modules.
+            const Json cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+
+
+            if (validateField(cmd, "s", Json_de::value_t::string))
+            {
+                // string droneengage event format.
+                mission::CMissionManagerBase::getInstance().getCommandsAttachedToMavlinkMission(cmd["s"].get<std::string>());
+            }
+        }
+        break;
+
+        case TYPE_AndruavMessage_Sync_EventFire:
+        {
+            /**
+             * @brief Logic:
+             *  This message is sent from other modules.
+             * An event can be internal only and processed by comm module and other modules in the unit.
+             * or can be non-internal and needs to be sent to other units.
+             * 
+             */
+
+            
+            // events received from other modules.
+            const Json cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+
+
+            if (validateField(cmd, "d", Json_de::value_t::string))
+            {
+                // string droneengage event format.
+                mission::CMissionManagerBase::getInstance().fireWaitingCommands(cmd["d"].get<std::string>());
+            }
+            
+            if (!intermodule_msg)
+            {
+                // broadcast to other units on the system.
+                de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
+            }
+        }
+        break;
+
+        case TYPE_AndruavModule_RemoteExecute:
+        {   // this is an inter-module message.
+            processModuleRemoteExecute(ms);
+        }
+        break;
+
+        case TYPE_AndruavModule_Location_Info:
+        {
+            /*
+              IMPORTANT
+              This is an inter-module message to make communicator-module aware of vehicle location.
+              This message can be sent from any module who owns any information about location and motion.
+            */
+            
+            CAndruavUnitMe& m_andruavMe = CAndruavUnitMe::getInstance();
+            ANDRUAV_UNIT_LOCATION&  location_info = m_andruavMe.getUnitLocationInfo();
+
+            // Use base location from config if available, otherwise use message values
+            de::CConfigFile& cConfigFile = de::CConfigFile::getInstance();
+            const Json_de& jsonConfig = cConfigFile.GetConfigJSON();
+            
+            if (jsonConfig.contains("baselocation") && jsonConfig["baselocation"].is_object())
+            {
+                const auto& baselocation = jsonConfig["baselocation"];
+                if (baselocation.contains("lat") && baselocation.contains("lng"))
+                {
+                    location_info.latitude                      = baselocation["lat"].get<int>();
+                    location_info.longitude                     = baselocation["lng"].get<int>();
+                    location_info.altitude                      = baselocation.contains("alt") ? baselocation["alt"].get<int>() : 0;
+                }
+                else
+                {
+                    // Fallback to message values if base location is not properly configured
+                    location_info.latitude                      = ms["la"].get<int>();
+                    location_info.longitude                     = ms["ln"].get<int>();
+                    location_info.altitude                      = ms.contains("a")?ms["a"].get<int>():0;
+                }
+            }
+            else
+            {
+                // Use message values if no base location is configured
+                location_info.latitude                      = ms["la"].get<int>();
+                location_info.longitude                     = ms["ln"].get<int>();
+                location_info.altitude                      = ms.contains("a")?ms["a"].get<int>():0;
+            }
+            
+            location_info.altitude_relative             = ms.contains("r")?ms["r"].get<int>():0;
+            location_info.h_acc                         = ms.contains("ha")?ms["ha"].get<int>():0;
+            location_info.yaw                           = ms.contains("y")?ms["y"].get<int>():0;
+            location_info.last_access_time              = get_time_usec();
+            location_info.is_new                        = true;
+            location_info.is_valid                      = true;
+        
+            if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
+            {
+                processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
+            }
+        }
+        break;
+
+        case TYPE_AndruavMessage_ID:
+        {
+            /*
+                This message is always internal message sent to communicator-module CM.
+                CM updates fields of the original TYPE_AndruavMessage_ID and 
+                forwards a complete copy to Andruav-Server.
+            */
+            CAndruavUnitMe& m_andruavMe = CAndruavUnitMe::getInstance();
+            ANDRUAV_UNIT_INFO&  unit_info = m_andruavMe.getUnitInfo();
+            
+            unit_info.vehicle_type                  = ms["VT"].get<int>();
+            unit_info.flying_mode                   = ms["FM"].get<int>();
+            unit_info.gps_mode                      = ms["GM"].get<int>();
+            unit_info.use_fcb                       = ms["FI"].get<bool>();
+            unit_info.autopilot                     = ms["AP"].get<int>();
+            unit_info.armed_status                  = ms["AR"].get<int>();
+            unit_info.is_flying                     = ms["FL"].get<bool>();
+            unit_info.telemetry_protocol            = ms["TP"].get<int>();
+            unit_info.flying_last_start_time        = ms["z"].get<long long>();
+            unit_info.flying_total_duration         = ms["a"].get<long long>();
+            unit_info.is_tracking_mode              = ms["b"].get<bool>();
+            unit_info.manual_TX_blocked_mode        = ms["C"].get<int>();
+            unit_info.is_gcs_blocked                = ms["B"].get<bool>();
+            unit_info.swarm_follower_formation      = ms["n"].get<int>();
+            unit_info.swarm_leader_formation        = ms["o"].get<int>();
+            unit_info.swarm_leader_I_am_following   = ms["q"].get<std::string>();
+            if (ms.contains("DE"))
+            {
+            unit_info.m_de_pilot_enabled              = ms["DE"].get<bool>();
+            unit_info.m_de_pilot_operation            = ms["DO"].get<int>();
+            }
+
+            andruav_servers::CAndruavFacade::getInstance().API_sendID(std::string());
+        }
+        break;
+
+        case TYPE_AndruavMessage_IMG:
+        { 
+                
+            /**
+             * @brief The message could be internal or not.
+             * if it is not internal then forward it directly to server.
+             * if it is INTERNAL MESSAGE then communicator module should 
+             * ADD LOCATION information to image if exists.
+             *
+             */
+            if (!intermodule_msg)
+            {
+                de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
+        
+                break;
+            }
+            
+            Json msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
+            
+            de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, msg_cmd);
+        }
+        break;
+
+        case TYPE_AndruavMessage_TrackingTarget_STATUS:
+        {
+            // TYPE_AndruavMessage_TargetTracking_STATUS is internal but also broadcast it.
+            processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
+            de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
+        }
+        break;
+
+        case TYPE_AndruavMessage_SWARM_MAVLINK:
+        {
+            // !BUG HERE WILL NOT WORK
+            // forward SWARM_MAVLINK traffic to P2P by default.
+            // if there is no connection then use Communication Server.
+            //      Intermodule_msg is used here because p2p module may fail to forward the message 
+            //      so it resends it with internal_flag=false
+            de::STATUS &m_status = de::STATUS::getInstance();
+            if ((intermodule_msg)&&(m_status.is_p2p_module_connected()))
+            {
+                processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
+                break;
+            }
+            else
+            {
+                // forward the messages normally through the server.
+                de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, full_message_length, is_system, is_binary, target_id, message_type, ms);
+
+                // TODO: IMPORTANT: There is no gurantee that P2P is working fine.... so we need a confirmation from P2P
+                // or P2P can resend SWARM_MAVLINK again and request forward to server directly.
+            }
+        }
+        break;
+
+
+        
+
+        default:
+        {
+            /**
+             * @brief 
+             *      The default section uses the concept of [intermodule_msg] where messages are not forwarded to server
+             *  if it is marked intermodule_msg=true as it should be processed by other modules only.
+             *  if (intermodule_msg = false) then it will NOT be processed internally UNLESS it is catched before in previous "cases"
+             * 
+             */
+            
+
+            if (jsonMessage.contains(INTERMODULE_MODULE_KEY)!=false) // backward compatibility
+            {
+                processIncommingServerMessage (target_id, message_type, full_message, actual_useful_size, module_key);
+            }
+
+            if (!intermodule_msg)
+            {   
+                de::andruav_servers::CAndruavCommServerManager::getInstance().sendMessageToCommunicationServer (full_message, actual_useful_size, is_system, is_binary, target_id, message_type, ms);
+            }
+            else
+            {
+                #ifdef DDEBUG_PARSER
+                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "ERROR:" << _TEXT_BOLD_HIGHTLITED_ << "Unhandeled internal event:" << std::to_string(message_type) <<  _NORMAL_CONSOLE_TEXT_ << std::endl;
+                #endif
+
+            }
+        }
+        break;
+    }
 }
 
 
@@ -1196,7 +1740,7 @@ void de::comm::CUavosModulesManager::forwardCommandsToModules(const int& message
  */
 void de::comm::CUavosModulesManager::forwardMessageToModule ( const char * message, const std::size_t datalength, const MODULE_ITEM_TYPE * module_item)
 {
-    const std::lock_guard<std::mutex> lock(g_i_mutex_process2);
+    const std::lock_guard<std::recursive_mutex> lock(g_i_mutex);
     
     #ifdef DEBUG
     #ifdef DEBUG_MSG        
@@ -1204,9 +1748,14 @@ void de::comm::CUavosModulesManager::forwardMessageToModule ( const char * messa
     #endif
     #endif
     
-    struct sockaddr_in module_address = *module_item->m_module_address.get();  
-                
-    cUDPClient.SendMsg(message, datalength, &module_address);
+    // Send based on transport type
+    if (module_item->transport == TRANSPORT_TYPE::UNIX_DGRAM) {
+        struct sockaddr_un module_address = *module_item->m_module_unix_address.get();
+        cUnixClient.SendMsg(message, datalength, &module_address);
+    } else {
+        struct sockaddr_in module_address = *module_item->m_module_address.get();
+        cUDPClient.SendMsg(message, datalength, &module_address);
+    }
 
     return ;
 }
@@ -1222,7 +1771,7 @@ void de::comm::CUavosModulesManager::forwardMessageToModule ( const char * messa
 bool de::comm::CUavosModulesManager::handleDeadModules ()
 {
     
-    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    const std::lock_guard<std::recursive_mutex> lock(g_i_mutex);
     
     bool dead_found = false;
 
@@ -1328,7 +1877,7 @@ void de::comm::CUavosModulesManager::handleOnAndruavServerConnection (const int 
     #endif
 
     if (m_exit) return ;
-    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    const std::lock_guard<std::recursive_mutex> lock(g_i_mutex);
     
     MODULE_ITEM_LIST::iterator it;
     const Json &msg = createJSONID(false);
@@ -1348,7 +1897,7 @@ Json de::comm::CUavosModulesManager::getModuleListAsJSON ()
 {
     Json modules = Json::array();
     
-    const std::lock_guard<std::mutex> lock(g_i_mutex);
+    const std::lock_guard<std::recursive_mutex> lock(g_i_mutex);
     
     MODULE_ITEM_LIST::iterator it;
     

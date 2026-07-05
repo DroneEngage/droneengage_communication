@@ -11,6 +11,9 @@
     "s2s_udp_listening_port"    : "60000",  
     "s2s_udp_packet_size"       : "8192",
 
+    // Unix domain socket support for same-board communication
+    "use_unix_socket"           : true,
+
     
     // Drone-Engage Communication Server Connection
     "auth_ip"                       : "127.0.0.1",

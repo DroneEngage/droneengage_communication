@@ -343,6 +343,12 @@ void initModuleManager()
         std::cout << _LOG_CONSOLE_BOLD_TEXT << "WARNING:" << _INFO_CONSOLE_TEXT << " MISSING FIELD " << _ERROR_CONSOLE_BOLD_TEXT_ << "s2s_udp_packet_size " <<  _INFO_CONSOLE_TEXT << "is missing in config file. default value " << _ERROR_CONSOLE_BOLD_TEXT_  << std::to_string(DEFAULT_UDP_DATABUS_PACKET_SIZE) <<  _INFO_CONSOLE_TEXT <<  " is used." << _NORMAL_CONSOLE_TEXT_ << std::endl;    
     }
 
+    bool use_unix_socket = false;
+    if (validateField(jsonConfig, "use_unix_socket",Json_de::value_t::boolean)) 
+    {
+        use_unix_socket = jsonConfig["use_unix_socket"].get<bool>();
+    }
+
     cUavosModulesManager.defineModule( MODULE_CLASS_COMM, 
                         jsonConfig["module_id"],
                         cLocalConfigFile.getStringField("module_key"),
@@ -352,7 +358,8 @@ void initModuleManager()
 
     cUavosModulesManager.init(jsonConfig["s2s_udp_listening_ip"].get<std::string>().c_str() ,
                     std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()),
-                    udp_chunk_size);
+                    udp_chunk_size,
+                    use_unix_socket);
     
 }
 

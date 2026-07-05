@@ -10,10 +10,18 @@
 #include <iostream>
 #include <utility>
 #include <netinet/in.h>
+#include <sys/un.h>
+
+enum class TRANSPORT_TYPE {
+    UDP,
+    UNIX_DGRAM
+};
 
 struct MessageWithSocket {
     std::string message;
-    struct sockaddr_in socket;
+    TRANSPORT_TYPE transport;
+    struct sockaddr_in socket_in;   // valid if transport == UDP
+    struct sockaddr_un socket_un;   // valid if transport == UNIX_DGRAM
 };
 
 namespace de {

@@ -21,6 +21,7 @@
     "use_local_comm_server"        : false,   // use local comm server instead of main server
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
     "root_certificate_path"     : "./root.crt",
+    "use_unix_socket"           : true,
 
     "userName"                  :"mhefny@andruav.com", 
     "accessCode"                :"mhefny",

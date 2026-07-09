@@ -15,8 +15,8 @@
 using Json_de = nlohmann::json;
 
 // url commands 
-#define AUTH_AGENT_LOGIN_COMMAND        "/agent/al/"
-#define AUTH_AGENT_HARDWARE_COMMAND     "/agent/ah/"
+#define AUTH_AGENT_LOGIN_COMMAND        "/agent/al"
+#define AUTH_AGENT_HARDWARE_COMMAND     "/agent/ah"
 
 // parameter names
 #define AUTH_ACCOUNT_NAME_PARAMETER             "acc="

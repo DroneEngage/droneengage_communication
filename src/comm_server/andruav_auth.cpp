@@ -60,7 +60,8 @@ bool de::andruav_servers::CAndruavAuthenticator::doAuthentication()
 
     std::cout << _LOG_CONSOLE_BOLD_TEXT << "Auth Server " << _TEXT_BOLD_HIGHTLITED_ << " Connecting to server " << _INFO_CONSOLE_TEXT << jsonConfig["auth_ip"].get<std::string>() << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #ifdef DEBUG
-    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Auth URL: " << _TEXT_BOLD_HIGHTLITED_ << url << "?" << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Auth URL: " << _TEXT_BOLD_HIGHTLITED_ << url << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    std::cout << _LOG_CONSOLE_BOLD_TEXT << "Auth POST Body: " << _TEXT_BOLD_HIGHTLITED_ << param << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
        
     const bool res = getAuth_doAuthentication (url, param);
@@ -170,6 +171,11 @@ bool de::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, std::
 
     curl_easy_setopt(easyhandle, CURLOPT_DEFAULT_PROTOCOL, "https");
 
+    /* Set Content-Type header for URL-encoded POST data */
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded");
+    curl_easy_setopt(easyhandle, CURLOPT_HTTPHEADER, headers);
+
     /* Now specify the POST data */ 
     curl_easy_setopt(easyhandle, CURLOPT_POSTFIELDS, param.c_str());
 
@@ -217,7 +223,7 @@ bool de::andruav_servers::CAndruavAuthenticator::getAuth (std::string url, std::
     curl_easy_cleanup(easyhandle);
     
     /* free headers */ 
-    //curl_slist_free_all(headers);
+    curl_slist_free_all(headers);
     curl_global_cleanup();
 
     if (res == CURLE_OK)

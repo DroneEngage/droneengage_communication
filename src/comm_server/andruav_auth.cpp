@@ -366,8 +366,18 @@ bool de::andruav_servers::CAndruavAuthenticator::translateResponse_doValidateHar
         std::cout <<__PRETTY_FUNCTION__ << " line: " << __LINE__ << "  "  << _LOG_CONSOLE_TEXT << "DEBUG: Response: " << response << _NORMAL_CONSOLE_TEXT_ << std::endl;
     #endif
 
-    
-    const Json_de& json_response = Json_de::parse(response);
+    Json_de json_response;
+    try
+    {
+        json_response = Json_de::parse(response);
+    }
+    catch (const std::exception& e)
+    {
+        m_auth_error = -1;
+        m_auth_error_string = "BAD RESPONSE";
+        std::cout << _TEXT_BOLD_HIGHTLITED_ << "HW AUTH: " << _ERROR_CONSOLE_BOLD_TEXT_ << "Failed ... Non-JSON Response (" << e.what() << ")" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        return false;
+    }
     
     m_auth_error = 0; //reset error;
 

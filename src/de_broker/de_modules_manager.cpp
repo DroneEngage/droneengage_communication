@@ -128,21 +128,21 @@ void de::comm::CUavosModulesManager::uninit ()
             
 void de::comm::CUavosModulesManager::consumerThreadFunc() 
 {
-    try
-    {
-        while (!m_exit) {
-            // Dequeue a unique_ptr. The ownership is transferred to msgWithSocket.
-            std::unique_ptr<MessageWithSocket> msgWithSocket = m_buffer.dequeue();
-            
-            // Check if the received pointer is valid.
-            if (!msgWithSocket) {
-                continue;
-            }
-            
+    while (!m_exit) {
+        // Dequeue a unique_ptr. The ownership is transferred to msgWithSocket.
+        std::unique_ptr<MessageWithSocket> msgWithSocket = m_buffer.dequeue();
+
+        // Check if the received pointer is valid.
+        if (!msgWithSocket) {
+            continue;
+        }
+
+        try
+        {
             // Access the members using the arrow operator.
             const std::size_t len = msgWithSocket->message.length();
             const char* c_str = msgWithSocket->message.c_str();
-            
+
             // Route based on transport type
             if (msgWithSocket->transport == TRANSPORT_TYPE::UDP) {
                 parseIntermoduleMessage(c_str, len, &msgWithSocket->socket_in);
@@ -153,10 +153,11 @@ void de::comm::CUavosModulesManager::consumerThreadFunc()
 
             if (m_OnReceive!= nullptr) m_OnReceive(c_str, len);
         }
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << "consumerThreadFunc:" << e.what() << '\n';
+        catch(const std::exception& e)
+        {
+            // Do not let a single malformed/failed message kill the consumer thread.
+            std::cerr << "consumerThreadFunc:" << e.what() << '\n';
+        }
     }
 }
 

@@ -1,0 +1,235 @@
+# DroneEngage Communication Module
+
+## Project Overview
+DroneEngage Communication (DE Comm) is a Linux-based distributed communication system for monitoring and controlling drones via Internet. It serves as a communication broker that runs on vehicles, coordinating between various modules (Mavlink, Video, etc.) and the Andruav Server/WebClients. This module is part of the Ardupilot Cloud Eco System and provides a C++ alternative to the Android-based Andruav application.
+
+## Tech Stack
+- **Language**: C++17
+- **Build System**: CMake 3.10+
+- **Core Libraries**:
+  - Boost 1.74.0+ (coroutine, context, thread, system, chrono)
+  - libcurl4-openssl-dev
+  - OpenSSL
+- **Architecture**: Plugin-Broker pattern with UDP communication
+- **Package Management**: Debian (.deb) packages via CPack
+- **Logging**: plog (3rdparty library)
+
+## Architecture Summary
+
+### Plugin-Broker Pattern
+The system consists of two main components communicating via UDP:
+
+1. **Plugin Side** (de_comm library)
+   - `CModule` - Main interface for plugins (singleton pattern)
+   - `CUDPClient` - UDP communication with chunking support
+   - `CFacade_Base` - High-level API wrapper
+   - `CAndruavMessageParserBase` - Message parsing
+
+2. **Broker Side** (de_comm broker module)
+   - `CUavosModulesManager` - Central module manager
+   - `CUDPCommunicator` - UDP server for modules
+   - `CMessageBuffer` - Thread-safe message queue
+
+### Message Routing Types
+- `CMD_TYPE_INTERMODULE` - Plugin-to-plugin communication only
+- `CMD_COMM_SYSTEM` - Plugin-to-broker system commands
+- `CMD_COMM_GROUP` / `CMD_COMM_INDIVIDUAL` - Messages forwarded to external DroneEngage server
+
+### Module Classes
+- `MODULE_CLASS_FCB` - Flight Control Board
+- `MODULE_CLASS_VIDEO` - Camera modules
+- `MODULE_CLASS_P2P` - Peer-to-Peer communication
+- `MODULE_CLASS_GPIO` - GPIO control
+- `MODULE_CLASS_TRACKING` - Object tracking
+- `MODULE_CLASS_A_RECOGNITION` - AI recognition
+- `MODULE_CLASS_SDR` - Software Defined Radio
+- `MODULE_CLASS_SOUND` - Audio processing
+
+## Key Files and Directories
+
+### Root Configuration
+- `CMakeLists.txt` - Main build configuration with auto-versioning (x.y.z.build format)
+- `de_comm.config.module.json` - Module configuration (IP, ports, authentication)
+- `template.json` - Configuration template
+- `root.crt` - SSL certificate for authentication
+- `build.sh` / `build_release.sh` / `build_ddebug.sh` - Build scripts
+
+### Source Structure (`src/`)
+- `main.cpp` - Entry point for broker module
+- `global.hpp` - Global definitions and constants
+- `messages.hpp` - Message type definitions
+- `status.hpp` - System status definitions
+- `version.h` - Auto-generated version header
+- `configFile.cpp/hpp` - Configuration file handling
+- `localConfigFile.cpp/hpp` - Local configuration overrides
+
+### Core Components
+- `comm_server/` - Andruav communication server implementation
+  - `andruav_auth.cpp/hpp` - Authentication logic
+  - `andruav_comm_server.cpp/hpp` - Main communication server
+  - `andruav_facade.cpp/hpp` - Facade pattern implementation
+  - `andruav_parser.cpp/hpp` - Message parser
+- `de_broker/` - Broker implementation
+  - `andruav_message.cpp/hpp` - Message structures
+  - `andruav_message_buffer.cpp/hpp` - Thread-safe message queue
+  - `de_modules_manager.cpp` - Module lifecycle management
+- `de_general_mission_planner/` - Mission planning functionality
+- `helpers/` - Utility functions
+- `hal/` / `hal_linux/` - Hardware abstraction layer
+- `notification_module/` - Notification system
+
+### Documentation (`wiki/`)
+- `DE_Comm_Architecture.md` - Complete architecture documentation (READ THIS FIRST)
+- `CAndruavAuthenticator.md` - Authentication system
+- `CAndruavCommServer.md` - Communication server details
+- `CAndruavFacade.md` - Facade pattern usage
+- `CAndruavParser.md` - Message parsing logic
+- `CConfigFile_README.md` - Configuration file format
+- `CMissionManagerBase.md` - Mission planning system
+
+### Build Output
+- Binary: `bin/de_comm`
+- Debian package: `build/de-communicator-pro-x.y.z-Linux.deb`
+- Installation path: `$HOME/drone_engage/de_comm/`
+
+## Build Instructions
+
+### Prerequisites
+```bash
+sudo apt install git cmake build-essential
+sudo apt install libcurl4-openssl-dev libssl-dev
+sudo apt install libboost-all-dev  # or build Boost 1.74+ from source
+```
+
+### Build Process
+```bash
+rm -rf ./build
+mkdir build && cd build
+cmake -D CMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ../
+make -j$(nproc)
+cpack -G DEB  # Generate Debian package
+```
+
+### Build Types
+- `DEBUG` - Debug symbols, additional logging
+- `RELEASE` - Optimized, auto-increments build version
+- `DDEBUG=ON` - Detailed debug output (add to cmake command)
+
+### Installation
+```bash
+sudo dpkg -i de-communicator-pro-*.deb
+```
+
+## Version Management
+- Format: `MAJOR.MINOR.BUGFIX.BUILD` (e.g., 3.12.0.5)
+- Major/Minor/Bugfix: Manually set in CMakeLists.txt
+- Build: Auto-incremented on RELEASE builds
+- Version stored in `.version` file (gitignored)
+
+## Coding Standards
+
+### C++ Standards
+- C++17 compliance required
+- Strict compiler warnings enabled (`-Werror=unused-variable`, `-Werror=unused-result`)
+- Debug builds: `-g3 -Og -ggdb`
+- Release builds: `-O2 -Werror=parentheses`
+
+### Architecture Patterns
+- **Singleton Pattern**: Used for `CModule` (plugin side)
+- **Facade Pattern**: `CFacade_Base` provides high-level API
+- **Thread-Safe Design**: Mutex protection for shared data structures
+- **Chunked UDP**: Large messages split into chunks (2-byte header + data)
+- **Callback Pattern**: Message handling via user-defined callbacks
+
+### Message Protocol
+- JSON-based messages with compact field names (e.g., "ty" for type, "ms" for message)
+- Module identification messages exchanged during registration
+- Routing determined by "ty" field
+- Chunk structure: `[2 bytes: chunk number] [chunk data]` (0xFFFF = last chunk)
+
+### Thread Architecture
+**Plugin Side**:
+- Main thread: Application logic
+- UDP receiver thread: `CUDPClient::InternalReceiverEntry()`
+- ID sender thread: `CUDPClient::InternelSenderIDEntry()` (1-second intervals)
+
+**Broker Side**:
+- Main thread: Module management, routing decisions
+- UDP receiver thread: `CUDPCommunicator::InternalReceiverEntry()`
+- Consumer thread: `CUavosModulesManager::consumerThreadFunc()`
+
+## Configuration
+
+### Module Configuration (`de_comm.config.module.json`)
+Key settings:
+- `module_id` - Module identifier
+- `s2s_udp_listening_ip/port` - UDP server settings
+- `auth_ip/port` - Authentication server
+- `userName/accessCode` - Authentication credentials
+- `unitID/groupID` - Unit identification
+- `ping_server_rate_in_ms` - Keep-alive interval
+- `max_offline_count` - Max reconnection attempts before exit
+
+### Network Configuration
+- Plugin connects to broker via UDP
+- Broker connects to Andruav server via WebSocket (SSL optional)
+- Default broker port: 60000
+- Default auth port: 19408
+
+## Security & Licensing
+- License validation via hardware serial and type
+- SSL/TLS support for server communication
+- Module key uniqueness enforced
+- Hardware types: `HARDWARE_TYPE_CPU`, `HARDWARE_TYPE_UNDEFINED`
+
+## Common Patterns
+
+### Plugin Registration
+```cpp
+CModule::defineModule(class, id, key, version, filter);
+CModule::init(targetIP, broadcastPort, host, listenPort, chunkSize);
+CModule::createJSONID(true);  // Request reply
+```
+
+### Message Sending
+```cpp
+CModule::sendJMSG(json_message);  // JSON message
+CModule::sendBMSG(binary_data);  // Binary message
+```
+
+### Message Receiving
+```cpp
+CModule::setMessageOnReceive(callback_function);
+void callback(const char* message, int len);
+```
+
+## Debugging
+- Colored console output for different log levels
+- `_INFO_CONSOLE_TEXT`, `_SUCCESS_CONSOLE_TEXT`, `_ERROR_CONSOLE_TEXT`, `_LOG_CONSOLE_TEXT`
+- Enable `DDEBUG` for detailed debug output
+- Check UDP port conflicts (ensure unique ports per module)
+- Verify module key uniqueness
+- Monitor module health via periodic ID broadcasts
+
+## Integration Points
+- **Mavlink Module**: `de_mavlink` repository
+- **Server Module**: `droneengage_server` repository
+- **Web Client**: `andruav_webclient` repository
+- **Authenticator**: `droneegnage_authenticator` repository
+
+## Important Notes
+- Conda/Anaconda environments: System Boost libraries preferred to avoid static initialization issues
+- In-source builds not allowed (must use build directory)
+- Debian packages install to `$HOME/drone_engage/de_comm/`
+- Scripts in `scripts/` directory copied to installation
+- Thread-safe message buffering for high-throughput scenarios
+
+## When Working on This Codebase
+1. **Read `wiki/DE_Comm_Architecture.md` first** - Complete architecture overview
+2. Understand the plugin-broker UDP communication pattern
+3. Be aware of chunked message protocol for large UDP packets
+4. Use thread-safe data structures in broker code
+5. Follow existing message routing patterns (inter-module vs. external)
+6. Test with both DEBUG and RELEASE builds
+7. Verify module registration flow when adding new module types
+8. Check license validation logic for hardware-based modules

@@ -13,7 +13,7 @@
 
     
     // Drone-Engage Communication Server Connection
-    "auth_ip"                       : "127.0.0.1",
+    "auth_ip"                       : "airgap.local",
     "auth_port"                     : 19408,
     "auth_verify_ssl"               : false,
     "local_comm_server_ip"          : "127.0.0.1",

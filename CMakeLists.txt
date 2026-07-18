@@ -31,8 +31,8 @@ endif()
 set(VERSION_FILE "${CMAKE_SOURCE_DIR}/.version")
 
 # Manually set major, minor, and bugfix versions (you can change these)
-set(MAJOR_VERSION 3)
-set(MINOR_VERSION 13)
+set(MAJOR_VERSION 4)
+set(MINOR_VERSION 0)
 set(BUGFIX_VERSION 0)
 
 if(EXISTS ${VERSION_FILE})

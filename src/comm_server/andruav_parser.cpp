@@ -423,9 +423,6 @@ void de::andruav_servers::CAndruavParser::parseCommand(
 
     const Json_de command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
 
-    if (unit_info.is_gcs_blocked)
-      break;
-
     if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) !=
                          PERMISSION_ALLOW_GCS_WP_CONTROL)) {
       std::cout << _INFO_CONSOLE_BOLD_TEXT

@@ -48,7 +48,9 @@ try
                     
                     for (const auto& module_mission_item : modules) {
                         
+                        #ifdef DDEBUG
                         std::cout << "module_mission_item:" << module_mission_item << std::endl; 
+                        #endif
                         
                         Json_de module_mission_item_commands = module_mission_item["c"];
                         
@@ -72,7 +74,9 @@ try
                                 std::string de_event_id = module_mission_item[WAITING_EVENT].get<std::string>();
                                 addModuleMissionItemByEvent (de_event_id, module_mission_item_single_command);
                             }
+                            #ifdef DDEBUG
                             std::cout << "module_mission_item_single_command:" << module_mission_item_single_command.dump() << std::endl; 
+                            #endif
 
                             if (ls_avail)
                             {
@@ -82,7 +86,9 @@ try
                     }
 
 
+                    #ifdef DDEBUG
                     std::cout << "m_module_missions:" << m_module_missions.size() << "  m_module_missions_by_de_events:" << m_module_missions_by_de_events.size() << std::endl;
+                    #endif
                 }
             }
         }

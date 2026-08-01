@@ -11,6 +11,9 @@
 #include "andruav_comm_server_base.hpp"
 
 #include "andruav_facade.hpp"
+#include "andruav_comm_server_manager.hpp"
+#include "../sync_fire_events.hpp"
+#include "../de_general_mission_planner/mission_manager_base.hpp"
 
 using namespace de::andruav_servers;
 
@@ -52,6 +55,12 @@ void CAndruavCommServerBase::turnOnOff(const bool on_off, const uint32_t duratio
         std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WS Module:" << _LOG_CONSOLE_TEXT << "Set Communication Line " << _ERROR_CONSOLE_BOLD_TEXT_ <<  " Switched Offline" << _LOG_CONSOLE_TEXT <<  " duration (sec): " << _SUCCESS_CONSOLE_BOLD_TEXT_ << std::to_string(duration_seconds) << _NORMAL_CONSOLE_TEXT_ << std::endl;
         
         CAndruavFacade::getInstance().API_sendCommunicationLineStatus(std::string(), false);
+    
+        // Fire OFFLINE_REQUEST event — this is a user-requested disconnect, not an error.
+        Json_de event_msg = {{"d", DRONE_COMM_LINE_OFFLINE_REQUEST}};
+        CAndruavCommServerManager::getInstance().API_sendCMD(
+            std::string(ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS), TYPE_AndruavMessage_Sync_EventFire, event_msg);
+        de::mission::CMissionManagerBase::getInstance().fireWaitingCommands(DRONE_COMM_LINE_OFFLINE_REQUEST);
     
         // Create detached thread - no need for global variable since we detach immediately
         std::thread([this]() { 

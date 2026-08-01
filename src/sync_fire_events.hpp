@@ -16,3 +16,7 @@
 #define DRONE_MISSION_STARTED "d_f_ms"
 #define DRONE_MISSION_COMPLETED "d_f_mc"
 
+#define DRONE_COMM_LINE_ONLINE           "d_cl_on"
+#define DRONE_COMM_LINE_OFFLINE_REQUEST  "d_cl_off_r"
+#define DRONE_COMM_LINE_OFFLINE_ERROR    "d_cl_off_e"
+

@@ -28,6 +28,7 @@
 #include "../comm_server/andruav_auth.hpp"
 #include "../de_broker/de_modules_manager.hpp"
 #include "../de_general_mission_planner/mission_manager_base.hpp"
+#include "../sync_fire_events.hpp"
 #include "andruav_message.hpp"
 
 
@@ -1879,6 +1880,26 @@ void de::comm::CUavosModulesManager::handleOnAndruavServerConnection (const int 
 
     if (m_exit) return ;
     const std::lock_guard<std::recursive_mutex> lock(g_i_mutex);
+    
+    // Fire sync events for comm line status changes.
+    // SOCKET_STATUS_REGISTERED = online, SOCKET_STATUS_ERROR = offline due to error.
+    std::string event_sid;
+    if (status == SOCKET_STATUS_REGISTERED)
+    {
+        event_sid = DRONE_COMM_LINE_ONLINE;
+    }
+    else if (status == SOCKET_STATUS_ERROR)
+    {
+        event_sid = DRONE_COMM_LINE_OFFLINE_ERROR;
+    }
+
+    if (!event_sid.empty())
+    {
+        Json_de event_msg = {{"d", event_sid}};
+        de::andruav_servers::CAndruavCommServerManager::getInstance().API_sendCMD(
+            std::string(ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS), TYPE_AndruavMessage_Sync_EventFire, event_msg);
+        mission::CMissionManagerBase::getInstance().fireWaitingCommands(event_sid);
+    }
     
     MODULE_ITEM_LIST::iterator it;
     const Json &msg = createJSONID(false);

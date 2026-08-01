@@ -6,6 +6,7 @@
 #include "mission_manager_base.hpp"
 #include "../de_broker/de_modules_manager.hpp"
 #include "../comm_server/andruav_parser.hpp"
+#include "../comm_server/andruav_comm_server_manager.hpp"
 #include "./mission_file.hpp"
 
 using namespace de::mission;
@@ -14,6 +15,7 @@ using namespace de::mission;
 void CMissionManagerBase::clearModuleMissionItems ()
 {
     m_last_executed_mission_id = "";
+    m_events_being_fired.clear();
     m_module_missions.clear();
     m_module_missions_by_de_events.clear();
     CMissionFile::getInstance().deleteMissionFile("de_plan.json");
@@ -74,6 +76,12 @@ try
                                 std::string de_event_id = module_mission_item[WAITING_EVENT].get<std::string>();
                                 addModuleMissionItemByEvent (de_event_id, module_mission_item_single_command);
                             }
+
+                            if (validateField(module_mission_item, FIRE_EVENT, Json_de::value_t::string))
+                            {
+                                module_mission_item_single_command[FIRE_EVENT] = module_mission_item[FIRE_EVENT].get<std::string>();
+                            }
+
                             #ifdef DDEBUG
                             std::cout << "module_mission_item_single_command:" << module_mission_item_single_command.dump() << std::endl; 
                             #endif
@@ -146,6 +154,33 @@ void CMissionManagerBase::fireWaitingCommands (const std::string de_event_sid)
             // not the fired event itself.
             // the fired event is forwarded to module in the andruav_parser... not here.
             de::comm::CUavosModulesManager::getInstance().processIncommingServerMessage(sender, command_type, cmd_text.c_str(), cmd_text.length(), std::string());
+        }
+
+        // Fire ef (eventFire) events chained from executed commands.
+        // This enables logical waypoints with ef to trigger other logical waypoints waiting on that event.
+        std::set<std::string> events_to_fire;
+        for (const auto& cmd : cmds)
+        {
+            if (validateField(cmd, FIRE_EVENT, Json_de::value_t::string))
+            {
+                events_to_fire.insert(cmd[FIRE_EVENT].get<std::string>());
+            }
+        }
+        for (const auto& ef : events_to_fire)
+        {
+            if (m_events_being_fired.find(ef) == m_events_being_fired.end())
+            {
+                m_events_being_fired.insert(ef);
+
+                // Broadcast to other units so they can trigger their own waiting logical waypoints.
+                Json_de event_msg = {{"d", ef}};
+                de::andruav_servers::CAndruavCommServerManager::getInstance().API_sendCMD(
+                    std::string(ANDRUAV_PROTOCOL_SENDER_ALL_AGENTS), TYPE_AndruavMessage_Sync_EventFire, event_msg);
+
+                // Also trigger local logical waypoints waiting on this event.
+                fireWaitingCommands(ef);
+                m_events_being_fired.erase(ef);
+            }
         }
     }
 

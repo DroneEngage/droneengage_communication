@@ -3,6 +3,7 @@
 
 
 #include "../helpers/json_nlohmann.hpp"
+#include <set>
 using Json_de = nlohmann::json;
 
 namespace de
@@ -85,6 +86,7 @@ namespace mission
             std::map <std::string, std::vector<Json_de>> m_module_missions_by_de_events;
 
             std::string m_last_executed_mission_id = "";
+            std::set<std::string> m_events_being_fired;
     };
 
 }

@@ -2,7 +2,6 @@
 #include <curl/curl.h>
 
 
-#include "../version.h"
 #include "../helpers/colors.hpp"
 #include "../helpers/helpers.hpp"
 #include "../de_broker/de_modules_manager.hpp"
@@ -54,7 +53,6 @@ bool de::andruav_servers::CAndruavAuthenticator::doAuthentication()
                 + AUTH_ACCESS_CODE_PARAMETER + jsonConfig["accessCode"].get<std::string>() 
                 + AUTH_GROUP_PARAMETER + "1"   // GROUP ID is Hardcoded ONE
                 + AUTH_APP_NAME_PARAMETER + "de"
-                + AUTH_APP_VER_PARAMETER  + version_string 
                 + AUTH_EXTRA_PARAMETER + "de"
                 + AUTH_ACTOR_TYPE_PARAMETER + AUTH_ACTOR_DRONE;
 

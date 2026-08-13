@@ -43,25 +43,25 @@ class CCallBack_WSASession
 };
 
 
-class CWSASession 
+class CWSASession
 {
         public:
             //https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
-            
-            
+
+
             CWSASession(boost::asio::io_context& io_context, const std::string& host, const std::string& port, const std::string& url_param, CCallBack_WSASession &callback): io_context_(io_context), host_(host), port_(port), url_param_(url_param), resolver_(io_context), ws_(io_context, ssl_ctx_), m_callback (callback)
             {
-                
+
             };
-        
+
         public:
-            
+
             ~CWSASession (){
                 if (m_thread_receiver.joinable()) {
                     m_thread_receiver.join();
                 }
             };
-            
+
         public:
 
             void run();
@@ -71,6 +71,19 @@ class CWSASession
             void close();
             void close(beast::websocket::close_code code);
             void shutdown ();
+
+        private:
+            void sendAuthFrame();
+            bool waitForAuthAck();
+
+        public:
+            // Security item 2.1: auth-frame credentials (sent as first WS
+            // message after handshake instead of in the URL query string).
+            // Public so CWSAProxy::run1/run2 can set them before calling run().
+            std::string m_auth_key;
+            std::string m_auth_party_id;
+            std::string m_auth_actor_type;
+            bool m_use_auth_frame = true;
 
         private:
             std::atomic<bool> m_connected{false};
@@ -83,7 +96,7 @@ class CWSASession
             websocket::stream<beast::ssl_stream<tcp::socket>> ws_;
             std::thread m_thread_receiver;
             de::andruav_servers::CCallBack_WSASession &m_callback;
-            std::mutex g_i_mutex_writeText, g_i_mutex_on_read; 
+            std::mutex g_i_mutex_writeText, g_i_mutex_on_read;
 };
 
 class CWSAProxy
@@ -115,6 +128,8 @@ class CWSAProxy
     public:
         std::unique_ptr<de::andruav_servers::CWSASession> run1(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback);
         std::unique_ptr<de::andruav_servers::CWSASession> run2(char const* host, char const* port, char const* url_param, CCallBack_WSASession &callback);
+        std::unique_ptr<de::andruav_servers::CWSASession> run1(char const* host, char const* port, char const* url_param, const std::string& auth_key, const std::string& party_id, const std::string& actor_type, CCallBack_WSASession &callback);
+        std::unique_ptr<de::andruav_servers::CWSASession> run2(char const* host, char const* port, char const* url_param, const std::string& auth_key, const std::string& party_id, const std::string& actor_type, CCallBack_WSASession &callback);
         boost::asio::io_context io_context_1;
         boost::asio::io_context io_context_2;
 

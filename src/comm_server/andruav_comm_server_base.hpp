@@ -74,6 +74,7 @@ namespace andruav_servers
         std::string m_host;
         std::string m_port;
         std::string m_party_id;
+        std::string m_key;
 
         u_int8_t m_status;
 

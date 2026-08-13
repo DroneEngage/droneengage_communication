@@ -5,11 +5,14 @@
 #include "../global.hpp"
 #include "../helpers/colors.hpp"
 #include "andruav_comm_ws.hpp"
+#include "../helpers/json_nlohmann.hpp"
 #include <boost/beast/websocket.hpp>
 #include <boost/asio.hpp>
 
-#include <plog/Log.h> 
+#include <plog/Log.h>
 #include "plog/Initializers/RollingFileInitializer.h"
+
+using Json_de = nlohmann::json;
 
 
 using tcp = boost::asio::ip::tcp;
@@ -62,12 +65,34 @@ void de::andruav_servers::CWSASession::run()
         ws_.handshake(host_, url_param_, ec);
         if (ec)
         {
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "WebSocket handshake failed: " << ec.message() << _NORMAL_CONSOLE_TEXT_ << std::endl;
             PLOG(plog::error) << "WebSocket handshake failed: " << ec.message();
             m_connected.store(false);
             m_callback.onSocketError();
             return;
         }
+        std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "WebSocket handshake successful" << _NORMAL_CONSOLE_TEXT_ << std::endl;
         PLOG(plog::info) << "WebSocket handshake successful, compression: " << (ws_.got_text() ? "text" : "binary");
+
+        // Security item 2.1: if auth-frame mode is enabled, send the de_auth
+        // frame as the first WS message and wait for the de_auth_ack before
+        // starting the receiver thread. Credentials are kept out of the URL
+        // query string (which leaks into proxy/access logs).
+        if (m_use_auth_frame)
+        {
+            std::cout << _INFO_CONSOLE_TEXT << "Sending auth frame (party_id=" << m_auth_party_id << ")..." << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            sendAuthFrame();
+            if (!waitForAuthAck())
+            {
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Auth frame rejected or timed out" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                PLOG(plog::error) << "Auth frame rejected or timed out";
+                m_connected.store(false);
+                m_callback.onSocketError();
+                return;
+            }
+            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Auth frame accepted by server" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            PLOG(plog::info) << "Auth frame accepted by server";
+        }
 
         // Start receiver thread
         m_thread_receiver = std::thread{[this]() {
@@ -76,6 +101,7 @@ void de::andruav_servers::CWSASession::run()
     }
     catch (const std::exception& e)
     {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Error during connection setup: " << e.what() << _NORMAL_CONSOLE_TEXT_ << std::endl;
         PLOG(plog::error) << "Error during connection setup: " << e.what();
         m_connected.store(false);
         m_callback.onSocketError();
@@ -163,6 +189,116 @@ void de::andruav_servers::CWSASession::receive_message()
     m_callback.onSocketClosed(); // Notify when the receive loop ends
 }
     
+
+
+
+/**
+ * Security item 2.1: send the de_auth frame as the first WS message after
+ * the handshake. The frame carries the session auth key (f), party ID (s)
+ * and actor type (at) out of the URL query string.
+ *
+ * Frame format: {"ty":"s","mt":"de_auth","f":"<key>","s":"<partyID>","at":"<actorType>"}
+ */
+void de::andruav_servers::CWSASession::sendAuthFrame()
+{
+    Json_de authFrame = {
+        {"ty", "s"},
+        {"mt", "de_auth"},
+        {"f", m_auth_key},
+        {"s", m_auth_party_id},
+        {"at", m_auth_actor_type}
+    };
+    const std::string frameText = authFrame.dump();
+
+    beast::error_code ec;
+    ws_.binary(false);
+    ws_.write(boost::asio::buffer(frameText), ec);
+    if (ec)
+    {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Failed to send auth frame: " << ec.message() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        PLOG(plog::error) << "Failed to send auth frame: " << ec.message();
+    }
+    else
+    {
+        std::cout << _INFO_CONSOLE_TEXT << "Auth frame sent: " << frameText << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        PLOG(plog::info) << "Auth frame sent (party_id=" << m_auth_party_id << ")";
+    }
+}
+
+/**
+ * Security item 2.1: synchronously wait for the de_auth_ack frame from the
+ * server. The server may send other messages (e.g. OK:connected) before or
+ * after the ack. Non-auth messages are dispatched to the callback so they
+ * are not lost. Returns true if the ack is "ok", false on rejection, read
+ * error, or parse failure.
+ *
+ * Ack format: {"ty":"s","mt":"de_auth_ack","r":"ok"}
+ *             {"ty":"s","mt":"de_auth_ack","r":"fail","em":"<reason>"}
+ */
+bool de::andruav_servers::CWSASession::waitForAuthAck()
+{
+    while (true)
+    {
+        beast::flat_buffer buffer;
+        beast::error_code ec;
+        ws_.read(buffer, ec);
+
+        if (ec)
+        {
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Auth ack: read error: " << ec.message() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            PLOG(plog::error) << "Auth ack read error: " << ec.message();
+            return false;
+        }
+
+        std::ostringstream os;
+        os << beast::make_printable(buffer.data());
+        const std::string text = os.str();
+        std::cout << _INFO_CONSOLE_TEXT << "Auth ack: message received: " << text << _NORMAL_CONSOLE_TEXT_ << std::endl;
+
+        try
+        {
+            Json_de msg = Json_de::parse(text);
+            // Check if this is the de_auth_ack we are waiting for.
+            // mt can be a string ("de_auth_ack") or a number (system msgs),
+            // so use is_string() before comparing.
+            const bool isAck = msg.value("ty", "") == "s"
+                && msg.contains("mt")
+                && msg["mt"].is_string()
+                && msg["mt"].get<std::string>() == "de_auth_ack";
+            if (isAck)
+            {
+                const std::string result = msg.value("r", "");
+                if (result == "ok")
+                {
+                    std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Auth ack: OK" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    return true;
+                }
+                const std::string reason = msg.value("em", "auth rejected");
+                std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Auth ack: rejected: " << reason << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                PLOG(plog::error) << "Auth frame rejected: " << reason;
+                return false;
+            }
+
+            std::cout << _INFO_CONSOLE_TEXT << "Auth ack: not ack, dispatching to callback" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            // Not the auth ack — dispatch to the callback so the message
+            // is not lost (e.g. OK:connected, which sets REGISTERED status).
+            if (ws_.got_binary())
+            {
+                m_callback.onBinaryMessageRecieved(text.c_str(), text.size());
+            }
+            else
+            {
+                m_callback.onTextMessageRecieved(text);
+            }
+        }
+        catch (const std::exception& e)
+        {
+            std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Auth ack: JSON parse error: " << e.what() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+            PLOG(plog::error) << "Auth ack: JSON parse error: " << e.what();
+            return false;
+        }
+    }
+}
 
 
 
@@ -314,6 +450,36 @@ std::unique_ptr<de::andruav_servers::CWSASession> de::andruav_servers::CWSAProxy
 {
     // Create a WebSocket client and connect to the server
     std::unique_ptr<de::andruav_servers::CWSASession> ptr = std::make_unique<de::andruav_servers::CWSASession>(io_context_2, std::string(host), std::string(port), std::string(url_param),callback);
+    ptr.get()->run();
+    return ptr;
+}
+
+/**
+ * Security item 2.1: run1 with auth-frame support. Credentials are sent as
+ * a de_auth frame after the WS handshake instead of in the URL query string.
+ */
+std::unique_ptr<de::andruav_servers::CWSASession> de::andruav_servers::CWSAProxy::run1(char const* host, char const* port, char const* url_param, const std::string& auth_key, const std::string& party_id, const std::string& actor_type, CCallBack_WSASession &callback)
+{
+    std::unique_ptr<de::andruav_servers::CWSASession> ptr = std::make_unique<de::andruav_servers::CWSASession>(io_context_1, std::string(host), std::string(port), std::string(url_param),callback);
+    ptr.get()->m_auth_key = auth_key;
+    ptr.get()->m_auth_party_id = party_id;
+    ptr.get()->m_auth_actor_type = actor_type;
+    ptr.get()->m_use_auth_frame = true;
+    ptr.get()->run();
+    return ptr;
+}
+
+/**
+ * Security item 2.1: run2 with auth-frame support. Credentials are sent as
+ * a de_auth frame after the WS handshake instead of in the URL query string.
+ */
+std::unique_ptr<de::andruav_servers::CWSASession> de::andruav_servers::CWSAProxy::run2(char const* host, char const* port, char const* url_param, const std::string& auth_key, const std::string& party_id, const std::string& actor_type, CCallBack_WSASession &callback)
+{
+    std::unique_ptr<de::andruav_servers::CWSASession> ptr = std::make_unique<de::andruav_servers::CWSASession>(io_context_2, std::string(host), std::string(port), std::string(url_param),callback);
+    ptr.get()->m_auth_key = auth_key;
+    ptr.get()->m_auth_party_id = party_id;
+    ptr.get()->m_auth_actor_type = actor_type;
+    ptr.get()->m_use_auth_frame = true;
     ptr.get()->run();
     return ptr;
 }

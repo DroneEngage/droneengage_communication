@@ -179,7 +179,7 @@ void CAndruavCommServerLocal::connect ()
         }
         serial.append(get_linux_machine_id());
 
-        connectToCommServer(m_host, m_port, m_party_id);
+        connectToCommServer(m_host, m_port, m_key);
 
     }
 
@@ -211,16 +211,19 @@ void CAndruavCommServerLocal::connectToCommServer (const std::string& server_ip,
         m_host = std::string(server_ip);
         m_port = std::string(server_port);
         m_party_id = de::CAndruavUnitMe::getInstance().getUnitInfo().party_id;
+        m_key = key;
 
-        m_url_param = "/?f=" + key + "&s=" + m_party_id + "&at=d";
-        
+        // Security item 2.1: credentials are sent as a de_auth frame after
+        // the WS handshake, not in the URL query string.
+        m_url_param = "/";
+
         // Launch Synchronous Socket
         if (_cwsa_session)
         {
             _cwsa_session.get()->shutdown();
         }
-        
-        _cwsa_session = _cwsa_proxy.run2(m_host.c_str(), m_port.c_str(), m_url_param.c_str(), *this);
+
+        _cwsa_session = _cwsa_proxy.run2(m_host.c_str(), m_port.c_str(), m_url_param.c_str(), m_key, m_party_id, "d", *this);
         
         // To delay the auto retry
         m_lasttime_access = get_time_usec();
@@ -692,7 +695,8 @@ void CAndruavCommServerLocal::reconnectToCommServer(const std::string server_ip,
     m_host = server_ip;
     m_port = server_port;
     m_party_id = de::CAndruavUnitMe::getInstance().getUnitInfo().party_id;
-    m_url_param = "/?f=" + key + "&s=" + m_party_id + "&at=d";
+    m_key = key;
+    m_url_param = "/";
     m_exit = false;
     isLocalCommServer(true);        
     // Create detached thread - no need for global variable since we detach immediately

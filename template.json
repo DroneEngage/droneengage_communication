@@ -1,3 +1,249 @@
-{
-    
-}
+[
+    {
+        "name": "Communication",
+        "template": {
+            "module id": {
+                "fieldName": "module_id",
+                "type": "text",
+                "defaultvalue": "MT_1",
+                "optional": false,
+                "desc": "unique module name shown to the DroneEngage server and WebClient"
+            },
+            "unit type": {
+                "fieldName": "unit_type",
+                "type": "combo",
+                "defaultvalue": "control_unit",
+                "list_values": [
+                    "control_unit"
+                ],
+                "optional": true,
+                "desc": "unit role. 'control_unit' marks this as a ground/control unit (enables static location broadcast). Any other value leaves the unit as a regular vehicle."
+            },
+            "s2s udp listening ip": {
+                "fieldName": "s2s_udp_listening_ip",
+                "type": "text",
+                "defaultvalue": "0.0.0.0",
+                "optional": false,
+                "desc": "local IP the module listens on for inter-module UDP (0.0.0.0 = all interfaces)"
+            },
+            "s2s udp listening port": {
+                "fieldName": "s2s_udp_listening_port",
+                "type": "text",
+                "defaultvalue": "60000",
+                "optional": false,
+                "desc": "local port the module listens on for inter-module UDP"
+            },
+            "s2s udp packet size": {
+                "fieldName": "s2s_udp_packet_size",
+                "type": "text",
+                "defaultvalue": "8192",
+                "optional": true,
+                "desc": "UDP datagram payload size in bytes. If omitted, the default databus packet size is used."
+            },
+            "use unix socket": {
+                "fieldName": "use_unix_socket",
+                "type": "checkbox",
+                "defaultvalue": true,
+                "optional": true,
+                "desc": "use a unix domain socket instead of UDP to talk to co-located modules (same-board communication only)."
+            }
+        }
+    },
+    {
+        "name": "Auth Server",
+        "template": {
+            "auth ip": {
+                "fieldName": "auth_ip",
+                "type": "text",
+                "defaultvalue": "127.0.0.1",
+                "optional": false,
+                "desc": "DroneEngage auth server IP address (HTTPS)"
+            },
+            "auth port": {
+                "fieldName": "auth_port",
+                "type": "number",
+                "defaultvalue": 19408,
+                "optional": false,
+                "desc": "DroneEngage auth server port"
+            },
+            "auth verify ssl": {
+                "fieldName": "auth_verify_ssl",
+                "type": "checkbox",
+                "defaultvalue": false,
+                "optional": true,
+                "desc": "verify the auth server SSL certificate. Default false."
+            },
+            "root certificate path": {
+                "fieldName": "root_certificate_path",
+                "type": "text",
+                "defaultvalue": "./root.crt",
+                "optional": true,
+                "desc": "path to a root CA certificate. Used only when auth_verify_ssl is true and the certificate is internal/self-signed."
+            },
+            "use local comm server": {
+                "fieldName": "use_local_comm_server",
+                "type": "checkbox",
+                "defaultvalue": false,
+                "optional": true,
+                "desc": "connect to a local comm server instead of the main (auth-assigned) comm server. Requires local_comm_server_ip and local_comm_server_port to be set; otherwise falls back to the auth server."
+            },
+            "local comm server ip": {
+                "fieldName": "local_comm_server_ip",
+                "type": "text",
+                "defaultvalue": "127.0.0.1",
+                "optional": true,
+                "desc": "local comm server IP. Used only when use_local_comm_server is true."
+            },
+            "local comm server port": {
+                "fieldName": "local_comm_server_port",
+                "type": "number",
+                "defaultvalue": 19408,
+                "optional": true,
+                "desc": "local comm server port. Used only when use_local_comm_server is true."
+            }
+        }
+    },
+    {
+        "name": "Account & Identity",
+        "template": {
+            "userName": {
+                "fieldName": "userName",
+                "type": "text",
+                "defaultvalue": "mhefny@andruav.com",
+                "optional": false,
+                "desc": "DroneEngage account email used for authentication"
+            },
+            "accessCode": {
+                "fieldName": "accessCode",
+                "type": "text",
+                "defaultvalue": "mhefny",
+                "optional": false,
+                "desc": "account access code/password sent to the auth server"
+            },
+            "unit ID": {
+                "fieldName": "unitID",
+                "type": "text",
+                "defaultvalue": "drone_cairo",
+                "optional": false,
+                "desc": "unique name identifying this unit on the server. Overridable by the local config file."
+            },
+            "group ID": {
+                "fieldName": "groupID",
+                "type": "text",
+                "defaultvalue": "1",
+                "optional": false,
+                "desc": "group/channel this unit joins on the server"
+            },
+            "unit description": {
+                "fieldName": "unitDescription",
+                "type": "text",
+                "defaultvalue": "de_unit 1",
+                "optional": false,
+                "desc": "human-readable description shown in the WebClient. Overridable by the local config file."
+            }
+        }
+    },
+    {
+        "name": "Logger",
+        "template": {
+            "logger enabled": {
+                "fieldName": "logger_enabled",
+                "type": "checkbox",
+                "defaultvalue": false,
+                "optional": true,
+                "desc": "enable file logging. Default false (logging disabled)."
+            },
+            "logger debug": {
+                "fieldName": "logger_debug",
+                "type": "checkbox",
+                "defaultvalue": false,
+                "optional": true,
+                "desc": "enable verbose/debug log output. Only meaningful when logger_enabled is true."
+            }
+        }
+    },
+    {
+        "name": "Connection Health",
+        "template": {
+            "ping server rate (ms)": {
+                "fieldName": "ping_server_rate_in_ms",
+                "type": "number",
+                "defaultvalue": 1500,
+                "optional": true,
+                "desc": "interval between keep-alive pings to the comm server, in milliseconds."
+            },
+            "max allowed ping delay (ms)": {
+                "fieldName": "max_allowed_ping_delay_in_ms",
+                "type": "number",
+                "defaultvalue": 5000,
+                "optional": true,
+                "desc": "max silence from the server before a reconnect is attempted, in milliseconds."
+            },
+            "max offline count": {
+                "fieldName": "max_offline_count",
+                "type": "number",
+                "defaultvalue": 5,
+                "optional": true,
+                "desc": "max failed reconnection attempts before the module aborts (so systemd can restart it). Default 5."
+            }
+        }
+    },
+    {
+        "name": "Hardware Notifications",
+        "template": {
+            "led pins enabled": {
+                "fieldName": "led_pins_enabled",
+                "type": "checkbox",
+                "defaultvalue": true,
+                "optional": true,
+                "desc": "enable GPIO LED status indicators. Default true. Set false on boards without the LED wiring."
+            },
+            "buzzer pins enabled": {
+                "fieldName": "buzzer_pins_enabled",
+                "type": "checkbox",
+                "defaultvalue": true,
+                "optional": true,
+                "desc": "enable GPIO buzzer notifications. Default true. Set false on boards without the buzzer wiring."
+            }
+        }
+    },
+    {
+        "name": "Static Location",
+        "template": {
+            "location": {
+                "fieldName": "location",
+                "type": "object",
+                "fields": {
+                    "lng": {
+                        "order": 1,
+                        "type": "number",
+                        "defaultvalue": 1491659260,
+                        "desc": "static longitude in E7 (degrees * 1e7). Used by control units to broadcast a fixed location."
+                    },
+                    "lat": {
+                        "order": 2,
+                        "type": "number",
+                        "defaultvalue": -353538460,
+                        "desc": "static latitude in E7 (degrees * 1e7). Used by control units to broadcast a fixed location."
+                    },
+                    "alt_abs": {
+                        "order": 3,
+                        "type": "number",
+                        "optional": true,
+                        "defaultvalue": 120000,
+                        "desc": "static absolute altitude in mm (AMSL). Optional."
+                    },
+                    "alt_rel": {
+                        "order": 4,
+                        "type": "number",
+                        "optional": true,
+                        "defaultvalue": 120000,
+                        "desc": "static relative altitude in mm (above home). Optional."
+                    }
+                },
+                "optional": false,
+                "desc": "static location broadcast for control units. Values are in E7 (lat/lng) and mm (altitude). Only used when unit_type is control_unit. Omit the whole object (edit the config file) if no static location is desired."
+            }
+        }
+    }
+]

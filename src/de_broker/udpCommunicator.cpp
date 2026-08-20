@@ -57,7 +57,7 @@ de::comm::CUDPCommunicator::~CUDPCommunicator ()
 void de::comm::CUDPCommunicator::init (const char * host, int listenningPort, int chunkSize)
 {
     
-    if (m_chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
+    if (chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
     {
         perror("invalid udp packet size."); 
         exit(EXIT_FAILURE); 

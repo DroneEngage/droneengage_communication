@@ -356,7 +356,10 @@
 #define TYPE_AndruavMessage_CONFIG_STATUS                      6526
 
 
-#define TYPE_AndruavMessage_MAVLINK_EVENTS                     6527   
+#define TYPE_AndruavMessage_MAVLINK_EVENTS                     6527
+
+// 6528-6529 reserved for IR_CAMERA_MI48_* (de_comm, to be reconciled later)
+#define TYPE_AndruavMessage_SOUND_LIST                         6530
 
 
 #define TYPE_AndruavMessage_DUMMY                              9999

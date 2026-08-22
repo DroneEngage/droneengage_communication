@@ -239,3 +239,11 @@ void saveBinaryToFile(const char* binary_message, size_t binary_length, const st
         std::cout << "Failed to open the file: " << file_path << std::endl;
     }
 }
+
+bool isLocalhost(const std::string& ip)
+{
+    std::string ip_lower = str_tolower(ip);
+    return (ip_lower == "127.0.0.1" ||
+            ip_lower == "::1" ||
+            ip_lower == "localhost");
+}

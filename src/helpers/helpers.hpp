@@ -55,4 +55,11 @@ extern std::string convertMacAddressToString(const std::vector<int>& mac);
 
 void saveBinaryToFile(const char* binary_message, size_t binary_length, const std::string& file_path);
 
+/**
+ * @brief Check if an IP address is localhost (127.0.0.1, ::1, or "localhost")
+ * @param ip The IP address string to check
+ * @return true if the IP is localhost
+ */
+bool isLocalhost(const std::string& ip);
+
 #endif

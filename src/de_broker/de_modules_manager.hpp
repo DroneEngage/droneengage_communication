@@ -157,6 +157,12 @@ namespace comm
                         );
             
             bool init (const std::string host, int listenningPort, int chunkSize, bool use_unix_socket = false);
+
+            // When true, the broker auto-selects chunk size per destination:
+            // loopback modules use DEFAULT_UDP_DATABUS_PACKET_SIZE,
+            // remote modules use SAFE_REMOTE_UDP_PAYLOAD.
+            // Set when s2s_udp_packet_size is missing from config (chunkSize <= 0).
+            bool m_auto_chunk_size = false;
             void uninit();
          
             void parseIntermoduleMessage (const char * full_mesage, const std::size_t full_message_length, const struct sockaddr_in* ssock);

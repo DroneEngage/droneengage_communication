@@ -81,8 +81,18 @@ bool de::comm::CUavosModulesManager::init (const std::string host, int listennin
 #ifdef DEBUG
     std::cout << _INFO_CONSOLE_TEXT << "CUavosModulesManager::init - use_unix_socket:" << use_unix_socket << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
+    // Auto-detect mode: chunkSize <= 0 means s2s_udp_packet_size was not set
+    // in config. The broker will pick per-destination chunk sizes in
+    // forwardMessageToModule() based on each module's IP.
+    // The communicators still need a valid base chunkSize for their init guard.
+    if (chunkSize <= 0) {
+        m_auto_chunk_size = true;
+        chunkSize = DEFAULT_UDP_DATABUS_PACKET_SIZE;
+        std::cout << _INFO_CONSOLE_TEXT << "Auto chunk size mode enabled (per-destination)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+    }
+
     m_consumerThread = std::thread(&CUavosModulesManager::consumerThreadFunc, this);
-    
+
     cUDPClient.init (host.c_str(), listenningPort, chunkSize);
     cUDPClient.start();
 
@@ -1752,11 +1762,22 @@ void de::comm::CUavosModulesManager::forwardMessageToModule ( const char * messa
     
     // Send based on transport type
     if (module_item->transport == TRANSPORT_TYPE::UNIX_DGRAM) {
+        // Unix DGRAM is always same-board (local) — no chunk size adjustment needed.
         struct sockaddr_un module_address = *module_item->m_module_unix_address.get();
         cUnixClient.SendMsg(message, datalength, &module_address);
     } else {
         struct sockaddr_in module_address = *module_item->m_module_address.get();
-        cUDPClient.SendMsg(message, datalength, &module_address);
+        // In auto mode, cap chunk size for remote (non-loopback) modules
+        // to avoid IP fragmentation over standard Ethernet MTU.
+        int chunkOverride = -1;
+        if (m_auto_chunk_size) {
+            char ipStr[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &module_address.sin_addr, ipStr, sizeof(ipStr));
+            if (!isLocalhost(std::string(ipStr))) {
+                chunkOverride = SAFE_REMOTE_UDP_PAYLOAD;
+            }
+        }
+        cUDPClient.SendMsg(message, datalength, &module_address, chunkOverride);
     }
 
     return ;

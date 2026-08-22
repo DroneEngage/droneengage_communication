@@ -34,7 +34,7 @@ class CUnixDgramCommunicator {
         void init(const char* socketPath, int chunkSize);
         void start();
         void stop();
-        void SendMsg(const char* message, const std::size_t datalength, struct sockaddr_un* module_address);
+        void SendMsg(const char* message, const std::size_t datalength, struct sockaddr_un* module_address, int chunkSizeOverride = -1);
 
     protected:
         void startReceiver();

@@ -59,8 +59,14 @@ void de::comm::CUDPCommunicator::init (const char * host, int listenningPort, in
     
     if (chunkSize >= MAX_UDP_DATABUS_PACKET_SIZE)
     {
-        perror("invalid udp packet size."); 
-        exit(EXIT_FAILURE); 
+        perror("invalid udp packet size.");
+        exit(EXIT_FAILURE);
+    }
+
+    if (chunkSize <= 0)
+    {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Invalid UDP packet size (must be > 0): " << chunkSize << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     m_chunkSize = chunkSize;
@@ -251,11 +257,12 @@ void de::comm::CUDPCommunicator::InternalReceiverEntry()
 /**
  * Sends JMSG to Communicator
  **/
-void de::comm::CUDPCommunicator::SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address)
+void de::comm::CUDPCommunicator::SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address, int chunkSizeOverride)
 {
     std::lock_guard<std::mutex> lock(m_lock);
 
-    
+    const int effectiveChunkSize = (chunkSizeOverride > 0) ? chunkSizeOverride : m_chunkSize;
+
     try
     {
         int remainingLength = datalength;
@@ -264,7 +271,7 @@ void de::comm::CUDPCommunicator::SendMsg(const char * message, const std::size_t
 
         while (remainingLength > 0)
         {
-            int chunkLength = std::min(m_chunkSize, remainingLength);
+            int chunkLength = std::min(effectiveChunkSize, remainingLength);
             remainingLength -= chunkLength;
             
             // Create a new message with the chunk size + sizeof(uint8_t)

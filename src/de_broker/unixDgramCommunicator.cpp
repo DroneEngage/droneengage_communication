@@ -19,6 +19,12 @@ CUnixDgramCommunicator::~CUnixDgramCommunicator() {
 }
 
 void CUnixDgramCommunicator::init(const char* socketPath, int chunkSize) {
+    if (chunkSize <= 0)
+    {
+        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Invalid chunk size (must be > 0): " << chunkSize << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
     m_chunkSize = chunkSize;
     
 #ifdef DEBUG_UNIX
@@ -96,12 +102,14 @@ void CUnixDgramCommunicator::stop() {
 #endif
 }
 
-void CUnixDgramCommunicator::SendMsg(const char* message, const std::size_t datalength, struct sockaddr_un* module_address) {
+void CUnixDgramCommunicator::SendMsg(const char* message, const std::size_t datalength, struct sockaddr_un* module_address, int chunkSizeOverride) {
 #ifdef DEBUG_UNIX
     std::cout << _INFO_CONSOLE_TEXT << "UnixDgramCommunicator::SendMsg - length:" << datalength << " to:" << module_address->sun_path << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
-    
+
     std::lock_guard<std::mutex> lock(m_lock);
+
+    const int effectiveChunkSize = (chunkSizeOverride > 0) ? chunkSizeOverride : m_chunkSize;
 
     try {
         int remainingLength = datalength;
@@ -109,7 +117,7 @@ void CUnixDgramCommunicator::SendMsg(const char* message, const std::size_t data
         uint16_t chunk_number = 0;
 
         while (remainingLength > 0) {
-            int chunkLength = std::min(m_chunkSize, remainingLength);
+            int chunkLength = std::min(effectiveChunkSize, remainingLength);
             remainingLength -= chunkLength;
             
             // Create a new message with the chunk size + 2 * sizeof(uint8_t)

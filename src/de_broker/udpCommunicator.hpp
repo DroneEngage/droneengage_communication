@@ -8,6 +8,8 @@
 
 #define MAX_UDP_DATABUS_PACKET_SIZE 0xffff
 #define DEFAULT_UDP_DATABUS_PACKET_SIZE 8192
+// Safe payload for standard Ethernet MTU 1500 (1500 - 20 IP - 8 UDP).
+#define SAFE_REMOTE_UDP_PAYLOAD 1472
 
 typedef void (*ONRECEIVE_CALLBACK)(const char *, int len, struct sockaddr_in *  sock);
 
@@ -46,7 +48,7 @@ class CUDPCommunicator
         void init(const char * host, int listenningPort, int chunkSize);
         void start();
         void stop();
-        void SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address);
+        void SendMsg(const char * message, const std::size_t datalength, struct sockaddr_in * module_address, int chunkSizeOverride = -1);
 
     protected:
         void startReceiver();

@@ -530,6 +530,10 @@ void init (int argc, char *argv[])
     
     cConfigFile.initConfigFile (configName.c_str());
     cLocalConfigFile.initConfigFile (localConfigName.c_str());
+
+    // Apply device-specific overrides from the gitignored *.local file on top
+    // of the published config, in memory only. The published file stays clean.
+    cConfigFile.applyLocalOverrides(cLocalConfigFile.GetConfigJSON());
     
     _version();
     

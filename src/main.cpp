@@ -253,7 +253,7 @@ void initLogger()
 
     plog::init(log_level, log_filename_final.str().c_str()); 
 
-    PLOG(plog::info) << "Drone-Engage Communicator Server version " << version_string; 
+    PLOG(plog::info) << "Drone-Engage Communicator Server version " << version_string;
 }
 
 void defineMe()

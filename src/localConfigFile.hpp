@@ -8,7 +8,7 @@ using Json_de = nlohmann::json;
 
 namespace de
 {
-    class CLocalConfigFile 
+    class CLocalConfigFile
     {
 
         public:
@@ -34,33 +34,41 @@ namespace de
             // =======
             // We can use the better technique of deleting the methods
             // we don't want.
-            
+
 
         public:
             void initConfigFile (const char* fileURL);
             const Json_de& GetConfigJSON();
             void clearFile();
             void apply();
-            
+
             std::string getStringField(const char * field) const;
             void addStringField(const char * field, const char * value);
-            
+            void ModifyStringField(const char* field, const char* newValue);
+
             const u_int32_t getNumericField(const char * field) const ;
             void addNumericField(const char * field, const u_int32_t & value);
+            void ModifyNumericField(const char* field, const u_int32_t& newValue);
+
+            double getDoubleField(const char * field) const;
+            void addDoubleField(const char * field, double value);
+            void ModifyDoubleField(const char* field, double newValue);
+
+            void removeFieldByName(const char * fieldName);
 
         protected:
             void ReadFile (const char * fileURL);
             void WriteFile (const char * fileURL);
             bool ParseData (std::string jsonString);
-            
+
 
         private:
             std::string m_fileURL;
             std::stringstream m_fileContents;
             Json_de m_ConfigJSON;
-        
+            bool m_parseFailed = false;
+
 
     };
 }
-
 #endif

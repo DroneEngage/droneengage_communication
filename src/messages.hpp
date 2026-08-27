@@ -128,6 +128,7 @@
 #define TYPE_AndruavMessage_HomeLocation            1022
 #define TYPE_AndruavMessage_GeoFence                1023
 #define TYPE_AndruavMessage_ExternalGeoFence        1024
+#define TYPE_AndruavMessage_GEOFenceHit             1025
 #define TYPE_AndruavMessage_WayPoints               1027
 #define TYPE_AndruavMessage_GeoFenceAttachStatus    1029
 #define TYPE_AndruavMessage_Arm                     1030
@@ -250,6 +251,7 @@
 
 #define TYPE_AndruavMessage_Viewlink_ACTION                    1079
 #define TYPE_AndruavMessage_Viewlink_STATUS                    1080
+#define TYPE_AndruavMessage_DEPilot_Control                    1081
 
 
 
@@ -358,8 +360,41 @@
 
 #define TYPE_AndruavMessage_MAVLINK_EVENTS                     6527
 
-// 6528-6529 reserved for IR_CAMERA_MI48_* (de_comm, to be reconciled later)
+#define TYPE_AndruavMessage_IR_CAMERA_MI48_ACTION              6528
+#define TYPE_AndruavMessage_IR_CAMERA_MI48_STATUS              6529
 #define TYPE_AndruavMessage_SOUND_LIST                         6530
+/**
+ * @brief Remote Telnet/Terminal messages.
+ * @details Allows a webclient to open a remote shell session on a unit,
+ * send keystrokes, and receive terminal output. The de_telnet module
+ * owns the pty lifecycle; de_comm routes these messages like any other
+ * module-class message.
+ *
+ * TELNET_ACTION_OPEN    - open a new session. Reply with TELNET_STATUS.
+ * TELNET_ACTION_CLOSE   - close a session by session_id.
+ * TELNET_ACTION_LIST    - request list of active sessions.
+ * TELNET_ACTION_RESIZE  - resize pty window (cols/rows).
+ * TELNET_ACTION_DATA    - keystrokes/input from client (binary payload).
+ *
+ * JSON fields (in "ms" / ANDRUAV_PROTOCOL_MESSAGE_CMD):
+ *   "a": action code (TELNET_ACTION_*)
+ *   "i": session_id (string, assigned by module on OPEN)
+ *   "d": text data (string) for DATA action when not using binary attach
+ *   "c": columns (int) for RESIZE
+ *   "r": rows    (int) for RESIZE
+ *   "sh": shell  (string, optional) override shell binary for OPEN
+ *   "st": status code (int) for TELNET_STATUS
+ *   "e": error message (string) for TELNET_STATUS on failure
+ *   "l": array of session info objects for LIST reply
+ *
+ * Binary path: TELNET_DATA may carry raw bytes as the binary attachment
+ * after the JSON header (see CModule::sendBMSG). The "i" field in the
+ * JSON header identifies the target session.
+ */
+#define TYPE_AndruavMessage_TELNET_ACTION                      6531
+#define TYPE_AndruavMessage_TELNET_STATUS                      6532
+#define TYPE_AndruavMessage_TELNET_DATA                        6533
+#define TYPE_AndruavMessage_TELNET_REMOTE_EXECUTE              6534
 
 
 #define TYPE_AndruavMessage_DUMMY                              9999
@@ -386,6 +421,9 @@
 // #define TYPE_AndruavMessage_Sonar_Action            13002
 // #define TYPE_AndruavMessage_Sonar_RemoteExecute     13003
 
+// DEFINE YOUR MESSAGE NUMBER HERE
+#define TYPE_AndruavMessage_USER_RANGE_START 80000
+#define TYPE_AndruavMessage_USER_RANGE_END 90000
 
 // Andruav Mission Types
 
@@ -566,3 +604,19 @@
 
 #define CONFIG_STATUS_FETCH_CONFIG_TEMPLATE                 0
 #define CONFIG_STATUS_FETCH_CONFIG                          1
+
+
+// TYPE_AndruavMessage_TELNET_ACTION
+#define TELNET_ACTION_OPEN                                  0
+#define TELNET_ACTION_CLOSE                                 1
+#define TELNET_ACTION_LIST                                  2
+#define TELNET_ACTION_RESIZE                                3
+#define TELNET_ACTION_DATA                                  4   // input from client
+
+// TYPE_AndruavMessage_TELNET_STATUS
+#define TELNET_STATUS_OPENED                                0   // session opened ok
+#define TELNET_STATUS_CLOSED                                1   // session closed
+#define TELNET_STATUS_DATA                                  2   // output data from pty
+#define TELNET_STATUS_LIST                                  3   // list of sessions
+#define TELNET_STATUS_ERROR                                 4   // error (see "e" field)
+#define TELNET_STATUS_RESIZED                               5   // resize ack

@@ -30,8 +30,9 @@ using Json = nlohmann::json;
 #define MODULE_CLASS_GPIO                       "gpio"
 #define MODULE_CLASS_GENERIC                    "gen"
 #define MODULE_CLASS_SDR                        "sdr"
-#define MODULE_CLASS_A_RECOGNITION              "aiq" 
-#define MODULE_CLASS_TRACKING                   "trk" 
+#define MODULE_CLASS_A_RECOGNITION              "aiq"
+#define MODULE_CLASS_TRACKING                   "trk"
+#define MODULE_CLASS_TELNET                     "tel"
 
 #define MODULE_FEATURE_RECEIVING_TELEMETRY      "R"
 #define MODULE_FEATURE_SENDING_TELEMETRY        "T"

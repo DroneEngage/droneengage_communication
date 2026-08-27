@@ -3,14 +3,14 @@
 #define CCONFIGFILE_H
 
 #include <sstream>
-#include <fstream>     
-#include <filesystem>  
+#include <fstream>
+#include <filesystem>
 #include "../helpers/json_nlohmann.hpp"
 using Json_de = nlohmann::json;
 
 namespace de
 {
-    class CConfigFile 
+    class CConfigFile
     {
 
         public:
@@ -36,7 +36,7 @@ namespace de
             // =======
             // We can use the better technique of deleting the methods
             // we don't want.
-            
+
 
         public:
             void initConfigFile (const char* fileURL);
@@ -58,7 +58,7 @@ namespace de
         protected:
             void ReadFile (const char * fileURL);
             void ParseData (std::string jsonString);
-            
+
 
         private:
             std::string m_file_url;
@@ -71,5 +71,4 @@ namespace de
 
     };
 }
-
 #endif

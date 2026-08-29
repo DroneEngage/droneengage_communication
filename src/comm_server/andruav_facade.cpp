@@ -20,6 +20,8 @@
 #include "andruav_comm_server_manager.hpp"
 #include "andruav_facade.hpp"
 
+#include "../de_broker/common/de_module_health.hpp"
+
 using namespace de::andruav_servers;
 
 
@@ -423,4 +425,27 @@ void CAndruavFacade::sendLocationInfo (const std::string& target_party_id) const
     };
 
     CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_GPS, message);
+}
+
+
+void CAndruavFacade::sendMemoryStatus (const std::string& target_party_id)
+{
+    de::comm::CModuleHealthMonitor& monitor = de::comm::CModuleHealthMonitor::getInstance();
+    const de::comm::MODULE_HEALTH_SAMPLE s = monitor.sample();
+    if (!s.valid) return; // /proc/self/status not available
+
+    Json_de jMsg = {
+        {"a",  MODULE_HEALTH_ACTION_STATUS},
+        {"k",  "comm"},
+        {"rs", s.rss_mb},
+        {"pk", s.vmpeak_mb},
+        {"sw", s.vmswap_mb},
+        {"th", s.threads},
+        {"sl", s.slope_mb_h},
+        {"tr", s.trend},
+        {"hs", s.status},
+        {"up", s.uptime_sec}
+    };
+
+    CAndruavCommServerManager::getInstance().API_sendCMD (target_party_id, TYPE_AndruavMessage_MODULE_HEALTH_STATUS, jMsg);
 }

@@ -66,6 +66,13 @@ namespace andruav_servers
             
             void sendLocationInfo (const std::string& target_party_id) const;
 
+            /**
+             * @brief Send TYPE_AndruavMessage_MODULE_HEALTH_STATUS with this process's
+             * current memory/trend/status. Called periodically from the scheduler.
+             * Skips sending if /proc/self/status is unavailable.
+             */
+            void sendMemoryStatus (const std::string& target_party_id);
+
         protected:
 
             void API_sendCMD (const std::string& target_party_id, const int command_type, const Json_de& msg) const;

@@ -201,6 +201,11 @@ void scheduler ()
 
         if (hz_10 % every_sec_15 == 0)
         {
+            // Self-report de_comm memory health to the GCS via the comm server.
+            if (status.is_online())
+            {
+                andruav_facade.sendMemoryStatus("");
+            }
         }
         
         try {

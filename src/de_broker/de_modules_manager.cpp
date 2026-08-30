@@ -101,7 +101,7 @@ bool de::comm::CUavosModulesManager::init (const std::string host, int listennin
 #ifdef DEBUG
         std::cout << _INFO_CONSOLE_TEXT << "CUavosModulesManager::init - Initializing Unix socket" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
-        std::string brokerSocketPath = "/tmp/de_comm_broker.sock";
+        std::string brokerSocketPath = "/run/de_comm/de_comm_broker.sock";
         cUnixClient.init(brokerSocketPath.c_str(), chunkSize);
         cUnixClient.start();
     }

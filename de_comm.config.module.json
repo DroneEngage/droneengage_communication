@@ -16,15 +16,15 @@
 
     
     // Drone-Engage Communication Server Connection
-    "auth_ip"                       : "airgap.local",
+    "auth_ip"                       : "cloud.ardupilot.org",
     "auth_port"                     : 19408,
     "auth_verify_ssl"               : false,
     "use_local_comm_server"        : false,   // use local comm server instead of main server
     //this is optional if [auth_verify_ssl] == true and ssl-certificate is internal.
     "root_certificate_path"     : "./root.crt",
 
-    "userName"                  :"single@airgap.droneengage.com", 
-    "accessCode"                :"test",
+    "userName"                  :"USERNAME_EMAIL", 
+    "accessCode"                :"PASSWORD_HERE",
     "unitID"                    :"drone_cairo",
     "groupID"                   :"1",
     "unitDescription"           :"de_unit 1",

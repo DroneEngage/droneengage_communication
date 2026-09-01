@@ -6,6 +6,7 @@
 #include <fstream>
 #include <memory>
 #include <cctype>
+#include <regex>
 #include "./helpers/colors.hpp"
 #include "./helpers/helpers.hpp"
 
@@ -130,9 +131,34 @@ bool CLocalConfigFile::ParseData (std::string jsonString)
    }
    catch(const std::exception& e)
    {
-    std::cerr << e.what() << '\n';
+    std::string errMsg = e.what();
+    int pLine = -1, pCol = -1;
+    std::regex reLineCol("line ([0-9]+), column ([0-9]+)");
+    std::smatch m;
+    std::string lineColPart;
+    if (std::regex_search(errMsg, m, reLineCol))
+    {
+        pLine = std::stoi(m[1].str());
+        pCol  = std::stoi(m[2].str());
+        lineColPart = "line " + std::to_string(pLine) + ", column " + std::to_string(pCol);
+    }
+    std::cerr << _ERROR_CONSOLE_BOLD_TEXT_
+              << "\n"
+              << "========================================================\n"
+              << "  FATAL: Failed to parse local config file: "
+              << _BK_RED_WHITE_TEXT_ << m_fileURL << _ERROR_CONSOLE_BOLD_TEXT_ << "\n";
+    if (!lineColPart.empty())
+    {
+        std::cerr << "  " << lineColPart << "  ->  "
+                  << "  " << _INFO_CONSOLE_BOLD_TEXT << "  " << lineColPart
+                  << "  " << _NORMAL_CONSOLE_TEXT_ << "\n";
+    }
+    std::cerr << "  Error: " << errMsg << "\n"
+              << "  The file contains invalid JSON. Please fix it and retry.\n"
+              << "========================================================"
+              << _NORMAL_CONSOLE_TEXT_ << std::endl;
     m_parseFailed = true;
-    return false;
+    exit(1);
    }
 
    return true;

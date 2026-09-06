@@ -3,6 +3,8 @@
 #include <cctype>
 #include <algorithm>
 #include <sys/time.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <vector>
 #include <sstream>
 #include <stdlib.h>
@@ -246,4 +248,41 @@ bool isLocalhost(const std::string& ip)
     return (ip_lower == "127.0.0.1" ||
             ip_lower == "::1" ||
             ip_lower == "localhost");
+}
+
+bool isRunningAsRoot()
+{
+    return (geteuid() == 0);
+}
+
+// Internal helper: mkdir -p for a single directory path (no recursive walk).
+// Returns true if the directory exists after the call (created or already
+// existed). Returns false on any other error.
+static bool ensureDirExists(const std::string& dir)
+{
+    if (mkdir(dir.c_str(), 0775) == 0)
+        return true;
+    if (errno == EEXIST)
+        return true;
+    return false;
+}
+
+std::string getUnixSocketBaseDir()
+{
+    // Preferred: /run/de_comm (root-owned, secure, FHS-standard for runtime sockets).
+    // Fallback: /tmp/de_comm (world-writable, works for non-root users).
+    const std::string runDir  = "/run/de_comm";
+    const std::string tmpDir  = "/tmp/de_comm";
+
+    if (ensureDirExists(runDir))
+        return runDir;
+
+    // /run/de_comm failed (likely EACCES for non-root). Fall back to /tmp.
+    if (ensureDirExists(tmpDir))
+        return tmpDir;
+
+    // Neither worked — return /run/de_comm anyway so the error message
+    // points at the preferred path. The bind() will fail and the caller
+    // will fall back to UDP.
+    return runDir;
 }

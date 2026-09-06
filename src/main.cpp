@@ -367,6 +367,22 @@ void initModuleManager()
                     std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()),
                     udp_chunk_size,
                     use_unix_socket);
+
+    // Log Unix socket path with color indicating permission level.
+    // Green (root): socket is in /run/de_comm (secure, root-owned).
+    // Yellow (non-root): socket fell back to /tmp/de_comm (world-writable).
+    if (use_unix_socket)
+    {
+        std::string socketPath = getUnixSocketBaseDir() + "/de_comm_broker.sock";
+        if (isRunningAsRoot())
+        {
+            std::cout << _SUCCESS_CONSOLE_BOLD_TEXT_ << "Unix Socket: " << socketPath << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+        else
+        {
+            std::cout << _INFO_CONSOLE_BOLD_TEXT << "WARNING: running as non-root — Unix Socket: " << socketPath << " (using /tmp fallback)" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+        }
+    }
     
 }
 

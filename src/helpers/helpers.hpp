@@ -62,4 +62,22 @@ void saveBinaryToFile(const char* binary_message, size_t binary_length, const st
  */
 bool isLocalhost(const std::string& ip);
 
+/**
+ * @brief Check if the current process is running as root (euid == 0).
+ * @return true if running as root.
+ */
+bool isRunningAsRoot();
+
+/**
+ * @brief Resolve the Unix domain socket base directory for de_comm.
+ *
+ * Tries /run/de_comm first (root-owned, secure). If the process does not
+ * have permission to create it (EACCES — non-root user), falls back to
+ * /tmp/de_comm (world-writable, less secure but works without root).
+ * The directory is created (mkdir -p) if it does not exist.
+ *
+ * @return The base directory path (no trailing slash), e.g. "/run/de_comm".
+ */
+std::string getUnixSocketBaseDir();
+
 #endif

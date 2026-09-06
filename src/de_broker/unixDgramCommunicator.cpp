@@ -4,12 +4,14 @@
 #include <cstring>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <chrono>
 #include <iostream>
 #include <map>
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
+#include <string>
 
 namespace de {
 namespace comm {
@@ -35,6 +37,42 @@ void CUnixDgramCommunicator::init(const char* socketPath, int chunkSize) {
     memset(m_CommunicatorModuleAddress.get(), 0, sizeof(struct sockaddr_un));
     m_CommunicatorModuleAddress->sun_family = AF_UNIX;
     strncpy(m_CommunicatorModuleAddress->sun_path, socketPath, sizeof(m_CommunicatorModuleAddress->sun_path) - 1);
+    
+    // Ensure the parent directory of the socket path exists (mkdir -p).
+    // bind() on AF_UNIX requires the containing directory to already exist;
+    // it will not create it. This lets de_comm run without a pre-created
+    // /run/de_comm.
+    //
+    // The broker binds a single shared socket: /run/de_comm/de_comm_broker.sock
+    // (path hard-coded in de_modules_manager.cpp). Each module binds its own
+    // unique file /run/de_comm/de_comm_<module_id>_<module_key>.sock — see
+    // unixDgramClient.cpp. The parent dir is shared; concurrent mkdir() is
+    // race-safe (first wins, rest get EEXIST). This block only creates the
+    // directory tree, never the socket file itself.
+    {
+        std::string path(socketPath);
+        std::size_t pos = path.find_last_of('/');
+        if (pos != std::string::npos && pos > 0) {
+            std::string parent = path.substr(0, pos);
+            // Walk the path components and mkdir each one (mkdir -p semantics).
+            std::size_t start = 0;
+            while (true) {
+                std::size_t next = parent.find('/', start + 1);
+                std::string sub = (next == std::string::npos) ? parent : parent.substr(0, next);
+                if (!sub.empty()) {
+                    if (mkdir(sub.c_str(), 0775) == 0) {
+#ifdef DEBUG_UNIX
+                        std::cout << _INFO_CONSOLE_TEXT << "UnixDgrmCommunicator::init - created dir: " << sub << _NORMAL_CONSOLE_TEXT_ << std::endl;
+#endif
+                    } else if (errno != EEXIST) {
+                        std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Failed to create socket dir '" << sub << "': " << strerror(errno) << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    }
+                }
+                if (next == std::string::npos) break;
+                start = next;
+            }
+        }
+    }
     
     // Remove stale socket file if exists
     unlink(socketPath);

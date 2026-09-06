@@ -101,7 +101,10 @@ bool de::comm::CUavosModulesManager::init (const std::string host, int listennin
 #ifdef DEBUG
         std::cout << _INFO_CONSOLE_TEXT << "CUavosModulesManager::init - Initializing Unix socket" << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
-        std::string brokerSocketPath = "/run/de_comm/de_comm_broker.sock";
+        // Base dir is resolved at runtime: /run/de_comm (root, secure) or
+        // /tmp/de_comm (non-root fallback). See helpers::getUnixSocketBaseDir().
+        std::string baseDir = getUnixSocketBaseDir();
+        std::string brokerSocketPath = baseDir + "/de_comm_broker.sock";
         cUnixClient.init(brokerSocketPath.c_str(), chunkSize);
         cUnixClient.start();
     }

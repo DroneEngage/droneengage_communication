@@ -255,15 +255,26 @@ bool isRunningAsRoot()
     return (geteuid() == 0);
 }
 
+// Internal helper: check if a directory exists AND is writable by the
+// current process. Returns true only if both conditions are met.
+static bool dirExistsAndWritable(const std::string& dir)
+{
+    if (access(dir.c_str(), W_OK | X_OK) != 0)
+        return false;
+    return true;
+}
+
 // Internal helper: mkdir -p for a single directory path (no recursive walk).
-// Returns true if the directory exists after the call (created or already
-// existed). Returns false on any other error.
+// Returns true if the directory exists AND is writable after the call
+// (created successfully, or already existed and is writable). Returns false
+// on any other error (e.g. EEXIST but not writable — root-owned dir as
+// non-root).
 static bool ensureDirExists(const std::string& dir)
 {
     if (mkdir(dir.c_str(), 0775) == 0)
         return true;
     if (errno == EEXIST)
-        return true;
+        return dirExistsAndWritable(dir);
     return false;
 }
 

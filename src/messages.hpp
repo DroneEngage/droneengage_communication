@@ -406,8 +406,11 @@
  * fields:
  * [a]:  MODULE_HEALTH_ACTION_* (currently only MODULE_HEALTH_ACTION_STATUS)
  * [rs]: current resident memory (RSS) in MB
- * [pk]: peak resident-adjacent memory (VmPeak) in MB - a high/still-rising VmPeak
- *       with RSS tracking it indicates memory that is allocated but never released.
+ * [pk]: peak resident memory (RSS) over the rolling history window in MB -
+ *       NOT the kernel's lifetime VmPeak. This ages out the one-off startup
+ *       allocation spike as the window rolls, so a high [pk] next to a low/stable
+ *       [rs] no longer falsely suggests a leak. A [pk] that keeps climbing in
+ *       step with [rs] across windows still indicates unreleased memory.
  * [sw]: swapped-out memory (VmSwap) in MB - non-zero/growing indicates memory
  *       pressure even before RSS itself looks alarming.
  * [th]: thread count - a leaking thread count is a distinct failure mode from a

@@ -15,9 +15,9 @@ namespace de
          */
         typedef struct MODULE_HEALTH_SAMPLE_TAG
         {
-            double   rss_mb     = 0;
-            double   vmpeak_mb  = 0;
-            double   vmswap_mb  = 0;
+            double   rss_mb      = 0;
+            double   peak_rss_mb  = 0;   // max RSS over the rolling window (ages out startup)
+            double   vmswap_mb   = 0;
             int      threads    = 0;
             double   slope_mb_h = 0;
             int      trend      = 0; // MODULE_HEALTH_TREND_*
@@ -30,6 +30,12 @@ namespace de
          * @brief Samples this process's own memory footprint from /proc/self/status,
          * keeps a short rolling history, and derives a growth trend + health status
          * against configurable thresholds.
+         *
+         * The reported peak ([pk] / peak_rss_mb) is the maximum RSS observed over
+         * the rolling history window — NOT the kernel's lifetime VmPeak. This way
+         * the peak ages out the one-off startup allocation spike as the window
+         * rolls, so a high peak next to a low/stable RSS no longer looks like a
+         * leak.
          *
          * This is the "Layer 2" in-process counterpart to the external
          * droneengage_performance_monitor (servers/droneengage_performance_monitor):

@@ -438,7 +438,7 @@ void CAndruavFacade::sendMemoryStatus (const std::string& target_party_id)
         {"a",  MODULE_HEALTH_ACTION_STATUS},
         {"k",  "comm"},
         {"rs", s.rss_mb},
-        {"pk", s.vmpeak_mb},
+        {"pk", s.peak_rss_mb},
         {"sw", s.vmswap_mb},
         {"th", s.threads},
         {"sl", s.slope_mb_h},

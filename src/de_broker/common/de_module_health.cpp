@@ -112,10 +112,16 @@ MODULE_HEALTH_SAMPLE CModuleHealthMonitor::sample()
 
     const double slope_mb_h = calculateSlope();
 
-    result.valid      = true;
-    result.rss_mb     = rss_mb;
-    result.vmpeak_mb  = vmpeak_mb;
-    result.vmswap_mb  = vmswap_mb;
+    // Peak RSS over the rolling window — ages out the startup spike as the
+    // window rolls, unlike the kernel's lifetime VmPeak which only ever rises.
+    double peak_rss_mb = 0;
+    for (const auto& s : m_history)
+        if (s.rss_mb > peak_rss_mb) peak_rss_mb = s.rss_mb;
+
+    result.valid       = true;
+    result.rss_mb      = rss_mb;
+    result.peak_rss_mb = peak_rss_mb;
+    result.vmswap_mb   = vmswap_mb;
     result.threads    = threads;
     result.slope_mb_h = slope_mb_h;
     result.uptime_sec = (now - m_start_time_usec) / 1000000ULL;

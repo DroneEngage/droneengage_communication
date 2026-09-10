@@ -22,6 +22,7 @@
 #include "andruav_comm_server.hpp"
 #include "andruav_facade.hpp"
 #include "andruav_parser.hpp"
+#include "andruav_permission_map.hpp"
 
 
 // Based on Below Model
@@ -303,6 +304,17 @@ void CAndruavCommServer::onBinaryMessageRecieved (const char * message, const st
             std::string sender = jMsg[ANDRUAV_PROTOCOL_SENDER];
 
             const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+
+            // Centralized permission gate — checked BEFORE parser and
+            // module forwarding so denied messages are dropped entirely.
+            if (!fn_checkMessagePermission(jMsg, command_type))
+            {
+                de::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(
+                    sender, 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
+                    "Permission Denied for message type " + std::to_string(command_type));
+                return;
+            }
+
             switch (command_type)
             {
                 case TYPE_AndruavMessage_RemoteExecute:
@@ -417,6 +429,17 @@ void CAndruavCommServer::onTextMessageRecieved(const std::string& jsonMessage)
         std::string sender = jMsg[ANDRUAV_PROTOCOL_SENDER];
 
         const int command_type = jMsg[ANDRUAV_PROTOCOL_MESSAGE_TYPE].get<int>();
+
+        // Centralized permission gate — checked BEFORE parser and
+        // module forwarding so denied messages are dropped entirely.
+        if (!fn_checkMessagePermission(jMsg, command_type))
+        {
+            de::andruav_servers::CAndruavFacade::getInstance().API_sendErrorMessage(
+                sender, 0, ERROR_3DR, NOTIFICATION_TYPE_ERROR,
+                "Permission Denied for message type " + std::to_string(command_type));
+            return;
+        }
+
         switch (command_type)
         {
             case TYPE_AndruavMessage_RemoteExecute:

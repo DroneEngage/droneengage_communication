@@ -584,6 +584,25 @@
 #define PERMISSION_ALLOW_GCS_MODES_SERVOS   0x00000400
 #define PERMISSION_ALLOW_GCS_VIDEO          0x0000f000
 
+// Account-type bits (top of the 32-bit mask).
+// Bit 31: account may be used as a GCS login.
+// Bit 30: account may be used as a unit login.
+#define PERMISSION_ALLOW_GCS_LOGIN         0x80000000
+#define PERMISSION_ALLOW_UNIT_LOGIN        0x40000000
+
+// Message-category permission bits (bits 16-25).
+// These gate specific message categories in CAndruavParser.
+#define PERMISSION_ALLOW_SWARM           0x00010000   // bit 16
+#define PERMISSION_ALLOW_TRACKING        0x00020000   // bit 17
+#define PERMISSION_ALLOW_GEOFENCE        0x00040000   // bit 18
+#define PERMISSION_ALLOW_SOUND           0x00080000   // bit 19
+#define PERMISSION_ALLOW_SDR             0x00100000   // bit 20
+#define PERMISSION_ALLOW_GPIO            0x00200000   // bit 21
+#define PERMISSION_ALLOW_TELNET          0x00400000   // bit 22
+#define PERMISSION_ALLOW_P2P             0x00800000   // bit 23
+#define PERMISSION_ALLOW_CHAT            0x01000000   // bit 24
+#define PERMISSION_ALLOW_CONFIG          0x02000000   // bit 25
+
 
 
 #define SPECIAL_NAME_ANY                "_any_"

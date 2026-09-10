@@ -22,26 +22,12 @@ void de::andruav_servers::CAndruavParser::parseCommand(
             << _NORMAL_CONSOLE_TEXT_ << std::endl;
 #endif
 
+  // Permission is checked by the comm server (fn_checkMessagePermission)
+  // before this function is called, so denied messages never reach here.
+
   // retreive unit or create a new one
   de::CAndruavUnit *unit = m_andruav_units.getUnitByName(sender_party_id);
   ANDRUAV_UNIT_INFO &unit_info = unit->getUnitInfo();
-
-  uint32_t permission = 0;
-  if (validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_PERMISSION,
-                    Json_de::value_t::number_unsigned)) {
-    permission = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION].get<int>();
-  }
-  UNUSED(permission);
-
-  bool is_system = false;
-  if ((validateField(jsonMessage, ANDRUAV_PROTOCOL_SENDER,
-                     Json_de::value_t::string)) &&
-      (jsonMessage[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(
-           ANDRUAV_PROTOCOL_SENDER_COMM_SERVER) ==
-       0)) { // permission is not needed if this command sender is the
-             // communication server not a remote GCS or Unit.
-    is_system = true;
-  }
 
   // get message command details
   const Json_de &msg_cmd = jsonMessage.contains(ANDRUAV_PROTOCOL_MESSAGE_CMD)
@@ -208,14 +194,6 @@ void de::andruav_servers::CAndruavParser::parseCommand(
     int action = cmd["a"].get<int>();
     switch (action) {
     case CONFIG_ACTION_SHUT_DOWN_HW: {
-      if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) !=
-                           PERMISSION_ALLOW_GCS_FULL_CONTROL)) {
-        std::cout << _INFO_CONSOLE_BOLD_TEXT << "DroneEngage SHUTDOWN SCRIPT: "
-                  << _ERROR_CONSOLE_BOLD_TEXT_ << "Permission Denied."
-                  << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        break;
-      }
-
       // Launch a detached thread to run the script
       std::thread([=]() {
         const std::string cmdStr = "./scripts/sh_shutdown.sh ";
@@ -238,14 +216,6 @@ void de::andruav_servers::CAndruavParser::parseCommand(
                 << _NORMAL_CONSOLE_TEXT_ << std::endl;
     } break;
     case CONFIG_ACTION_RESTART_HW: {
-      if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) !=
-                           PERMISSION_ALLOW_GCS_FULL_CONTROL)) {
-        std::cout << _INFO_CONSOLE_BOLD_TEXT
-                  << "DroneEngage REBOOT SCRIPT: " << _ERROR_CONSOLE_BOLD_TEXT_
-                  << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        break;
-      }
-
       // Launch a detached thread to run the script
       std::thread([=]() {
         const std::string cmdStr = "./scripts/sh_reboot.sh ";
@@ -268,13 +238,6 @@ void de::andruav_servers::CAndruavParser::parseCommand(
                 << _NORMAL_CONSOLE_TEXT_ << std::endl;
     } break;
     case CONFIG_ACTION_Restart: { /* code */
-      if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_FULL_CONTROL) !=
-                           PERMISSION_ALLOW_GCS_FULL_CONTROL)) {
-        std::cout << _INFO_CONSOLE_BOLD_TEXT
-                  << "DroneEngage Mission-Upload: " << _ERROR_CONSOLE_BOLD_TEXT_
-                  << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-        break;
-      }
       exit(0);
     } break;
 
@@ -423,14 +386,6 @@ void de::andruav_servers::CAndruavParser::parseCommand(
 
     const Json_de command = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
 
-    if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) !=
-                         PERMISSION_ALLOW_GCS_WP_CONTROL)) {
-      std::cout << _INFO_CONSOLE_BOLD_TEXT
-                << "DroneEngage Mission-Upload: " << _ERROR_CONSOLE_BOLD_TEXT_
-                << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-      break;
-    }
-
     /*
         a : std::string serialized mission file
     */
@@ -469,22 +424,8 @@ void de::andruav_servers::CAndruavParser::parseRemoteExecuteCommand(
 #endif
   const Json_de &msg_cmd = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_CMD];
 
-  uint32_t permission = 0;
-  if (validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_PERMISSION,
-                    Json_de::value_t::number_unsigned)) {
-    permission = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION].get<int>();
-  }
-  UNUSED(permission);
-
-  bool is_system = false;
-  if ((validateField(jsonMessage, ANDRUAV_PROTOCOL_SENDER,
-                     Json_de::value_t::string)) &&
-      (jsonMessage[ANDRUAV_PROTOCOL_SENDER].get<std::string>().compare(
-           ANDRUAV_PROTOCOL_SENDER_COMM_SERVER) ==
-       0)) { // permission is not needed if this command sender is the
-             // communication server not a remote GCS or Unit.
-    is_system = true;
-  }
+  // Permission is checked by the comm server (fn_checkMessagePermission)
+  // before this function is called, so denied messages never reach here.
 
   if (!msg_cmd.contains("C"))
     return;
@@ -525,14 +466,6 @@ void de::andruav_servers::CAndruavParser::parseRemoteExecuteCommand(
 
     if (unit_info.is_gcs_blocked)
       break;
-
-    if ((!is_system) && ((permission & PERMISSION_ALLOW_GCS_WP_CONTROL) !=
-                         PERMISSION_ALLOW_GCS_WP_CONTROL)) {
-      std::cout << _INFO_CONSOLE_BOLD_TEXT
-                << "CLEAR_WAY_POINTS_FROM_FCB: " << _ERROR_CONSOLE_BOLD_TEXT_
-                << "Permission Denied." << _NORMAL_CONSOLE_TEXT_ << std::endl;
-      break;
-    }
 
     de::mission::CMissionManagerBase::getInstance().clearModuleMissionItems();
     break;

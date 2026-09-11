@@ -34,6 +34,7 @@
 #include "./comm_server/andruav_comm_server_manager.hpp"
 #include "./comm_server/andruav_facade.hpp"
 #include "./de_broker/de_modules_manager.hpp"
+#include "./de_broker/common/de_module_health.hpp"
 #include "./hal/gpio.hpp"
 #include "./notification_module/leds.hpp"
 #include "./notification_module/buzzer.hpp"
@@ -367,6 +368,10 @@ void initModuleManager()
                     std::stoi(jsonConfig["s2s_udp_listening_port"].get<std::string>().c_str()),
                     udp_chunk_size,
                     use_unix_socket);
+
+    // de_comm is the communication broker (Boost, libcurl); tighten the
+    // generic 500MB/20MB-h defaults to fit this module.
+    de::comm::CModuleHealthMonitor::getInstance().configure(400, 20);
 
     // Log Unix socket path with color indicating permission level.
     // Green (root): socket is in /run/de_comm (secure, root-owned).

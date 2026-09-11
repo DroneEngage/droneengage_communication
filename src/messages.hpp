@@ -590,8 +590,19 @@
 // Account-type bits (top of the 32-bit mask).
 // Bit 31: account may be used as a GCS login.
 // Bit 30: account may be used as a unit login.
+// Bit 29: view-only mode; only chat is actionable (no control/planning/mutation).
+//         A view-mode account has bit 29 set AND no category/action bits
+//         (bits 0-25).  The comm server enforces this by checking that the
+//         view-mode bit is set AND PERMISSION_CATEGORY_ACTION_MASK is zero —
+//         this distinguishes a real view-mode account (0xa0000000) from a
+//         full-control account that happens to have bit 29 set (0xffffffff).
 #define PERMISSION_ALLOW_GCS_LOGIN         0x80000000
 #define PERMISSION_ALLOW_UNIT_LOGIN        0x40000000
+#define PERMISSION_ALLOW_VIEW_MODE         0x20000000   // bit 29
+
+// Category/action permission bits (bits 0-25).  When all are zero and the
+// view-mode bit is set, the account is a read-only view-mode GCS.
+#define PERMISSION_CATEGORY_ACTION_MASK    0x03ffffff
 
 // Message-category permission bits (bits 16-25).
 // These gate specific message categories in CAndruavParser.

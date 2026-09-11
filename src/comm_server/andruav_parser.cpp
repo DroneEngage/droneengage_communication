@@ -12,6 +12,7 @@
 #include "andruav_comm_server_manager.hpp"
 #include "andruav_facade.hpp"
 #include "andruav_parser.hpp"
+#include "andruav_permission_map.hpp"
 
 void de::andruav_servers::CAndruavParser::parseCommand(
     const std::string &sender_party_id, const int &command_type,
@@ -24,6 +25,26 @@ void de::andruav_servers::CAndruavParser::parseCommand(
 
   // Permission is checked by the comm server (fn_checkMessagePermission)
   // before this function is called, so denied messages never reach here.
+
+  // Defense-in-depth: a view-mode sender (bit 29 AND no category/action bits)
+  // may only send ID messages.  fn_checkMessagePermission already enforces
+  // this, but if a message somehow reaches here from a view-mode sender,
+  // drop it.  A full-control account (0xffffffff) has category bits set so
+  // it is NOT treated as view-mode.
+  if (command_type != TYPE_AndruavMessage_ID)
+  {
+    uint32_t sender_perm = 0;
+    if (validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_PERMISSION,
+                      Json_de::value_t::number_unsigned))
+    {
+      sender_perm = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION].get<int>();
+    }
+    if (((sender_perm & PERMISSION_ALLOW_VIEW_MODE) == PERMISSION_ALLOW_VIEW_MODE)
+        && ((sender_perm & PERMISSION_CATEGORY_ACTION_MASK) == 0))
+    {
+      return;
+    }
+  }
 
   // retreive unit or create a new one
   de::CAndruavUnit *unit = m_andruav_units.getUnitByName(sender_party_id);
@@ -431,6 +452,26 @@ void de::andruav_servers::CAndruavParser::parseRemoteExecuteCommand(
     return;
 
   int remote_execute_command = msg_cmd["C"];
+
+  // Defense-in-depth: a view-mode sender (bit 29 AND no category/action bits)
+  // may only send ID sub-commands via RemoteExecute.  fn_checkMessagePermission
+  // already enforces this, but if a message somehow reaches here from a
+  // view-mode sender, drop it.  A full-control account (0xffffffff) has
+  // category bits set so it is NOT treated as view-mode.
+  if (remote_execute_command != TYPE_AndruavMessage_ID)
+  {
+    uint32_t sender_perm = 0;
+    if (validateField(jsonMessage, ANDRUAV_PROTOCOL_MESSAGE_PERMISSION,
+                      Json_de::value_t::number_unsigned))
+    {
+      sender_perm = jsonMessage[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION].get<int>();
+    }
+    if (((sender_perm & PERMISSION_ALLOW_VIEW_MODE) == PERMISSION_ALLOW_VIEW_MODE)
+        && ((sender_perm & PERMISSION_CATEGORY_ACTION_MASK) == 0))
+    {
+      return;
+    }
+  }
 
   de::CAndruavUnit *unit = m_andruav_units.getUnitByName(sender_party_id);
   ANDRUAV_UNIT_INFO &unit_info = unit->getUnitInfo();

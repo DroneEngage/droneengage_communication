@@ -148,6 +148,19 @@ bool fn_checkMessagePermission(const Json_de &jsonMessage, int command_type)
     }
 
     uint32_t required = fn_getRequiredPermission(effective_command);
+
+    // View-mode gate: a view-mode sender has bit 29 set AND no category/action
+    // bits (bits 0-25).  This distinguishes a real view-mode account (0xa0000000)
+    // from a full-control account that also has bit 29 set (0xffffffff).
+    // A view-mode sender may only send ID messages — all other message types
+    // are rejected, including unmapped types that would otherwise pass the
+    // per-bit map (required == 0) and reach the parser/broker.
+    if (((permission & PERMISSION_ALLOW_VIEW_MODE) == PERMISSION_ALLOW_VIEW_MODE)
+        && ((permission & PERMISSION_CATEGORY_ACTION_MASK) == 0))
+    {
+        return (effective_command == TYPE_AndruavMessage_ID);
+    }
+
     if (required == 0)
     {
         return true; // no permission needed (telemetry/status/view)

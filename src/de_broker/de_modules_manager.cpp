@@ -1681,6 +1681,35 @@ void de::comm::CUavosModulesManager::processIncommingServerMessage (const std::s
     #endif
     #endif
 
+    // Defense-in-depth: a view-mode sender (bit 29 AND no category/action
+    // bits) may only send ID messages.  fn_checkMessagePermission already
+    // enforces this at the comm-server gate, but if a message somehow
+    // reaches here from a view-mode sender, do not forward it to modules.
+    // A full-control account (0xffffffff) has category bits set so it is
+    // NOT treated as view-mode.
+    if (message_type != TYPE_AndruavMessage_ID)
+    {
+        try
+        {
+            Json_de jMsg = Json_de::parse(message);
+            uint32_t sender_perm = 0;
+            if (validateField(jMsg, ANDRUAV_PROTOCOL_MESSAGE_PERMISSION,
+                              Json_de::value_t::number_unsigned))
+            {
+                sender_perm = jMsg[ANDRUAV_PROTOCOL_MESSAGE_PERMISSION].get<int>();
+            }
+            if (((sender_perm & PERMISSION_ALLOW_VIEW_MODE) == PERMISSION_ALLOW_VIEW_MODE)
+                && ((sender_perm & PERMISSION_CATEGORY_ACTION_MASK) == 0))
+            {
+                return;
+            }
+        }
+        catch (...)
+        {
+            // Malformed JSON — let the existing flow handle it.
+        }
+    }
+
     std::vector<std::string> &v = m_module_messages[message_type];
     for(std::vector<std::string>::iterator it = v.begin(); it != v.end(); ++it) 
     {

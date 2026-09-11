@@ -22,6 +22,13 @@ uint32_t fn_getRequiredPermission(int message_type);
  * sub-command stored in the "C" field of the message body, since
  * RemoteExecute is a wrapper that delegates to the real command.
  *
+ * View-mode gate: if the sender's permission has the view-mode bit
+ * (PERMISSION_ALLOW_VIEW_MODE) set, ONLY TYPE_AndruavMessage_ID is
+ * allowed — all other message types are rejected, including unmapped
+ * types that would otherwise pass the per-bit map (required == 0).
+ * This closes the gap where unmapped command types bypass the per-bit
+ * enforcement and reach the parser/broker.
+ *
  * @param jsonMessage   The full incoming JSON envelope (contains "p",
  *                      "sd", and "cm" fields).
  * @param command_type  The outer message type

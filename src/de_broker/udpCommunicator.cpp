@@ -198,48 +198,66 @@ void de::comm::CUDPCommunicator::InternalReceiverEntry()
         
         if (n > 0) 
         {
-
-            // First two bytes represent the chunk number
-            const uint16_t chunkNumber = (m_buffer[1] << 8) | m_buffer[0]; 
-            #ifdef DDEBUG        
-                std::cout << "chunkNumber:" << chunkNumber << " :len :" << n << std::endl;
-            #endif
-            if (chunkNumber==0)
+            try
             {
-                // clear any corrupted/incomplete packets
-                receivedChunksBySource[cliaddr.sin_port].clear();
+                if (n < 2)
+                {
+                    std::cout << _ERROR_CONSOLE_BOLD_TEXT_ << "Received packet too small: " << n << " bytes" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                    continue;
+                }
+
+                // First two bytes represent the chunk number
+                const uint16_t chunkNumber = (m_buffer[1] << 8) | m_buffer[0]; 
+                #ifdef DDEBUG        
+                    std::cout << "chunkNumber:" << chunkNumber << " :len :" << n << std::endl;
+                #endif
+                if (chunkNumber==0)
+                {
+                    // clear any corrupted/incomplete packets
+                    receivedChunksBySource[cliaddr.sin_port].clear();
+                }
+                
+                // Last packet is always equal to 0xFFFF regardless of its actual number.
+                const bool end = chunkNumber == 0xFFFF;
+
+                // Store the received chunk in the map
+                //! IF MODULE connects and disconnects from many ports this vector will contain orphan data.
+                std::vector<std::vector<uint8_t>>& chunkVector = receivedChunksBySource[cliaddr.sin_port];
+
+                chunkVector.emplace_back(m_buffer + 2 * sizeof(uint8_t), m_buffer + n);
+
+                // Check if we have received all the chunks
+                if (end)
+                {
+                    // Concatenate the chunks in order
+                    
+                    std::vector<uint8_t> concatenatedData;
+                    for (auto& chunk : chunkVector)
+                    {
+                        concatenatedData.insert(concatenatedData.end(), chunk.begin(), chunk.end());
+                    }
+                    
+                    concatenatedData.push_back(0);
+
+                    // Call the onReceive callback with the concatenated data
+                    if (m_callback != nullptr)
+                    {
+                            m_callback->onReceive((const char *) concatenatedData.data(), concatenatedData.size(), &cliaddr);
+                    }
+
+                    // Clear the map for the next set of chunks
+                    receivedChunksBySource[cliaddr.sin_port].clear();
+                }
             }
-            
-            // Last packet is always equal to 0xFFFF regardless of its actual number.
-            const bool end = chunkNumber == 0xFFFF;
-
-            // Store the received chunk in the map
-            //! IF MODULE connects and disconnects from many ports this vector will contain orphan data.
-            std::vector<std::vector<uint8_t>>& chunkVector = receivedChunksBySource[cliaddr.sin_port];
-
-            chunkVector.emplace_back(m_buffer + 2 * sizeof(uint8_t), m_buffer + n);
-
-            // Check if we have received all the chunks
-            if (end)
+            catch (const std::exception& e)
             {
-                // Concatenate the chunks in order
-                
-                std::vector<uint8_t> concatenatedData;
-                for (auto& chunk : chunkVector)
-                {
-                    concatenatedData.insert(concatenatedData.end(), chunk.begin(), chunk.end());
-                }
-                
-                concatenatedData.push_back(0);
-
-                // Call the onReceive callback with the concatenated data
-                if (m_callback != nullptr)
-                {
-                        m_callback->onReceive((const char *) concatenatedData.data(), concatenatedData.size(), &cliaddr);
-                }
-
-                // Clear the map for the next set of chunks
-                receivedChunksBySource[cliaddr.sin_port].clear();
+                std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "Error in InternalReceiverEntry: " << e.what() << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                PLOG(plog::error) << "CUDPCommunicator::InternalReceiverEntry exception: " << e.what();
+            }
+            catch (...)
+            {
+                std::cerr << _ERROR_CONSOLE_BOLD_TEXT_ << "Unknown error in InternalReceiverEntry" << _NORMAL_CONSOLE_TEXT_ << std::endl;
+                PLOG(plog::error) << "CUDPCommunicator::InternalReceiverEntry unknown exception";
             }
         }
 
